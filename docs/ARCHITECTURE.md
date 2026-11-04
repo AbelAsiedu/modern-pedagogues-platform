@@ -9,7 +9,7 @@ Status: **proposed**, not yet implemented. Versions below were checked against o
 | Framework | Next.js App Router, React, TypeScript (strict) | Single stack replaces Express + EJS + Next 14. | Official blog (2026-11-04): current line is **16.4** (2026-10-06). Next.js now ships a monthly formal security release; the most recent was **2026-11-03**. Install the latest patched 16.4.x and record the exact version in the lockfile. Verify at install. |
 | Styling/UI | Tailwind CSS, small in-repo component library (no heavy UI kit) | Reusable, accessible components; control of look. | Palette carried from legacy: cream `#fbf6ea`/`#f3ead7`, gold `#c9983e`, navy `#12243a`; Inter. Verify at install: Tailwind major. |
 | Database | PostgreSQL (managed) | Relational integrity for money and academic records. | Local dev and CI use a Postgres container, not SQLite. |
-| ORM + migrations | **Prisma** with versioned migrations | ~100 tables; declarative schema, generated types, a migration history the owner can run. Drizzle is a legitimate alternative (closer to SQL); revisit only if Prisma blocks a ledger query. | Verify at install: Prisma major and its Postgres driver requirements. |
+| ORM + migrations | **Drizzle ORM + drizzle-kit** with plain-SQL, forward-only migrations in `drizzle/` | Changed from Prisma during Phase 2: Prisma's engine binaries are fetched from `binaries.prisma.sh`, which the build environment's egress policy denied, so Prisma migrations could not be generated or verified. Drizzle has no native binary, emits reviewable SQL, and lets DB-level guarantees (CHECKs, triggers) live in ordinary migration files. Trade-off: less tooling around the schema than Prisma. | Exact versions pinned in `package.json`. |
 | Validation | Zod schemas shared by forms and server actions | One definition per input; mass-assignment protection. | |
 | Auth | Self-contained sessions: random opaque token, SHA-256 hash stored in Postgres, `HttpOnly; Secure; SameSite=Lax` cookie, Argon2id passwords, email verification and reset tokens (hashed, single use, short expiry), per-IP and per-account rate limits | Removes the legacy tab-session, shared-admin and fallback-secret designs; no framework lock-in. Google sign-in is added later as an optional provider. | |
 | Authorization | Permission-based (`finance.refund`, `academic.assign_tutor`, …), roles are bundles of permissions; every server action calls `authorize(user, permission, resource)` | Prompt requires no automatic super-powers for `Administrator`. Ownership checks (parent→child, tutor→assigned student, creator→own content) live in one module with tests. | |
@@ -41,7 +41,8 @@ src/components/     ui kit and shared components
 src/features/       business modules: academic, tutoring, lms, programmes, marketplace, commerce, cms
 src/server/         auth, permissions, payments (adapters), storage, notifications, audit, db
 src/lib/            pure utilities (money, dates, ids)
-prisma/             schema.prisma and migrations
+drizzle/            SQL migrations (0000 generated, 0001 hand-written audit triggers, 0002 generated)
+src/server/db/schema/  Drizzle table definitions
 tests/              unit, integration, e2e
 docs/               audit, architecture, runbooks
 ```

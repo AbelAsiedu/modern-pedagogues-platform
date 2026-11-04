@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* Brand tokens carried over from the existing TMP identity (see docs/TECHNICAL_AUDIT.md §3). */
+@theme {
+  --color-cream: #fbf6ea;
+  --color-cream-deep: #f3ead7;
+  --color-gold: #c9983e;
+  --color-navy: #12243a;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-navy);
+}
