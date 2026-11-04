@@ -46,6 +46,10 @@ git push -u origin main
 
 Nothing in this repository pushes to, or depends on, `home-tutoring-site`.
 
+## Decisions recorded
+
+Paystack is the first payment provider (account exists; live verification unconfirmed). Tutoring rates are negotiable per learner, starting from GHS 100 per session. The Kaitlyn AI assistant is kept as an optional later module. Details are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 ## Next step
 
 Continue with Phase 2 (foundation) in an environment where `npm install` works and the GitHub remote exists. The build order, versions to verify at install, and open owner decisions are listed in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

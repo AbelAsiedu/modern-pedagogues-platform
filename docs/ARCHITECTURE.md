@@ -58,11 +58,24 @@ docs/               audit, architecture, runbooks
 
 Each phase ends with passing lint, type-check, tests and a build before its commit.
 
+## Owner decisions recorded (2026-11-04)
+
+1. **Payments:** the owner has a Paystack account. Paystack is therefore the first adapter and Hubtel is deferred. Whether the account is business-verified and live, and which Mobile Money networks are enabled on it, is **not yet confirmed**; until it is, development and CI use Paystack test mode only.
+2. **Tutoring rates are negotiable and can start as low as GHS 100 per session.** Consequences for the design:
+   - There is no fixed public price list. A tutoring booking stores its own agreed rate (`rate_pesewas`, `currency`, who set it, when, and why changed), with a configurable *indicative starting rate* (default 10000 pesewas = GHS 100) used only as the displayed "from" figure.
+   - Rate changes on a booking are permission-gated (`finance.set_rate` or `academic.set_rate`) and written to the audit log.
+   - Public pages say "from GHS 100 per session, rates agreed per learner" only while an admin has that setting enabled; nothing is hard-coded in components.
+3. **Kaitlyn AI assistant is kept** as an optional module, built after the core platform (it is not in the master prompt's acceptance list):
+   - Answers come from admin-managed, published company knowledge (the legacy `ai_company_*` idea), served through an `LlmProvider` interface so the model vendor can change.
+   - It must not quote prices other than the admin-published indicative rate, and must say rates are negotiable; it hands off to staff for anything it does not know or any account-specific action.
+   - It has no access to student, parent, payment or tutor records. Conversation logs are retention-limited and exclude personal data where practical, given minors are users.
+   - It is disabled by default until a provider key is configured, and fails closed (a "contact us" message) when the provider is unavailable.
+
 ## Open decisions for the owner
 
-1. Payment provider and merchant account status (Paystack vs Hubtel; who holds the business verification).
+1. Is the Paystack account business-verified with live keys? Which MoMo networks are enabled? (Required before any live payment.)
 2. Hosting platform, region and monthly budget; whether to stay on Fly.io.
 3. Email provider and sending domain.
-4. Keep or drop the "Kaitlyn" AI assistant (not in the master prompt).
-5. Confirmed lesson pricing, commission rate, payout schedule and minimum payout.
+4. LLM provider and key for Kaitlyn (legacy `.env.example` lists Gemini, OpenRouter, Mistral and Hugging Face options).
+5. Platform commission, payout schedule and minimum payout for marketplace creators (rates for tutoring are settled above; creator terms are not).
 6. Real legal text for the seven policy pages, and business contact details to seed.
