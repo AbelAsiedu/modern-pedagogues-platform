@@ -7,6 +7,7 @@ import "dotenv/config";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
+import { poolConfig, truthy } from "../src/server/db/connection";
 import { recordAudit } from "../src/server/audit";
 import { RESET_TTL_SECONDS } from "../src/server/auth/service";
 import { generateToken, hashToken } from "../src/server/auth/tokens";
@@ -22,7 +23,7 @@ async function main() {
   if (!rawEmail || !fullName) throw new Error('Usage: npm run admin:create -- you@example.com "Full Name"');
   const email = emailSchema.parse(rawEmail);
 
-  const pool = new Pool({ connectionString: url, max: 1 });
+  const pool = new Pool(poolConfig({ url, max: 1, ssl: truthy(process.env.DATABASE_SSL), rejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false" }));
   const db = drizzle(pool, { schema });
   try {
     await seedReferenceData(db);

@@ -19,7 +19,8 @@ This lists behaviour that exists in code and is covered by tests. Anything not l
 - `audit_logs` is append-only: database triggers reject UPDATE, DELETE and TRUNCATE; the actor FK is RESTRICT so users with history cannot be hard-deleted.
 - Emails are stored lowercase; a CHECK constraint enforces it.
 - Logger redacts password/token/cookie/secret fields by key.
-- Production config validation refuses non-HTTPS `APP_URL` and the console mailer.
+- Production config validation refuses non-HTTPS `APP_URL`, the console mailer and incomplete SMTP settings. It runs at server start and the process exits with code 1 (tested locally).
+- Database TLS certificate verification is on by default and can be turned off only through an explicit variable (needed on Heroku).
 
 ## Not yet done (see KNOWN_ISSUES)
 CSRF protection for forms, cookie-setting code, security headers beyond the static set in `next.config.ts` (CSP still allows `'unsafe-inline'`), malware scanning, MFA for staff, backups, and an external security review.

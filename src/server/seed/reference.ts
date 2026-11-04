@@ -1,4 +1,5 @@
 import type { DbOrTx } from "../db";
+import { INDICATIVE_TUTORING_RATE } from "../../lib/site";
 import { academicLevels, curricula, roles, siteSettings } from "../db/schema";
 import { ROLE_KEYS, ROLE_LABELS, STAFF_ROLES } from "../permissions/catalog";
 
@@ -29,7 +30,19 @@ export const LEVELS = [
  * per session. This is an indicative "from" price shown on the website, not a fixed tariff.
  */
 export const DEFAULT_SETTINGS = {
-  "tutoring.indicative_rate": { amountMinor: "10000", currency: "GHS", unit: "session", negotiable: true },
+  "tutoring.indicative_rate": {
+    amountMinor: INDICATIVE_TUTORING_RATE.amount.toString(),
+    currency: INDICATIVE_TUTORING_RATE.currency,
+    unit: "session",
+    negotiable: true,
+  },
+  /**
+   * Owner decision (2026-11-04): use the average marketplace commission. Surveyed platforms range from
+   * 10% (Gumroad direct) to 30% (Gumroad Discover) to 63% (Udemy organic); 30% is used, i.e. creators keep 70%.
+   * Admin-editable, and applied only when marketplace sales exist (Phase 8). The payment-provider fee is
+   * paid out of TMP's share ("platform") rather than deducted from creators.
+   */
+  "marketplace.commission": { commissionBps: 3000, processingFeeBearer: "platform" },
 } as const;
 
 export async function seedReferenceData(db: DbOrTx): Promise<void> {

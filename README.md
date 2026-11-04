@@ -8,12 +8,13 @@ This is a new, independent codebase. The legacy site (`AbelAsiedu/home-tutoring-
 
 ## Status
 
-**Phase 2 (foundation): complete and verified. Everything else is not built yet.**
+**Phase 2 (foundation) complete. A public marketing site is built and Heroku-ready. Everything else is not built yet.**
 
 | Area | State |
 |---|---|
 | Legacy audit, architecture ([TECHNICAL_AUDIT](docs/TECHNICAL_AUDIT.md), [ARCHITECTURE](docs/ARCHITECTURE.md)) | Done |
-| Next.js / TypeScript strict / Tailwind app shell (placeholder home page only) | Done |
+| Public site: Home, Services, Pricing, About, Contact, Terms, Privacy, Refunds, sitemap, robots, health check | Done (content needs owner review, see [DEPLOYMENT](docs/DEPLOYMENT.md)) |
+| Heroku config (Procfile, app.json, release-phase migrations), Gmail SMTP mailer | Done and run locally in production mode; **not deployed** |
 | PostgreSQL schema + migrations: users, roles, sessions, verification/reset tokens, rate limits, audit log, email deliveries, site settings, curricula, levels, subjects | Done |
 | Auth services: register, verify email, login (lockout, rate limits), logout, password reset, change password, sessions | Done (service layer, tested) |
 | Roles and permissions with privilege-escalation rules | Done |
@@ -21,10 +22,10 @@ This is a new, independent codebase. The legacy site (`AbelAsiedu/home-tutoring-
 | Seed data and first-super-admin script | Done |
 | Auth **pages/forms**, cookie handling in Next, admin UI | **Not built** |
 | Public website, portals, booking, LMS, marketplace, commerce, payments, Kaitlyn | **Not built** (Phases 3-13) |
-| Real email delivery | **Not built** (console mailer only; production config refuses it) |
+| Email | SMTP mailer built (Gmail App Password), unit-tested with a fake transport; **never sent a real email** |
 | Remote GitHub repository | **Not created** (see below) |
 
-See [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) for everything unresolved, [docs/SECURITY.md](docs/SECURITY.md) for what is actually enforced, and [docs/TESTING.md](docs/TESTING.md) for how verification works.
+Deploying: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). See [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) for everything unresolved, [docs/SECURITY.md](docs/SECURITY.md) for what is actually enforced, and [docs/TESTING.md](docs/TESTING.md) for how verification works.
 
 ## Run it
 
@@ -54,4 +55,4 @@ Without `gh`: create an empty private repo in the GitHub UI (no README/.gitignor
 
 ## Decisions recorded
 
-Paystack is the first payment provider (account exists; live verification unconfirmed, so test mode only). Tutoring rates are negotiable per learner, starting from GHS 100 per session (stored as 10000 pesewas in the `tutoring.indicative_rate` setting). The Kaitlyn AI assistant is kept as an optional later module. Details in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Paystack is the first payment provider (MTN Mobile Money is the first network; account registration in progress, so test mode only). Hosting is Heroku (Basic dyno + Postgres Essential-0, about US$12/month). Email is Gmail SMTP for now. Marketplace commission default is 30% (creators keep 70%), editable in settings. Tutoring rates are negotiable per learner, starting from GHS 100 per session (stored as 10000 pesewas in the `tutoring.indicative_rate` setting). The Kaitlyn AI assistant is kept as an optional later module. Details in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

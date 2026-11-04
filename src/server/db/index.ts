@@ -2,6 +2,7 @@ import "server-only";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { env } from "../env";
+import { poolConfig } from "./connection";
 import * as schema from "./schema";
 
 export type Db = NodePgDatabase<typeof schema>;
@@ -12,14 +13,14 @@ const globalForDb = globalThis as unknown as { __tmpPool?: Pool };
 
 function createPool(): Pool {
   const e = env();
-  return new Pool({
-    connectionString: e.DATABASE_URL,
-    max: e.DATABASE_POOL_MAX,
-    idleTimeoutMillis: 30_000,
-    connectionTimeoutMillis: 5_000,
-    // Managed Postgres providers require TLS; local development usually does not.
-    ssl: e.DATABASE_SSL ? { rejectUnauthorized: true } : undefined,
-  });
+  return new Pool(
+    poolConfig({
+      url: e.DATABASE_URL,
+      max: e.DATABASE_POOL_MAX,
+      ssl: e.DATABASE_SSL,
+      rejectUnauthorized: e.DATABASE_SSL_REJECT_UNAUTHORIZED,
+    }),
+  );
 }
 
 /** One pool per process (reused across hot reloads in development). */

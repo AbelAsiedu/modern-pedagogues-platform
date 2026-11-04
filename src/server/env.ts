@@ -15,11 +15,24 @@ const schema = z
     DATABASE_URL: z.string().min(1),
     DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
     DATABASE_SSL: boolish.default(false),
-    EMAIL_PROVIDER: z.enum(["console"]).default("console"),
+    /** Heroku Postgres presents a certificate chain Node cannot verify; set to false there only. */
+    DATABASE_SSL_REJECT_UNAUTHORIZED: boolish.default(true),
+    EMAIL_PROVIDER: z.enum(["console", "smtp"]).default("console"),
+    SMTP_HOST: z.string().min(1).optional(),
+    SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(465),
+    /** true = implicit TLS (port 465). false = STARTTLS (port 587). */
+    SMTP_SECURE: boolish.default(true),
+    SMTP_USER: z.string().min(1).optional(),
+    SMTP_PASSWORD: z.string().min(1).optional(),
     EMAIL_FROM: z.string().min(3).default("The Modern Pedagogues <no-reply@localhost>"),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   })
   .superRefine((v, ctx) => {
+    if (v.EMAIL_PROVIDER === "smtp") {
+      for (const key of ["SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"] as const) {
+        if (!v[key]) ctx.addIssue({ code: "custom", path: [key], message: `${key} is required when EMAIL_PROVIDER=smtp` });
+      }
+    }
     if (v.NODE_ENV === "production") {
       if (!v.APP_URL.startsWith("https://")) {
         ctx.addIssue({ code: "custom", path: ["APP_URL"], message: "APP_URL must use https in production" });

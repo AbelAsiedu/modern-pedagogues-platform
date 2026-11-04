@@ -5,4 +5,4 @@
 - Test-only: the harness disables the audit triggers inside a transaction to wipe tables between tests; a test proves they are re-enabled.
 - Not covered yet: browser/E2E tests (no pages exist), payment webhooks, file uploads.
 
-State at end of Phase 2: 98 tests (unit + integration) pass; lint, typecheck and production build pass.
+Latest: 110 tests (unit + integration) pass; lint, typecheck and production build pass. Also checked by hand: the built app started with production variables served all 8 pages, sitemap, robots and `/api/health` (200), and exited with code 1 on unsafe configuration. Not covered by automated tests: page rendering and content.

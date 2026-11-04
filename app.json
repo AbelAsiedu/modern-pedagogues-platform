@@ -1,0 +1,54 @@
+{
+  "name": "modern-pedagogues-platform",
+  "description": "The Modern Pedagogues website and platform",
+  "stack": "heroku-24",
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "addons": [
+    {
+      "plan": "heroku-postgresql:essential-0"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "env": {
+    "APP_URL": {
+      "description": "Public https URL, for example https://your-app.herokuapp.com (no trailing slash)"
+    },
+    "DATABASE_SSL": {
+      "value": "true"
+    },
+    "DATABASE_SSL_REJECT_UNAUTHORIZED": {
+      "value": "false",
+      "description": "Heroku Postgres uses a certificate chain Node cannot verify"
+    },
+    "EMAIL_PROVIDER": {
+      "value": "smtp"
+    },
+    "EMAIL_FROM": {
+      "value": "The Modern Pedagogues <themodernpedagogues@gmail.com>"
+    },
+    "SMTP_HOST": {
+      "value": "smtp.gmail.com"
+    },
+    "SMTP_PORT": {
+      "value": "465"
+    },
+    "SMTP_SECURE": {
+      "value": "true"
+    },
+    "SMTP_USER": {
+      "value": "themodernpedagogues@gmail.com"
+    },
+    "SMTP_PASSWORD": {
+      "description": "A Google App Password (16 characters), never the account password"
+    }
+  }
+}

@@ -91,14 +91,17 @@ describe("seed data", () => {
   it("is idempotent and never overwrites an admin's setting change", async () => {
     await db
       .update(siteSettings)
-      .set({ value: { amountMinor: "15000", currency: "GHS", unit: "session", negotiable: true } as never });
+      .set({ value: { amountMinor: "15000", currency: "GHS", unit: "session", negotiable: true } as never })
+      .where(sql`key = 'tutoring.indicative_rate'`);
     await seedReferenceData(db);
     await seedReferenceData(db);
     const counts = await db.execute<{ roles: number; cur: number; lvl: number }>(
       sql`select (select count(*)::int from roles) roles, (select count(*)::int from curricula) cur, (select count(*)::int from academic_levels) lvl`,
     );
     expect(counts.rows[0]).toEqual({ roles: 10, cur: 5, lvl: 6 });
-    const [s] = await db.select().from(siteSettings);
-    expect((s!.value as { amountMinor: string }).amountMinor).toBe("15000");
+    const rate = await db.select().from(siteSettings).where(sql`key = 'tutoring.indicative_rate'`);
+    expect((rate[0]!.value as { amountMinor: string }).amountMinor).toBe("15000");
+    const commission = await db.select().from(siteSettings).where(sql`key = 'marketplace.commission'`);
+    expect(commission[0]!.value).toEqual({ commissionBps: 3000, processingFeeBearer: "platform" });
   });
 });

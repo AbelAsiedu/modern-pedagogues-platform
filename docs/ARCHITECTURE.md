@@ -80,3 +80,10 @@ Each phase ends with passing lint, type-check, tests and a build before its comm
 4. LLM provider and key for Kaitlyn (legacy `.env.example` lists Gemini, OpenRouter, Mistral and Hugging Face options).
 5. Platform commission, payout schedule and minimum payout for marketplace creators (rates for tutoring are settled above; creator terms are not).
 6. Real legal text for the seven policy pages, and business contact details to seed.
+
+## Owner decisions recorded (2026-11-04, second round)
+
+- First Mobile Money network: **MTN**. Paystack registration needs the live website; deploying is the unblocker.
+- Business email and mail sender: `themodernpedagogues@gmail.com` through Google SMTP (App Password) for now.
+- Hosting: **Heroku**, base paid plan: Basic dyno + Heroku Postgres Essential-0 (about US$12/month). See DEPLOYMENT.md.
+- Marketplace commission: "the average" interpreted as **30%** to TMP (creators keep 70%), payment-provider fee paid from TMP's share. Stored as the `marketplace.commission` setting, applied from Phase 8. Evidence: Gumroad 10% direct and 30% via Discover; Udemy keeps 63% of organic sales (the Udemy figure comes from an instructor-review article and Gumroad's from a competitor's blog; verify against each platform's own pages before relying on them).
