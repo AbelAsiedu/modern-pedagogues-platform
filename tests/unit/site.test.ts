@@ -10,6 +10,11 @@ describe("site facts", () => {
   it("uses the owner's contact email", () => {
     expect(SITE.email).toBe("themodernpedagogues@gmail.com");
   });
+  it("publishes one number, labelled as the MTN MoMo number, and no postal address", () => {
+    expect(SITE.momoNetwork).toBe("MTN Mobile Money");
+    expect(SITE.phoneDisplay).toBe("+233 59 366 0708");
+    expect(Object.keys(SITE).some((k) => /address/i.test(k))).toBe(false);
+  });
   it("builds an encoded WhatsApp link", () => {
     const link = whatsappLink("Hello TMP & friends");
     expect(link).toBe("https://wa.me/233593660708?text=Hello%20TMP%20%26%20friends");

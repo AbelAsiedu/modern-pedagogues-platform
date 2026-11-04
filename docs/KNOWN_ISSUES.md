@@ -10,12 +10,12 @@
 | 6 | Auth has no UI, cookie code, or CSRF layer | Services only | Phase 3 |
 | 7 | Gmail SMTP mailer never tested against real Gmail (no credentials or SMTP egress here) | Verification emails unproven until deployed | After deploy, register a test account and confirm the email arrives |
 | 8 | Paystack account not yet live (registration needs the website); first network is MTN MoMo; Hubtel not evaluated | Test mode only | Owner completes registration with the deployed URL |
-| 9 | Still open: LLM provider for Kaitlyn, marketplace payout schedule/minimums, registered business name and address | Blocks later phases | See ARCHITECTURE.md |
+| 9 | Still open: LLM provider for Kaitlyn, marketplace payout schedule/minimums, registered business name (no postal address is shown, by owner decision) | Blocks later phases | See ARCHITECTURE.md |
 | 10 | Fonts are self-hosted via `@fontsource-variable/inter` because Google Fonts is unreachable at build here | None (better for privacy) | - |
 | 11 | User hard-deletion is blocked once audit rows exist (by design) | Need anonymise flow for erasure requests | Design in Phase 12 |
 | 12 | Not deployed: no Heroku credentials here | Site is not live | Owner follows docs/DEPLOYMENT.md |
 | 13 | Policy text (terms, privacy, refunds) is a plain-language draft with default terms I chose (24h cancellation notice); not lawyer-reviewed | Legal exposure if wrong | Owner confirms/edits; get a lawyer to review; check Data Protection Commission registration |
-| 14 | Phone/WhatsApp number comes from the legacy site and is unconfirmed | Wrong contact on live site | Owner confirms |
+| 14 | The MoMo / phone / WhatsApp number is one number, confirmed by owner as the MTN MoMo number. The MoMo account name is not shown (unknown to me) | Clients may want to check the name before paying | Owner may add the registered MoMo account name |
 | 15 | Marketplace commission 30% is my reading of "average" (Gumroad 10% direct / 30% Discover, Udemy 63% organic) | Affects creator payouts later | Owner confirms before Phase 8 |
 | 16 | Heroku Postgres requires disabling TLS certificate verification (encrypted but unverified) | Weaker than verified TLS | Revisit if moving to a provider with verifiable certificates |
 | 17 | No page can create accounts yet; the contact flow is mailto/WhatsApp links only | No lead capture in the app | Phase 3 |

@@ -24,6 +24,11 @@ export default function Contact() {
             <dd className="mt-1 text-xl"><a href={`tel:${SITE.phoneTel}`}>{SITE.phoneDisplay}</a></dd>
           </div>
           <div>
+            <dt className="text-sm font-semibold uppercase tracking-widest text-gold">{SITE.momoNetwork} (MoMo) number</dt>
+            <dd className="mt-1 text-xl">{SITE.phoneDisplay}</dd>
+            <dd className="mt-1 text-sm">For fees you have agreed with us. Please confirm payment details with us on WhatsApp before sending money.</dd>
+          </div>
+          <div>
             <dt className="text-sm font-semibold uppercase tracking-widest text-gold">Where we work</dt>
             <dd className="mt-1">Ghana (home tuition) and online for learners anywhere.</dd>
           </div>

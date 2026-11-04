@@ -8,7 +8,8 @@ export const SITE = {
   motto: "Empowering Lives, Changing Destinies.",
   founded: 2019,
   email: "themodernpedagogues@gmail.com",
-  // Taken from the legacy site's public contact page; owner to confirm it is still current.
+  // Owner confirmed (2026-11-04): this is the MTN Mobile Money number, also used for phone and WhatsApp.
+  momoNetwork: "MTN Mobile Money",
   phoneDisplay: "+233 59 366 0708",
   phoneTel: "+233593660708",
   whatsappNumber: "233593660708",

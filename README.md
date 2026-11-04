@@ -13,7 +13,7 @@ This is a new, independent codebase. The legacy site (`AbelAsiedu/home-tutoring-
 | Area | State |
 |---|---|
 | Legacy audit, architecture ([TECHNICAL_AUDIT](docs/TECHNICAL_AUDIT.md), [ARCHITECTURE](docs/ARCHITECTURE.md)) | Done |
-| Public site: Home, Services, Pricing, About, Contact, Terms, Privacy, Refunds, sitemap, robots, health check | Done (content needs owner review, see [DEPLOYMENT](docs/DEPLOYMENT.md)) |
+| Public site: Home, Services, Pricing, About, Contact, Terms, Privacy, Refunds, sitemap, robots, health check | Done (content needs owner review, see [DEPLOYMENT](docs/DEPLOYMENT.md)); shows the MTN MoMo number, no postal address |
 | Heroku config (Procfile, app.json, release-phase migrations), Gmail SMTP mailer | Done and run locally in production mode; **not deployed** |
 | PostgreSQL schema + migrations: users, roles, sessions, verification/reset tokens, rate limits, audit log, email deliveries, site settings, curricula, levels, subjects | Done |
 | Auth services: register, verify email, login (lockout, rate limits), logout, password reset, change password, sessions | Done (service layer, tested) |

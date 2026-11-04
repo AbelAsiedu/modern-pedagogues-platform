@@ -52,6 +52,7 @@ export function Footer() {
           <p className="mt-1">
             Phone / WhatsApp: <a href={`tel:${SITE.phoneTel}`}>{SITE.phoneDisplay}</a>
           </p>
+          <p className="mt-1">{SITE.momoNetwork}: {SITE.phoneDisplay}</p>
         </div>
         <nav aria-label="Legal" className="text-sm">
           <p className="font-semibold">Policies</p>

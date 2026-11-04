@@ -60,11 +60,11 @@ heroku run -a YOUR-APP-NAME npm run admin:create -- themodernpedagogues@gmail.co
 
 Read every page once. These need **your** confirmation because they are business decisions or facts I could not verify:
 
-- Phone / WhatsApp number (taken from the old site's contact page) and the contact email.
+- Contact email. The phone / WhatsApp / MTN MoMo number (+233 59 366 0708) was confirmed by you as the MoMo number; the Contact and Pricing pages show it with that label.
 - Refund and cancellation terms (24 hours' notice; refund of undelivered prepaid sessions). These are sensible defaults, not your agreed policy.
 - Terms and privacy text: plain-language drafts for this business, **not reviewed by a lawyer**. Also check whether your business must register with Ghana's Data Protection Commission.
-- Registered business name and address, if Paystack asks for them. The site does not show any because I do not have them and will not invent them.
-- The pricing page says online payment through Paystack "is being set up". Update it once Paystack is live.
+- No postal address is shown, by your decision. The business name on the site is "The Modern Pedagogues".
+- The pricing page says Paystack payment "is being set up" and tells clients to pay the MoMo number after confirming details on WhatsApp. Update it once Paystack is live.
 
 ## Paystack requirements (their Ghana page, checked 4 Nov 2026)
 

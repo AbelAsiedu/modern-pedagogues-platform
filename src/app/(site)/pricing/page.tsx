@@ -36,9 +36,10 @@ export default function Pricing() {
 
         <h2 className="mt-12 text-2xl font-semibold">Paying</h2>
         <p className="mt-3">
-          All fees are in Ghana cedis (GH₵). Online payment through Paystack, including MTN Mobile Money and cards, is being
-          set up; TMP never sees or stores your card number or Mobile Money PIN. Until online checkout is switched on, we
-          confirm payment arrangements with you directly.
+          All fees are in Ghana cedis (GH₵). You can pay by {SITE.momoNetwork} to our MoMo number, {SITE.phoneDisplay}.
+          Please confirm the payment details with us on WhatsApp before you send money, and keep your payment confirmation.
+          Online payment through Paystack, including MTN Mobile Money and cards, is being set up; TMP never sees or stores
+          your card number or Mobile Money PIN.
         </p>
 
         <h2 className="mt-12 text-2xl font-semibold">Other programmes</h2>
