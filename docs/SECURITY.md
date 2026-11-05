@@ -22,5 +22,14 @@ This lists behaviour that exists in code and is covered by tests. Anything not l
 - Production config validation refuses non-HTTPS `APP_URL`, the console mailer and incomplete SMTP settings. It runs at server start and the process exits with code 1 (tested locally).
 - Database TLS certificate verification is on by default and can be turned off only through an explicit variable (needed on Heroku).
 
+## Web layer
+- Session cookie: `__Host-tmp_session` in production (Secure, HttpOnly, SameSite=Lax, Path=/, no Domain). Checked in a real browser against the production build.
+- Forms are Next.js Server Actions, which check that the request's Origin matches the site (CSRF defence). Every action re-reads the user from the database and checks the permission itself; hiding a button is never the only control.
+- Admin pages: signed-out visitors go to sign-in; signed-in users without permission get a 404.
+- Post-login redirect only accepts same-site relative paths (tested).
+- Client IP for rate limiting is the LAST X-Forwarded-For entry, because Heroku's router appends the real address at the end.
+- Banner images must be paths on this site and banner links must be same-site, https, mailto or tel (no javascript: or data: URLs); tested.
+- Staff safeguards (tested): no suspending yourself; only a super administrator may suspend or change privileged staff; the last super administrator cannot be removed; suspension ends sessions immediately; every admin action is written to the audit log.
+
 ## Not yet done (see KNOWN_ISSUES)
-CSRF protection for forms, cookie-setting code, security headers beyond the static set in `next.config.ts` (CSP still allows `'unsafe-inline'`), malware scanning, MFA for staff, backups, and an external security review.
+Staff MFA, security headers beyond the static set in `next.config.ts` (CSP still allows `'unsafe-inline'`), malware scanning, backups, and an external security review.

@@ -1,34 +1,24 @@
 import Link from "next/link";
-import { Hero } from "@/components/site/Chrome";
+import { HeroSlideshow } from "@/components/site/HeroSlideshow";
+import { getPublicBannersOrDefaults } from "@/server/content/banners";
+import { db } from "@/server/db";
 import { format } from "@/lib/money";
-import { CURRICULA_NAMES, INDICATIVE_TUTORING_RATE, SERVICES, SITE, whatsappLink } from "@/lib/site";
+import { CURRICULA_NAMES, INDICATIVE_TUTORING_RATE, SERVICES, SITE } from "@/lib/site";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const banners = await getPublicBannersOrDefaults(() => db());
   return (
     <>
-      <Hero kicker="Tutoring · Exam preparation · Curriculum consulting" title={SITE.tagline}>
-        <p>
-          The Modern Pedagogues builds learning around the student, not a fixed syllabus. Qualified tutors, a plan
-          tailored to how each ward learns, tracked progress and honest reporting, from Pre-school through Senior High
-          School.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <a
-            href={whatsappLink("Hello TMP, I would like to request a tutor for my ward.")}
-            className="rounded-full bg-gold px-6 py-3 font-semibold text-navy hover:bg-gold/90"
-          >
-            Request a tutor
-          </a>
-          <Link href="/services" className="rounded-full border border-cream/40 px-6 py-3 font-semibold hover:border-cream">
-            Explore services
-          </Link>
-        </div>
-        <ul className="mt-8 flex flex-wrap gap-2 text-sm">
+      <h1 className="sr-only">The Modern Pedagogues: tutoring, exam preparation and educational consulting</h1>
+      <HeroSlideshow slides={banners}>
+        <ul className="mt-8 flex flex-wrap gap-2 text-sm" aria-label="Curricula we support">
           {CURRICULA_NAMES.map((c) => (
             <li key={c} className="rounded-full border border-cream/30 px-3 py-1">{c}</li>
           ))}
         </ul>
-      </Hero>
+      </HeroSlideshow>
 
       <section className="mx-auto grid max-w-6xl gap-8 px-6 py-16 md:grid-cols-3">
         {[

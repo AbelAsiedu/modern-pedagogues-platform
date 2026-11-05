@@ -21,6 +21,7 @@ export function Header() {
               {n.label}
             </Link>
           ))}
+          <Link href="/login" className="hover:text-gold">Sign in</Link>
           <a
             href={whatsappLink("Hello TMP, I would like to request a tutor for my ward.")}
             className="rounded-full bg-navy px-4 py-2 text-cream hover:bg-navy/90"

@@ -7,7 +7,7 @@
 | 3 | `npm audit`: 12 moderate advisories, all dev-tooling (old `esbuild` inside `drizzle-kit`, `minimatch` via ESLint/typescript-eslint). `npm audit --omit=dev` reports 0. | Not shipped to production | Re-check on dependency updates; do not use `--force` |
 | 4 | ESLint pinned to 9.39.5 (eslint-config-next 16.4.5 peer range); ESLint 10 not tried | None now | Revisit when config-next supports it |
 | 5 | CSP uses `'unsafe-inline'` for scripts/styles | Weaker XSS defence | Nonce-based CSP in Phase 12 |
-| 6 | Auth has no UI, cookie code, or CSRF layer | Services only | Phase 3 |
+| 6 | Account area is minimal: a name, roles and change-password. No parent/student/tutor dashboards | Portals missing | Later stages |
 | 7 | Gmail SMTP mailer never tested against real Gmail (no credentials or SMTP egress here) | Verification emails unproven until deployed | After deploy, register a test account and confirm the email arrives |
 | 8 | Paystack account not yet live (registration needs the website); first network is MTN MoMo; Hubtel not evaluated | Test mode only | Owner completes registration with the deployed URL |
 | 9 | Still open: LLM provider for Kaitlyn, marketplace payout schedule/minimums, registered business name (no postal address is shown, by owner decision) | Blocks later phases | See ARCHITECTURE.md |
@@ -19,3 +19,7 @@
 | 15 | Marketplace commission 30% is my reading of "average" (Gumroad 10% direct / 30% Discover, Udemy 63% organic) | Affects creator payouts later | Owner confirms before Phase 8 |
 | 16 | Heroku Postgres requires disabling TLS certificate verification (encrypted but unverified) | Weaker than verified TLS | Revisit if moving to a provider with verifiable certificates |
 | 17 | No page can create accounts yet; the contact flow is mailto/WhatsApp links only | No lead capture in the app | Phase 3 |
+| 18 | **Not built yet from the old site:** tutors directory and application form, marketplace (listings, creators, moderation, cart, checkout, downloads), Kaitlyn, e-store, learning portals, enrol-a-ward, FAQ/curriculum pages | The site is a subset of the old one | Staged: tutors, then marketplace, then Kaitlyn |
+| 19 | Banner images can only be files already on the site (`/images/...`). Admins cannot upload images yet | Changing a picture needs a code change | Storage module (private/public buckets) |
+| 20 | Browser end-to-end tests are not automated or in the repo | Regressions in forms/slideshow would not be caught automatically | Add Playwright to CI once a CI exists |
+| 21 | Dev-server CSP allows `unsafe-eval` (development only); production does not | None in production | - |

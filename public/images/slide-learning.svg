@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Learner and tutor at a desk">
+  <rect width="800" height="600" fill="#12243a"/>
+  <circle cx="620" cy="140" r="120" fill="#c9983e" opacity=".22"/>
+  <circle cx="150" cy="500" r="170" fill="#c9983e" opacity=".12"/>
+  <rect x="150" y="380" width="500" height="26" rx="8" fill="#f3ead7"/>
+  <rect x="190" y="406" width="22" height="130" fill="#f3ead7"/><rect x="588" y="406" width="22" height="130" fill="#f3ead7"/>
+  <rect x="300" y="300" width="200" height="80" rx="6" fill="#fbf6ea"/><rect x="400" y="300" width="3" height="80" fill="#c9983e"/>
+  <rect x="316" y="318" width="70" height="6" fill="#12243a" opacity=".4"/><rect x="316" y="334" width="60" height="6" fill="#12243a" opacity=".4"/><rect x="316" y="350" width="66" height="6" fill="#12243a" opacity=".4"/>
+  <rect x="418" y="318" width="70" height="6" fill="#12243a" opacity=".4"/><rect x="418" y="334" width="52" height="6" fill="#12243a" opacity=".4"/>
+  <circle cx="240" cy="260" r="42" fill="#c9983e"/><rect x="204" y="306" width="72" height="74" rx="30" fill="#c9983e"/>
+  <circle cx="560" cy="250" r="46" fill="#fbf6ea"/><rect x="520" y="300" width="80" height="80" rx="32" fill="#fbf6ea"/>
+  <path d="M120 120 l40 -50 l40 50 z" fill="#c9983e"/><rect x="144" y="120" width="32" height="40" fill="#c9983e"/>
+</svg>

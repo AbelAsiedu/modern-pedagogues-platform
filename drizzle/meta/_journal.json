@@ -22,6 +22,13 @@
       "when": 1793830986937,
       "tag": "0002_audit_actor_restrict",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793850769836,
+      "tag": "0003_hero_banners",
+      "breakpoints": true
     }
   ]
 }

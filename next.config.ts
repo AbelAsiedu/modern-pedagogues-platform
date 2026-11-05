@@ -19,7 +19,8 @@ const securityHeaders = [
       "font-src 'self'",
       "style-src 'self' 'unsafe-inline'",
       // Next.js needs inline scripts for hydration unless nonces are wired in; tracked for Phase 12.
-      "script-src 'self' 'unsafe-inline'",
+      // React's development build uses eval for debugging aids; production never does.
+      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"}`,
       "connect-src 'self'",
       "object-src 'none'",
     ].join("; "),

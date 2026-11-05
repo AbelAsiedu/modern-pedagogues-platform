@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Exam paper with a tick and a pencil">
+  <rect width="800" height="600" fill="#12243a"/>
+  <circle cx="620" cy="140" r="120" fill="#c9983e" opacity=".22"/>
+  <circle cx="150" cy="500" r="170" fill="#c9983e" opacity=".12"/>
+  <rect x="230" y="110" width="340" height="420" rx="14" fill="#fbf6ea"/>
+  <rect x="270" y="170" width="200" height="12" rx="6" fill="#12243a" opacity=".5"/><rect x="270" y="210" width="240" height="10" rx="5" fill="#12243a" opacity=".25"/>
+  <rect x="270" y="240" width="220" height="10" rx="5" fill="#12243a" opacity=".25"/><rect x="270" y="270" width="240" height="10" rx="5" fill="#12243a" opacity=".25"/>
+  <path d="M290 360 l40 44 l90 -100" fill="none" stroke="#c9983e" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="rotate(35 620 420)"><rect x="590" y="300" width="36" height="220" rx="6" fill="#c9983e"/><path d="M590 520 l18 44 l18 -44z" fill="#f3ead7"/></g>
+</svg>

@@ -8,7 +8,7 @@ This is a new, independent codebase. The legacy site (`AbelAsiedu/home-tutoring-
 
 ## Status
 
-**Phase 2 (foundation) complete. A public marketing site is built and Heroku-ready. Everything else is not built yet.**
+**Foundation, public site, sign-in and the first admin tools are built. Tutors, marketplace, Kaitlyn and the rest of the old site's features are not built yet.**
 
 | Area | State |
 |---|---|
@@ -20,8 +20,10 @@ This is a new, independent codebase. The legacy site (`AbelAsiedu/home-tutoring-
 | Roles and permissions with privilege-escalation rules | Done |
 | Money library (integer pesewas, `bigint`) and marketplace split | Done |
 | Seed data and first-super-admin script | Done |
-| Auth **pages/forms**, cookie handling in Next, admin UI | **Not built** |
-| Public website, portals, booking, LMS, marketplace, commerce, payments, Kaitlyn | **Not built** (Phases 3-13) |
+| Sign-in, sign-up, email confirmation, password reset, change password, account page | Done, checked in a real browser |
+| Admin area: dashboard, users (search, suspend, restore, roles), audit log, home banners | Done, checked in a real browser |
+| Home-page hero slideshow (admin-managed banners, accessible, 3 default slides) | Done |
+| Tutors page and applications, marketplace, Kaitlyn, portals, booking, courses, shop, payments | **Not built yet** (next stages) |
 | Email | SMTP mailer built (Gmail App Password), unit-tested with a fake transport; **never sent a real email** |
 | Remote GitHub repository | **Not created** (see below) |
 

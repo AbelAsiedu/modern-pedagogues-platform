@@ -24,7 +24,7 @@ export async function resetData(db: Db) {
   await db.transaction(async (tx) => {
     await tx.execute(sql`ALTER TABLE audit_logs DISABLE TRIGGER USER`);
     await tx.execute(sql`TRUNCATE users, roles, user_roles, sessions, email_verification_tokens, password_reset_tokens,
-      rate_limits, email_deliveries, site_settings, curricula, academic_levels, subjects, audit_logs`);
+      rate_limits, email_deliveries, site_settings, curricula, academic_levels, subjects, hero_banners, audit_logs`);
     await tx.execute(sql`ALTER TABLE audit_logs ENABLE TRIGGER USER`);
   });
   await seedReferenceData(db);

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Team of tutors around a table">
+  <rect width="800" height="600" fill="#12243a"/>
+  <circle cx="620" cy="140" r="120" fill="#c9983e" opacity=".22"/>
+  <circle cx="150" cy="500" r="170" fill="#c9983e" opacity=".12"/>
+  <circle cx="400" cy="400" r="150" fill="#f3ead7" opacity=".9"/>
+  <g fill="#c9983e"><circle cx="400" cy="200" r="46"/><rect x="354" y="250" width="92" height="70" rx="34"/></g>
+  <g fill="#fbf6ea"><circle cx="210" cy="330" r="46"/><rect x="164" y="380" width="92" height="70" rx="34"/><circle cx="590" cy="330" r="46"/><rect x="544" y="380" width="92" height="70" rx="34"/></g>
+  <g fill="#f3ead7"><circle cx="300" cy="500" r="40"/><circle cx="500" cy="500" r="40"/></g>
+</svg>
