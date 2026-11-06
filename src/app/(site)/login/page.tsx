@@ -16,9 +16,14 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <AuthCard
       title="Sign in"
       footer={
+        <>
         <p>
           <Link href="/forgot-password" className="underline">Forgot your password?</Link> · <Link href="/register" className="underline">Create an account</Link>
         </p>
+        <p className="mt-2">
+          Did not get the confirmation email, or the link did not work? <Link href="/resend-verification" className="underline">Send it again</Link>
+        </p>
+        </>
       }
     >
       {sp.verified ? <Notice>Email confirmed. You can sign in now.</Notice> : null}

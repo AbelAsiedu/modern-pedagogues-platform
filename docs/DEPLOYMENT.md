@@ -27,7 +27,7 @@ heroku addons:create heroku-postgresql:essential-0 -a YOUR-APP-NAME
 heroku ps:type web=basic -a YOUR-APP-NAME
 
 heroku config:set -a YOUR-APP-NAME \
-  APP_URL=https://YOUR-APP-NAME.herokuapp.com \
+  APP_URL=https://THE-WEB-URL-HEROKU-PRINTED \
   DATABASE_SSL=true DATABASE_SSL_REJECT_UNAUTHORIZED=false \
   EMAIL_PROVIDER=smtp EMAIL_FROM="The Modern Pedagogues <abelasiedu@gmail.com>" \
   SMTP_HOST=smtp.gmail.com SMTP_PORT=465 SMTP_SECURE=true \
@@ -38,6 +38,8 @@ heroku open -a YOUR-APP-NAME
 ```
 
 Email is sent through the Gmail account abelasiedu@gmail.com (its App Password goes in `SMTP_PASSWORD`; the account needs 2-Step Verification on). Gmail shows that address as the sender unless you add themodernpedagogues@gmail.com as a "Send mail as" alias in Gmail settings, so `EMAIL_FROM` uses the same address. The public contact address on the website is still themodernpedagogues@gmail.com, and new tutor applications are announced to that inbox.
+
+**`APP_URL` must be the exact address Heroku gave you, not a guess.** Heroku adds a random ending to new apps, so the address looks like `https://themodernpedagogues-70f4f230adc2.herokuapp.com`, not `https://themodernpedagogues.herokuapp.com`. After `heroku create`, run `heroku apps:info -a YOUR-APP-NAME` and copy the **Web URL** (or `heroku domains -a YOUR-APP-NAME`). If you add a custom domain later, switch `APP_URL` to it. Every link in an email (confirm your email, reset your password, order notices) is built from `APP_URL`; if it is wrong, people click the link and Heroku shows "There's nothing here, yet." The admin dashboard shows a warning, with the exact command to run, when `APP_URL` does not match the address you are using.
 
 **Set `APP_URL` before the first push.** Page metadata (canonical and social URLs) is fixed at build time. If you change `APP_URL` later, redeploy.
 
@@ -78,7 +80,7 @@ heroku addons:create scheduler:standard -a YOUR-APP-NAME
 
 ## Custom domain (optional, later)
 
-`https://YOUR-APP-NAME.herokuapp.com` is a real HTTPS site and can be used for Paystack registration. A custom domain looks more established: buy one, `heroku domains:add`, point DNS at the target Heroku gives you, then update `APP_URL` and redeploy.
+The Web URL Heroku printed (for example `https://themodernpedagogues-70f4f230adc2.herokuapp.com`) is a real HTTPS site and can be used for Paystack registration. A custom domain looks more established: buy one, `heroku domains:add`, point DNS at the target Heroku gives you, then update `APP_URL` and redeploy.
 
 ## Before you give Paystack the URL
 
@@ -108,3 +110,6 @@ Starter business: government ID, TIN, a personal bank account or Mobile Money nu
 - Resources page: `/resources`. Old `/shop` links redirect there.
 - **Orders** (admin menu): a buyer signs in, presses Order, and sees a reference like TMP-7K2Q9X and the MoMo steps (editable under Site text > Resources). When the MoMo payment arrives, find the order by that reference, type the MoMo transaction ID, and press **Mark as paid**. The buyer is emailed and the download unlocks under **My orders**. There is no automatic check yet, so look at the actual MoMo message before confirming.
 - Database size: pictures and PDFs live in the Essential-0 database (1 GB). Check `heroku pg:info` now and then.
+
+## Troubleshooting: the link in an email shows "There's nothing here, yet."
+The link was built from a wrong `APP_URL`. Run `heroku config:set APP_URL=https://<the address you really use> -a themodernpedagogues` (Heroku restarts the app by itself), then ask the person to open **Sign in > Send it again** (`/resend-verification`) for a fresh confirmation link, or use **Forgot your password?** for a reset link. Old links keep pointing at the wrong place and cannot be repaired.

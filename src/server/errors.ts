@@ -50,7 +50,7 @@ export class InvalidCredentialsError extends AppError {
 
 export class EmailNotVerifiedError extends AppError {
   constructor() {
-    super("EMAIL_NOT_VERIFIED", 403, "Please verify your email address before signing in.");
+    super("EMAIL_NOT_VERIFIED", 403, "Please confirm your email address before signing in. Check your inbox (and spam) for the link, or use “Send it again” below the form.");
   }
 }
 

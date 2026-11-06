@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/admin/AdminNav";
+import { headers } from "next/headers";
+import { checkSiteAddress } from "@/lib/site-address";
+import { env } from "@/server/env";
 import { adminOverview } from "@/server/admin/overview";
 import { getSession } from "@/server/context";
 import { db } from "@/server/db";
@@ -29,6 +32,8 @@ export default async function AdminHome() {
   const actor = s?.actor ?? null;
   const o = await adminOverview(db(), actor);
   const first = (s?.user.fullName ?? "").split(" ")[0];
+  // Only people who can run the site settings need to see this.
+  const address = can(actor, "content.manage_site") ? checkSiteAddress(env().APP_URL, (await headers()).get("host")) : ({ ok: true } as const);
 
   type Quick = { href: string; label: string; icon: IconName; show: boolean };
   const quick: Quick[] = ([
@@ -47,6 +52,18 @@ export default async function AdminHome() {
         <p className="text-sm font-medium text-navy/60">{greeting()}{first ? `, ${first}` : ""}</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Dashboard</h1>
       </header>
+
+      {address.ok ? null : (
+        <section role="alert" className="mt-6 rounded-2xl border border-amber-300 bg-amber-50 p-5 text-amber-950">
+          <h2 className="font-semibold">Email links point to the wrong address</h2>
+          <p className="mt-1 text-sm">
+            You are using this site at <strong>{address.actual}</strong>, but the setting that builds the links in emails (confirm your email, reset your password, order notices) says <strong>{address.configured}</strong>.
+            Visitors who click those links land on a page that does not exist. Fix it by running this once, then ask anyone who is stuck to request a new email:
+          </p>
+          <p className="mt-2 overflow-x-auto rounded-lg bg-white px-3 py-2 font-mono text-xs">{address.command}</p>
+          <p className="mt-2 text-xs">If you have a custom domain, use that address instead.</p>
+        </section>
+      )}
 
       {o.attention.length > 0 ? (
         <section aria-labelledby="attention" className="mt-8">

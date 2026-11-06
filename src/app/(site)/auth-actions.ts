@@ -44,6 +44,13 @@ export async function registerAction(_: ActionState, form: FormData): Promise<Ac
   });
 }
 
+export async function resendVerificationAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    await authService().resendVerification(str(form, "email"), await requestContext());
+    return { ok: true, message: "If that address has an account waiting to be confirmed, we have sent a new link. It can take a minute to arrive; check your spam folder too." };
+  });
+}
+
 export async function verifyEmailAction(_: ActionState, form: FormData): Promise<ActionState> {
   return runAction(async () => {
     await authService().verifyEmail(str(form, "token"), await requestContext());
