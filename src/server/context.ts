@@ -13,16 +13,28 @@ import {
 import { db } from "./db";
 import { loadSiteText } from "./content/site-content";
 import { createMailer } from "./email/factory";
+import type { DeliverDeps } from "./email/deliver";
+import type { Mailer } from "./email/mailer";
 import { env } from "./env";
 import { logger } from "./logger";
 import { can, type Actor } from "./permissions/authorize";
 import type { Permission } from "./permissions/catalog";
 
+let mailerSingleton: Mailer | undefined;
+export function mailer(): Mailer {
+  mailerSingleton ??= createMailer(env(), logger);
+  return mailerSingleton;
+}
+
+/** Everything a service needs to record and send an email. */
+export function emailDeps(): DeliverDeps & { appUrl: string } {
+  return { db: db(), mailer: mailer(), log: logger, appUrl: env().APP_URL };
+}
+
 let authSingleton: AuthService | undefined;
 export function authService(): AuthService {
   if (!authSingleton) {
-    const e = env();
-    authSingleton = createAuthService({ db: db(), mailer: createMailer(e, logger), log: logger, appUrl: e.APP_URL });
+    authSingleton = createAuthService({ db: db(), mailer: mailer(), log: logger, appUrl: env().APP_URL });
   }
   return authSingleton;
 }

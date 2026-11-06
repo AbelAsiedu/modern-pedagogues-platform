@@ -12,8 +12,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const s = await requireSession("/admin");
   const a = s.actor;
   const links = [
-    { href: "/admin", label: "Dashboard", show: can(a, "users.view") || can(a, "content.manage_site") },
+    { href: "/admin", label: "Dashboard", show: can(a, "users.view") || can(a, "content.manage_site") || can(a, "tutors.review_applications") },
     { href: "/admin/users", label: "Users", show: can(a, "users.view") },
+    { href: "/admin/tutors", label: "Tutors", show: can(a, "tutors.review_applications") },
     { href: "/admin/banners", label: "Home banners", show: can(a, "content.manage_site") },
     { href: "/admin/content", label: "Site text", show: can(a, "content.manage_site") },
     { href: "/admin/audit", label: "Audit log", show: can(a, "audit.view") },

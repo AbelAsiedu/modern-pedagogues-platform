@@ -5,7 +5,8 @@ import { runAction, type ActionState } from "@/server/action-result";
 import { assignRole, restoreUser, revokeRole, suspendUser } from "@/server/admin/users";
 import { saveContentGroup } from "@/server/content/site-content";
 import { createBanner, deleteBanner, setBannerActive, updateBanner } from "@/server/content/banners";
-import { requestContext, requireActor } from "@/server/context";
+import { emailDeps, requestContext, requireActor } from "@/server/context";
+import { createTutorByAdmin, decideTutor, setTutorPublished, updateTutorProfile } from "@/server/tutors/service";
 import { db } from "@/server/db";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "");
@@ -109,5 +110,62 @@ export async function saveContentAction(_: ActionState, form: FormData): Promise
     const { changed } = await saveContentGroup(db(), actor, str(form, "group"), values, (await requestContext()).ip);
     revalidatePath("/", "layout");
     return { ok: true, message: changed.length ? `Saved ${changed.length} change${changed.length === 1 ? "" : "s"}.` : "No changes to save." };
+  });
+}
+
+export async function createTutorAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await createTutorByAdmin(db(), actor, { fullName: str(form, "fullName"), email: str(form, "email"), phone: str(form, "phone") }, (await requestContext()).ip);
+    revalidatePath("/admin/tutors");
+    return { ok: true, message: "Tutor added as pending. Open it to complete the profile." };
+  });
+}
+
+export async function updateTutorAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await updateTutorProfile(
+      db(),
+      actor,
+      str(form, "tutorId"),
+      {
+        displayName: str(form, "displayName"),
+        headline: str(form, "headline"),
+        bio: str(form, "bio"),
+        subjects: str(form, "subjects"),
+        levelKeys: form.getAll("levelKeys").map(String),
+        curriculumKeys: form.getAll("curriculumKeys").map(String),
+        modes: form.getAll("modes").map(String),
+        areas: str(form, "areas"),
+        yearsExperience: str(form, "yearsExperience"),
+        sortOrder: str(form, "sortOrder") || "0",
+        adminNotes: str(form, "adminNotes"),
+      },
+      (await requestContext()).ip,
+    );
+    revalidatePath("/admin/tutors", "layout");
+    revalidatePath("/tutors", "layout");
+    return { ok: true, message: "Saved." };
+  });
+}
+
+export async function decideTutorAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await decideTutor(emailDeps(), actor, str(form, "tutorId"), { decision: str(form, "decision"), message: str(form, "message") }, (await requestContext()).ip);
+    revalidatePath("/admin/tutors", "layout");
+    revalidatePath("/tutors", "layout");
+    return { ok: true, message: "Decision recorded and the applicant has been emailed." };
+  });
+}
+
+export async function publishTutorAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await setTutorPublished(db(), actor, str(form, "tutorId"), str(form, "publish") === "true", (await requestContext()).ip);
+    revalidatePath("/admin/tutors", "layout");
+    revalidatePath("/tutors", "layout");
+    return { ok: true, message: "Updated." };
   });
 }

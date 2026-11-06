@@ -1,18 +1,20 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useId, useState } from "react";
 import { useFormStatus } from "react-dom";
 import type { ActionState } from "@/server/action-result";
 
 export type FieldSpec = {
   name: string;
   label: string;
-  type?: "text" | "email" | "password" | "tel" | "number" | "select" | "textarea" | "checkbox";
+  type?: "text" | "email" | "password" | "tel" | "number" | "select" | "textarea" | "checkbox" | "checkboxes";
   autoComplete?: string;
   required?: boolean;
   hint?: string;
   options?: readonly { value: string; label: string }[];
+  /** For "checkboxes", a comma-separated list of the option values that start ticked. */
   defaultValue?: string | number | boolean;
+  rows?: number;
   list?: readonly string[];
 };
 
@@ -51,6 +53,7 @@ export function ActionForm({
 }) {
   // React clears uncontrolled inputs after every server action. Remember what was typed (never passwords)
   // so a failed attempt does not wipe the form, and clear it again after a success.
+  const uid = useId();
   const [typed, setTyped] = useState<Record<string, string>>({});
   const [state, formAction] = useActionState(async (prev: ActionState, form: FormData): Promise<ActionState> => {
     const snapshot: Record<string, string> = {};
@@ -58,6 +61,10 @@ export function ActionForm({
       if (f.type === "password") continue;
       if (f.type === "checkbox") {
         snapshot[f.name] = form.get(f.name) === "on" ? "on" : ""; // unchecked boxes are absent from FormData
+        continue;
+      }
+      if (f.type === "checkboxes") {
+        snapshot[f.name] = form.getAll(f.name).filter((x) => typeof x === "string").join(",");
         continue;
       }
       const v = form.get(f.name);
@@ -75,13 +82,30 @@ export function ActionForm({
       ))}
       {fields.map((f) => {
         const errs = state.fieldErrors?.[f.name];
-        const id = `f-${f.name}`;
+        const id = `f${uid}-${f.name}`.replace(/:/g, "");
         return (
           <div key={f.name}>
             {f.type === "checkbox" ? (
               <label className="flex items-center gap-2 text-sm font-medium">
                 <input type="checkbox" name={f.name} defaultChecked={f.name in typed ? typed[f.name] === "on" : Boolean(f.defaultValue)} /> {f.label}
               </label>
+            ) : f.type === "checkboxes" ? (
+              <fieldset>
+                <legend className="text-sm font-medium">
+                  {f.label}
+                  {f.required ? <span aria-hidden> *</span> : null}
+                </legend>
+                <div className="mt-1 flex flex-wrap gap-x-5 gap-y-1">
+                  {(() => {
+                    const ticked = new Set((f.name in typed ? typed[f.name]! : String(f.defaultValue ?? "")).split(",").filter(Boolean));
+                    return f.options?.map((o) => (
+                      <label key={o.value} className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" name={f.name} value={o.value} defaultChecked={ticked.has(o.value)} /> {o.label}
+                      </label>
+                    ));
+                  })()}
+                </div>
+              </fieldset>
             ) : (
               <>
                 <label htmlFor={id} className="text-sm font-medium">
@@ -95,7 +119,7 @@ export function ActionForm({
                     ))}
                   </select>
                 ) : f.type === "textarea" ? (
-                  <textarea id={id} name={f.name} required={f.required} defaultValue={typed[f.name] ?? String(f.defaultValue ?? "")} rows={4} className={inputCls} />
+                  <textarea id={id} name={f.name} required={f.required} defaultValue={typed[f.name] ?? String(f.defaultValue ?? "")} rows={f.rows ?? 4} className={inputCls} />
                 ) : (
                   <>
                     <input

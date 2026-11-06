@@ -10,7 +10,7 @@ import { SERVICES } from "@/lib/site";
  */
 
 export type ContentKind = "line" | "text" | "lines" | "rich";
-export type ContentGroupId = "home" | "services" | "about" | "pricing" | "contact" | "footer" | "policies";
+export type ContentGroupId = "home" | "services" | "tutors" | "about" | "pricing" | "contact" | "footer" | "policies";
 
 export type ContentEntry = {
   key: string;
@@ -27,6 +27,7 @@ export type ContentEntry = {
 export const CONTENT_GROUPS: readonly { id: ContentGroupId; label: string; blurb: string }[] = [
   { id: "home", label: "Home page", blurb: "Text under the slideshow. Edit the slides themselves under Home banners." },
   { id: "services", label: "Services page", blurb: "The service descriptions here also appear on the home page." },
+  { id: "tutors", label: "Tutors pages", blurb: "Wording around the tutor directory and the tutor application. Tutor profiles themselves are edited under Tutors." },
   { id: "about", label: "About page", blurb: "Who we are and what we stand for." },
   { id: "pricing", label: "Pricing page", blurb: "The rate itself comes from site settings, not from this text." },
   { id: "contact", label: "Contact page", blurb: "Phone, email and MoMo numbers are fixed business facts and are not edited here." },
@@ -99,6 +100,20 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
     400,
     "Online learning courses, a marketplace of teacher-made resources, and parent and student portals are being built. They are not available yet.",
     { help: "Update this as features go live so the page stays truthful." },
+  ),
+
+  // Tutors
+  e("tutors.hero.title", "tutors", "Tutors page headline", "line", 100, "Meet our tutors"),
+  e("tutors.hero.intro", "tutors", "Tutors page introduction", "text", 300, "Every tutor listed here has been reviewed and approved by TMP. Tell us what your ward needs and we will recommend the right match."),
+  e("tutors.empty", "tutors", "Message when no tutors match", "text", 300, "No tutors are listed for that search yet. Tell us what you need and we will find the right tutor for you."),
+  e("tutors.apply.heading", "tutors", "Application page headline", "line", 100, "Teach with The Modern Pedagogues"),
+  e(
+    "tutors.apply.intro",
+    "tutors",
+    "Application page introduction",
+    "text",
+    500,
+    "We work with qualified, committed tutors across Pre-school, Primary, JHS and SHS. Tell us about yourself. Our team reviews every application, and nothing is shown on the website until you have been approved.",
   ),
 
   // About
