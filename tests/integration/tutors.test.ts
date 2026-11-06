@@ -4,7 +4,7 @@ import { listAuditLogs } from "@/server/admin/audit";
 import { tutorProfiles } from "@/server/db/schema";
 import { MemoryMailer } from "@/server/email/mailer";
 import { createLogger } from "@/server/logger";
-import { ConflictError, ForbiddenError, RateLimitError, ValidationError } from "@/server/errors";
+import { ConflictError, ForbiddenError, NotFoundError, RateLimitError, ValidationError } from "@/server/errors";
 import {
   createTutorByAdmin,
   decideTutor,
@@ -15,6 +15,8 @@ import {
   setTutorPublished,
   submitApplication,
   updateTutorProfile,
+  updateTutorPrivateDetails,
+  deleteTutor,
   type ApplyDeps,
 } from "@/server/tutors/service";
 import { makeActor, openTestDb, resetData } from "../support/harness";
@@ -231,5 +233,56 @@ describe("tutor permissions", () => {
     expect(await getPublicTutor(db, "not-a-uuid")).toBeNull();
     expect(await getPublicTutor(db, "'; drop table users; --")).toBeNull();
     expect((await db.execute(sql`select count(*)::int n from tutor_profiles`)).rows[0]).toEqual({ n: 0 });
+  });
+});
+
+describe("admin can correct and remove tutor records", () => {
+  const details = { fullName: "Ama S. Mensah", email: "New.Email@Example.com", phone: "+233 20 111 2222", qualifications: "BEd Maths; PGDE", experience: "Seven years", availability: "Saturdays" };
+
+  it("updates private details without touching the public profile or status, and audits without personal data", async () => {
+    const admin = await makeActor(db, "admin@example.com", ["admin"]);
+    const boss = await makeActor(db, "boss@example.com", ["super_admin"]);
+    const { row } = await applied();
+    await updateTutorPrivateDetails(db, admin, row.id, details);
+    const after = await getTutorProfile(db, admin, row.id);
+    expect(after).toMatchObject({ fullName: "Ama S. Mensah", email: "new.email@example.com", phone: "+233 20 111 2222", status: "PENDING", displayName: "Ama M.", bio: row.bio });
+    const entry = (await listAuditLogs(db, boss)).find((r) => r.action === "tutor.details_updated");
+    expect(JSON.stringify([entry?.metadata, entry?.entityId])).not.toMatch(/example\.com|mensah|\+233/i);
+  });
+
+  it("refuses an email that another live tutor already uses", async () => {
+    const admin = await makeActor(db, "admin@example.com", ["admin"]);
+    const { d, row } = await applied();
+    await submitApplication(d, { ...application, email: "other@example.com" }, { ip: "203.0.113.50" });
+    await expect(updateTutorPrivateDetails(db, admin, row.id, { ...details, email: "other@example.com" })).rejects.toBeInstanceOf(ConflictError);
+    await expect(updateTutorPrivateDetails(db, admin, row.id, { ...details, email: "not-an-email" })).rejects.toBeInstanceOf(ValidationError);
+    await expect(updateTutorPrivateDetails(db, admin, "00000000-0000-7000-8000-000000000000", details)).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it("deletes a tutor for good, removes it from the public list, and keeps personal data out of the audit entry", async () => {
+    const admin = await makeActor(db, "admin@example.com", ["admin"]);
+    const boss = await makeActor(db, "boss@example.com", ["super_admin"]);
+    const { d, row } = await applied();
+    await updateTutorProfile(db, admin, row.id, { ...completeProfile, sortOrder: "0" });
+    await decideTutor(d, admin, row.id, { decision: "APPROVED" });
+    expect(await listPublicTutors(db)).toHaveLength(1);
+    await deleteTutor(db, admin, row.id);
+    expect(await listPublicTutors(db)).toHaveLength(0);
+    expect(await db.select().from(tutorProfiles)).toHaveLength(0);
+    await expect(deleteTutor(db, admin, row.id)).rejects.toBeInstanceOf(NotFoundError);
+    const entry = (await listAuditLogs(db, boss)).find((r) => r.action === "tutor.deleted");
+    expect(entry?.entityId).toBe(row.id);
+    expect(JSON.stringify(entry?.metadata ?? null)).not.toMatch(/ama|mensah|example\.com|\+233/i);
+  });
+
+  it("is permission-gated: detail edits need review rights, deletion needs approval rights", async () => {
+    const { row } = await applied();
+    const tutor = await makeActor(db, "t@example.com", ["tutor"]);
+    const content = await makeActor(db, "c@example.com", ["content_manager"]);
+    for (const who of [tutor, content, null]) {
+      await expect(updateTutorPrivateDetails(db, who, row.id, details)).rejects.toBeInstanceOf(ForbiddenError);
+      await expect(deleteTutor(db, who, row.id)).rejects.toBeInstanceOf(ForbiddenError);
+    }
+    expect(await db.select().from(tutorProfiles)).toHaveLength(1);
   });
 });

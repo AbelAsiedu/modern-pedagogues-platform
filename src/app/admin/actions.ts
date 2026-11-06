@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { runAction, type ActionState } from "@/server/action-result";
 import { assignRole, restoreUser, revokeRole, suspendUser } from "@/server/admin/users";
 import { createKnowledge, deleteKnowledge, updateKnowledge } from "@/server/assistant/knowledge";
@@ -8,7 +9,7 @@ import { setAssistantEnabled } from "@/server/assistant/service";
 import { saveContentGroup } from "@/server/content/site-content";
 import { createBanner, deleteBanner, setBannerActive, updateBanner } from "@/server/content/banners";
 import { emailDeps, requestContext, requireActor } from "@/server/context";
-import { createTutorByAdmin, decideTutor, setTutorPublished, updateTutorProfile } from "@/server/tutors/service";
+import { createTutorByAdmin, decideTutor, deleteTutor, setTutorPublished, updateTutorPrivateDetails, updateTutorProfile } from "@/server/tutors/service";
 import { db } from "@/server/db";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "");
@@ -214,5 +215,31 @@ export async function toggleAssistantAction(_: ActionState, form: FormData): Pro
     await setAssistantEnabled(db(), actor, str(form, "enabled") === "true", (await requestContext()).ip);
     revalidatePath("/", "layout");
     return { ok: true, message: "Updated." };
+  });
+}
+
+export async function updateTutorDetailsAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await updateTutorPrivateDetails(
+      db(),
+      actor,
+      str(form, "tutorId"),
+      { fullName: str(form, "fullName"), email: str(form, "email"), phone: str(form, "phone"), qualifications: str(form, "qualifications"), experience: str(form, "experience"), availability: str(form, "availability") },
+      (await requestContext()).ip,
+    );
+    revalidatePath("/admin/tutors", "layout");
+    return { ok: true, message: "Saved." };
+  });
+}
+
+export async function deleteTutorAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    if (str(form, "confirm").trim().toLowerCase() !== "delete") return { ok: false, error: "Type delete to confirm." , fieldErrors: { confirm: ["Type the word delete to confirm."] } };
+    await deleteTutor(db(), actor, str(form, "tutorId"), (await requestContext()).ip);
+    revalidatePath("/admin/tutors", "layout");
+    revalidatePath("/tutors", "layout");
+    redirect("/admin/tutors");
   });
 }

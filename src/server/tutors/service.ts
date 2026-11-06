@@ -301,6 +301,46 @@ export async function updateTutorProfile(db: DbOrTx, actor: Actor | null, id: st
   await recordAudit(db, { actorId: actor.id, action: "tutor.profile_updated", entityType: "tutor_profile", entityId: id, ip });
 }
 
+export const privateDetailsInput = z.object({
+  fullName: z.string().trim().min(2, "Enter the full name.").max(120),
+  email: emailSchema,
+  phone: phone.optional().or(z.literal("").transform(() => undefined)),
+  qualifications: z.string().trim().max(2000).default(""),
+  experience: z.string().trim().max(2000).default(""),
+  availability: z.string().trim().max(500).default(""),
+});
+
+/**
+ * Correct the private details (a mistyped email or phone, updated qualifications). Does not touch the public
+ * profile or the status. Changing the email is refused if another live tutor already uses it.
+ */
+export async function updateTutorPrivateDetails(db: DbOrTx, actor: Actor | null, id: string, input: unknown, ip?: string | null) {
+  assertCan(actor, "tutors.review_applications");
+  const data = parseOrThrow(privateDetailsInput, input);
+  try {
+    const [row] = await db
+      .update(tutorProfiles)
+      .set({ ...data, phone: data.phone ?? null })
+      .where(eq(tutorProfiles.id, id))
+      .returning({ id: tutorProfiles.id });
+    if (!row) throw new NotFoundError("tutor not found");
+  } catch (err) {
+    const code = (err as { code?: string; cause?: { code?: string } }).code ?? (err as { cause?: { code?: string } }).cause?.code;
+    if (code === "23505") throw new ConflictError("Another tutor already uses that email address.");
+    throw err;
+  }
+  // Which fields changed is useful; their values are personal data and stay out of the audit log.
+  await recordAudit(db, { actorId: actor.id, action: "tutor.details_updated", entityType: "tutor_profile", entityId: id, ip });
+}
+
+/** Permanent removal, for example to honour a deletion request. The audit entry records the id only, no personal data. */
+export async function deleteTutor(db: DbOrTx, actor: Actor | null, id: string, ip?: string | null) {
+  assertCan(actor, "tutors.approve");
+  const [row] = await db.delete(tutorProfiles).where(eq(tutorProfiles.id, id)).returning({ id: tutorProfiles.id });
+  if (!row) throw new NotFoundError("tutor not found");
+  await recordAudit(db, { actorId: actor.id, action: "tutor.deleted", entityType: "tutor_profile", entityId: id, ip });
+}
+
 const decisionInput = z.object({
   decision: z.enum(["APPROVED", "REJECTED", "CHANGES_REQUESTED"]),
   message: z.string().trim().max(1500).optional().transform((v) => v || null),

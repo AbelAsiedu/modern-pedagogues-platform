@@ -6,7 +6,7 @@ import { db } from "@/server/db";
 import { NotFoundError } from "@/server/errors";
 import { can } from "@/server/permissions/authorize";
 import { getTutorProfile, MODE_LABELS, TEACHING_MODES, tutorFilterOptions } from "@/server/tutors/service";
-import { decideTutorAction, publishTutorAction, updateTutorAction } from "../../actions";
+import { decideTutorAction, deleteTutorAction, publishTutorAction, updateTutorAction, updateTutorDetailsAction } from "../../actions";
 
 export const metadata = { title: "Tutor" };
 
@@ -49,15 +49,24 @@ export default async function AdminTutor({ params }: { params: Promise<{ id: str
 
       <section className="mt-8 rounded-2xl border border-navy/10 bg-white/70 p-6">
         <h2 className="text-xl font-semibold">Private details</h2>
-        <dl className="mt-3 grid gap-4 text-sm sm:grid-cols-2">
-          <div><dt className="font-semibold">Email</dt><dd>{tutor.email}</dd></div>
-          <div><dt className="font-semibold">Phone</dt><dd>{tutor.phone ?? "—"}</dd></div>
-          <div className="sm:col-span-2"><dt className="font-semibold">Qualifications</dt><dd className="whitespace-pre-line">{tutor.qualifications || "—"}</dd></div>
-          <div className="sm:col-span-2"><dt className="font-semibold">Experience</dt><dd className="whitespace-pre-line">{tutor.experience || "—"}</dd></div>
-          <div className="sm:col-span-2"><dt className="font-semibold">Availability</dt><dd className="whitespace-pre-line">{tutor.availability || "—"}</dd></div>
-          <div><dt className="font-semibold">Source</dt><dd>{tutor.source === "admin" ? "Added by staff" : "Website application"}</dd></div>
-          <div><dt className="font-semibold">Applied</dt><dd>{tutor.createdAt.toLocaleString("en-GB")}</dd></div>
-        </dl>
+        <p className="mt-1 text-sm text-navy/70">
+          Only staff see these. {tutor.source === "admin" ? "Added by staff" : "Website application"} on {tutor.createdAt.toLocaleString("en-GB")}.
+        </p>
+        <div className="mt-4 max-w-2xl">
+          <ActionForm
+            action={updateTutorDetailsAction}
+            hidden={{ tutorId: tutor.id }}
+            submitLabel="Save private details"
+            fields={[
+              { name: "fullName", label: "Full name", required: true, defaultValue: tutor.fullName },
+              { name: "email", label: "Email", type: "email", required: true, defaultValue: tutor.email },
+              { name: "phone", label: "Phone", type: "tel", defaultValue: tutor.phone ?? "" },
+              { name: "qualifications", label: "Qualifications", type: "textarea", defaultValue: tutor.qualifications },
+              { name: "experience", label: "Teaching experience", type: "textarea", defaultValue: tutor.experience },
+              { name: "availability", label: "Availability", defaultValue: tutor.availability },
+            ]}
+          />
+        </div>
       </section>
 
       <section className="mt-6 rounded-2xl border border-navy/10 bg-white/70 p-6">
@@ -94,6 +103,16 @@ export default async function AdminTutor({ params }: { params: Promise<{ id: str
                 tone="quiet"
               />
             ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      {canDecide ? (
+        <section className="mt-6 rounded-2xl border border-red-200 bg-white/70 p-6">
+          <h2 className="text-xl font-semibold">Delete this tutor</h2>
+          <p className="mt-1 text-sm text-navy/70">Permanently removes the application and profile, for example to honour a deletion request. This cannot be undone. Use Reject or Hide if you only want it off the website.</p>
+          <div className="mt-4 max-w-sm">
+            <ActionForm action={deleteTutorAction} hidden={{ tutorId: tutor.id }} fields={[{ name: "confirm", label: "Type delete to confirm" }]} submitLabel="Delete permanently" tone="danger" />
           </div>
         </section>
       ) : null}
