@@ -14,6 +14,7 @@ import {
   createProduct,
   deleteProduct,
   getDownload,
+  getFreeDownload,
   getPublicProduct,
   listMyOrders,
   listOrders,
@@ -22,6 +23,7 @@ import {
   listPublicSubjects,
   markOrderPaid,
   placeOrder,
+  setProductPublished,
   updateProduct,
   type ShopDeps,
 } from "@/server/shop/service";
@@ -79,6 +81,29 @@ describe("products", () => {
     await attachProductFile(db, admin, id, { filename: "maths.pdf", bytes: PDF });
     await updateProduct(db, admin, id, { ...form, isPublished: true });
     expect(await listPublicProducts(db)).toHaveLength(1);
+  });
+
+  it("shows and hides a TMP resource in one step, and refuses to show one without its PDF", async () => {
+    const admin = await makeActor(db, "a@example.com", ["admin"]);
+    const buyer = await makeActor(db, "b@example.com", []);
+    const id = await createProduct(db, admin, { ...form, price: "", isFree: true });
+    await expect(setProductPublished(db, admin, id, true)).rejects.toBeInstanceOf(ValidationError);
+    expect(await listPublicProducts(db)).toHaveLength(0);
+
+    await attachProductFile(db, admin, id, { filename: "free.pdf", bytes: PDF });
+    expect(await listPublicProducts(db)).toHaveLength(0); // a PDF alone does not publish
+    await setProductPublished(db, admin, id, true);
+    const [shown] = await listPublicProducts(db, { price: "free" });
+    expect(shown?.title).toBe(form.title);
+    expect((await getFreeDownload(db, buyer, shown!.slug))?.filename).toBe("free.pdf");
+
+    await setProductPublished(db, admin, id, false);
+    expect(await listPublicProducts(db)).toHaveLength(0);
+    expect(await getFreeDownload(db, buyer, shown!.slug)).toBeNull();
+    await expect(setProductPublished(db, buyer, id, true)).rejects.toBeInstanceOf(ForbiddenError);
+    const boss = await makeActor(db, "boss@example.com", ["super_admin"]);
+    const logs = (await listAuditLogs(db, boss)).map((r) => r.action);
+    expect(logs).toEqual(expect.arrayContaining(["product.published", "product.hidden"]));
   });
 
   it("filters by subject, ignoring case and spacing, and lists only subjects that have a visible resource", async () => {

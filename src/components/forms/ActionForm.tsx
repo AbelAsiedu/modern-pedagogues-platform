@@ -7,7 +7,7 @@ import type { ActionState } from "@/server/action-result";
 export type FieldSpec = {
   name: string;
   label: string;
-  type?: "text" | "email" | "password" | "tel" | "number" | "select" | "textarea" | "checkbox" | "checkboxes";
+  type?: "text" | "email" | "password" | "tel" | "number" | "select" | "textarea" | "checkbox" | "checkboxes" | "file";
   autoComplete?: string;
   required?: boolean;
   hint?: string;
@@ -16,6 +16,8 @@ export type FieldSpec = {
   defaultValue?: string | number | boolean;
   rows?: number;
   list?: readonly string[];
+  /** For "file", the file types offered, for example "application/pdf,.pdf". */
+  accept?: string;
 };
 
 function Submit({ label, tone = "primary" }: { label: string; tone?: "primary" | "danger" | "quiet" }) {
@@ -130,7 +132,8 @@ export function ActionForm({
                       type={f.type ?? "text"}
                       required={f.required}
                       autoComplete={f.autoComplete}
-                      defaultValue={f.type === "password" ? undefined : (typed[f.name] ?? (f.defaultValue as string | number | undefined))}
+                      accept={f.type === "file" ? f.accept : undefined}
+                      defaultValue={f.type === "password" || f.type === "file" ? undefined : (typed[f.name] ?? (f.defaultValue as string | number | undefined))}
                       list={f.list ? `${id}-list` : undefined}
                       aria-invalid={errs ? true : undefined}
                       aria-describedby={errs ? `${id}-err` : undefined}

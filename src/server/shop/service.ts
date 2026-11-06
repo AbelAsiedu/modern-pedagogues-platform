@@ -272,6 +272,17 @@ export async function updateProduct(db: Db, actor: Actor | null, id: string, inp
   await recordAudit(db, { actorId: actor.id, action: "product.updated", entityType: "product", entityId: id, ip });
 }
 
+/** Show or hide one of TMP's own resources without opening the whole edit form. Showing needs the PDF to be there. */
+export async function setProductPublished(db: Db, actor: Actor | null, id: string, published: boolean, ip?: string | null) {
+  assertCan(actor, "commerce.manage_products");
+  const [current] = await db.select({ fileId: products.fileId, ownerId: products.ownerId }).from(products).where(eq(products.id, id)).limit(1);
+  if (!current) throw new NotFoundError("product not found");
+  if (current.ownerId) throw new ForbiddenError("creator resources are shown or hidden by their creator, or suspended by staff");
+  if (published && !current.fileId) throw new ValidationError({ isPublished: ["Upload the PDF first, then publish."] }, "Upload the PDF first, then publish.");
+  await db.update(products).set({ isPublished: published }).where(eq(products.id, id));
+  await recordAudit(db, { actorId: actor.id, action: published ? "product.published" : "product.hidden", entityType: "product", entityId: id, ip });
+}
+
 /** A product that has ever been ordered cannot be deleted (buyers keep their downloads); hide it instead. */
 export async function deleteProduct(db: Db, actor: Actor | null, id: string, ip?: string | null) {
   assertCan(actor, "commerce.manage_products");

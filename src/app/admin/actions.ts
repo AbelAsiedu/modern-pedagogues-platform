@@ -11,7 +11,7 @@ import { createBanner, deleteBanner, setBannerActive, updateBanner } from "@/ser
 import { assistantProviders, emailDeps, requestContext, requireActor } from "@/server/context";
 import { setImageSlot } from "@/server/content/images";
 import { deleteMedia, updateMediaAlt } from "@/server/media/service";
-import { cancelOrderByStaff, createProduct, deleteProduct, markOrderPaid, updateProduct } from "@/server/shop/service";
+import { cancelOrderByStaff, createProduct, deleteProduct, markOrderPaid, setProductPublished, updateProduct } from "@/server/shop/service";
 import { listingFromForm } from "@/lib/listing-form";
 import { decideResource, restoreResource, suspendResource } from "@/server/resources/review";
 import { recordPayout, setCreatorSuspended } from "@/server/resources/payouts";
@@ -290,6 +290,18 @@ export async function createProductAction(_: ActionState, form: FormData): Promi
     await createProduct(db(), actor, productFromForm(form), (await requestContext()).ip);
     revalidatePath("/admin/shop");
     return { ok: true, message: "Resource added. Open it below to upload the PDF, then publish." };
+  });
+}
+
+export async function setProductPublishedAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    const show = str(form, "show") === "1";
+    await setProductPublished(db(), actor, str(form, "productId"), show, (await requestContext()).ip);
+    revalidatePath("/admin/shop");
+    revalidatePath("/resources", "layout");
+    revalidatePath("/");
+    return { ok: true, message: show ? "It is now on the Resources page." : "Hidden from the Resources page." };
   });
 }
 
