@@ -63,6 +63,10 @@ heroku addons:create scheduler:standard -a YOUR-APP-NAME
 # in the Scheduler dashboard add a daily job:  npm run assistant:purge
 ```
 
+## If the release fails
+
+`heroku releases` shows `release command failed`; `heroku releases:output` (or `heroku releases:output v6`) prints why. The site stays on the previous version until a release succeeds. On Windows, run server commands from a Heroku shell (`heroku run bash`) rather than passing arguments through `heroku run`, and set values containing `<` or `>` (such as `EMAIL_FROM`) in the dashboard's Config Vars, because Windows treats those characters as redirection.
+
 ## What the platform does for you
 
 - `Procfile`: `web: npm start`; `release: npm run db:migrate && npm run db:seed`. Migrations are forward-only and seed is idempotent, so every deploy is safe to repeat. A failing migration aborts the release and the previous version keeps running.
