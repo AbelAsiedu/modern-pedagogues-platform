@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 
 /** Uploads one picture to the media library, then refreshes the page so it appears in the lists and pickers. */
-export function ImageUploader({ label = "Upload a picture" }: { label?: string }) {
+export function ImageUploader({ label = "Upload a picture", replaceId, submitLabel = "Upload" }: { label?: string; replaceId?: string; submitLabel?: string }) {
   const uid = useId();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -15,6 +15,7 @@ export function ImageUploader({ label = "Upload a picture" }: { label?: string }
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
+    if (replaceId) data.set("replaceId", replaceId);
     const file = data.get("file");
     if (!(file instanceof File) || file.size === 0) {
       setError("Choose an image first.");
@@ -33,7 +34,7 @@ export function ImageUploader({ label = "Upload a picture" }: { label?: string }
       if (!res.ok || !json?.ok) {
         setError(json?.error ?? "The upload failed. Please try again.");
       } else {
-        setDone(`Uploaded. Its address is ${json.path}`);
+        setDone(replaceId ? "Replaced everywhere it was used." : `Uploaded. Its address is ${json.path}`);
         form.reset();
         router.refresh();
       }
@@ -58,7 +59,7 @@ export function ImageUploader({ label = "Upload a picture" }: { label?: string }
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={busy} className="rounded-full bg-navy px-5 py-2 text-sm font-semibold text-cream hover:bg-navy/90 disabled:opacity-60">
-          {busy ? "Uploading…" : "Upload"}
+          {busy ? "Working…" : submitLabel}
         </button>
         {error ? <p role="alert" className="text-sm text-red-700">{error}</p> : null}
         {done ? <p role="status" className="text-sm text-green-800">{done}</p> : null}

@@ -1,13 +1,10 @@
-import type { Metadata } from "next";
+import { seoMetadata } from "@/server/seo";
 import { Hero } from "@/components/site/Chrome";
 import { format } from "@/lib/money";
-import { INDICATIVE_TUTORING_RATE, SITE, whatsappLink } from "@/lib/site";
+import { INDICATIVE_TUTORING_RATE } from "@/lib/site";
 import { getSiteText } from "@/server/context";
 
-export const metadata: Metadata = {
-  title: "Pricing",
-  description: "Tutoring fees are agreed per learner and start from GH₵ 100 per session.",
-};
+export const generateMetadata = () => seoMetadata("pricing");
 
 export default async function Pricing() {
   const t = await getSiteText();
@@ -39,10 +36,10 @@ export default async function Pricing() {
         <p className="mt-3">{t.text("pricing.other.body")}</p>
 
         <div className="mt-10 flex flex-wrap gap-3">
-          <a href={whatsappLink("Hello TMP, I would like a quote for tutoring.")} className="rounded-full bg-navy px-6 py-3 font-semibold text-cream">
+          <a href={t.whatsapp(`Hello ${t.biz.name}, I would like a quote for tutoring.`)} className="rounded-full bg-navy px-6 py-3 font-semibold text-cream">
             Ask for a quote on WhatsApp
           </a>
-          <a href={`mailto:${SITE.email}?subject=Tutoring%20quote`} className="rounded-full border border-navy px-6 py-3 font-semibold">
+          <a href={`mailto:${t.biz.email}?subject=Tutoring%20quote`} className="rounded-full border border-navy px-6 py-3 font-semibold">
             Email us
           </a>
         </div>

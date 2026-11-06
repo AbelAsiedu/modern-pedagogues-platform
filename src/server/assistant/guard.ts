@@ -1,4 +1,5 @@
-import { SITE } from "../../lib/site";
+import type { Business } from "../../lib/business";
+import { DEFAULT_BUSINESS } from "../../lib/business";
 
 /**
  * Input rules for Kaitlyn. Pure functions, no I/O.
@@ -18,8 +19,8 @@ export const SAFE_BLOCK_TEXT = "Sorry, I can't help with that.";
 export const SELF_HARM_TEXT =
   "I'm really sorry you're going through this. I'm an AI assistant and can't give the help you deserve. If you or someone you know might be in danger, please call your local emergency number now (112 in Ghana) or tell a trusted adult or a doctor straight away. You do not have to face this alone.";
 
-export const fallbackText = () =>
-  `I'm sorry, I can't answer that right now. Please contact our team on WhatsApp or phone (${SITE.phoneDisplay}) or email ${SITE.email}, and we will help you.`;
+export const fallbackText = (biz: Business = DEFAULT_BUSINESS) =>
+  `I'm sorry, I can't answer that right now. Please contact our team on WhatsApp or phone (${biz.phoneDisplay}) or email ${biz.email}, and we will help you.`;
 
 const BLOCKED = [
   /\b(kill|murder|stab|shoot)(s|ing)?\s+(a\s+|an\s+|the\s+|my\s+|his\s+|her\s+|someone|somebody|people|him|her|them)\b/i,

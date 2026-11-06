@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { whatsappLink } from "@/lib/site";
 import type { PublicTutor } from "@/server/tutors/service";
 
 /** The tutor's photo when staff have added one (with the tutor's consent), otherwise their initials in a circle. */
@@ -18,9 +17,9 @@ export function Initials({ name, size = "h-14 w-14 text-lg" }: { name: string; s
   );
 }
 
-export function TutorCard({ tutor }: { tutor: PublicTutor }) {
+export function TutorCard({ tutor, whatsapp }: { tutor: PublicTutor; whatsapp: (message: string) => string }) {
   return (
-    <article className="flex h-full flex-col rounded-2xl border border-navy/10 bg-white/70 p-6">
+    <article className="lift glass flex h-full flex-col rounded-3xl p-6">
       <div className="flex items-center gap-4">
         <Avatar name={tutor.displayName} photoPath={tutor.photoPath} />
         <div>
@@ -39,7 +38,7 @@ export function TutorCard({ tutor }: { tutor: PublicTutor }) {
       </p>
       <div className="mt-auto flex flex-wrap gap-3 pt-5 text-sm font-semibold">
         <Link href={`/tutors/${tutor.id}`} className="underline decoration-gold underline-offset-4">View profile</Link>
-        <a href={whatsappLink(`Hello TMP, I would like to ask about ${tutor.displayName} as a tutor for my ward.`)} className="underline decoration-gold underline-offset-4">
+        <a href={whatsapp(`Hello TMP, I would like to ask about ${tutor.displayName} as a tutor for my ward.`)} className="underline decoration-gold underline-offset-4">
           Ask about this tutor
         </a>
       </div>

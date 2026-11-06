@@ -83,14 +83,15 @@ export async function answerQuestion(
     return { answer, outcome: "blocked" };
   }
 
+  const siteText = await deps.siteText();
   if (!(await isAssistantAvailable(deps.db, deps.providers))) {
-    const answer = fallbackText();
+    const answer = fallbackText(siteText.biz);
     await log(deps, { outcome: "unavailable", message, answer, latencyMs: Date.now() - started });
     return { answer, outcome: "unavailable" };
   }
 
   const history: ChatTurn[] = sanitizeHistory(input.history);
-  const system = buildSystemPrompt(await buildKnowledge(deps.db, await deps.siteText()));
+  const system = buildSystemPrompt(await buildKnowledge(deps.db, siteText), siteText.biz);
   for (const provider of deps.providers) {
     try {
       const text = await provider.complete({ system, history, message });
@@ -103,7 +104,7 @@ export async function answerQuestion(
       deps.log.warn({ provider: provider.name, err: err instanceof Error ? err.message : "error" }, "Kaitlyn provider failed");
     }
   }
-  const answer = fallbackText();
+  const answer = fallbackText(siteText.biz);
   await log(deps, { outcome: "fallback", message, answer, latencyMs: Date.now() - started });
   return { answer, outcome: "fallback" };
 }

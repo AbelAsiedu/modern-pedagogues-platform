@@ -3,6 +3,7 @@ import { and, asc, count, desc, eq, ilike, inArray, or, sql, type SQL } from "dr
 import { z } from "zod";
 import { format, money, splitSale } from "../../lib/money";
 import { SITE } from "../../lib/site";
+import { loadSiteText } from "../content/site-content";
 import { recordAudit } from "../audit";
 import { enforceRateLimit } from "../auth/rate-limit";
 import { parseOrThrow } from "../auth/validation";
@@ -454,9 +455,10 @@ export async function placeOrder(deps: ShopDeps, actor: Actor | null, slug: stri
   const [buyer] = await db.select({ email: users.email, fullName: users.fullName }).from(users).where(eq(users.id, actor.id)).limit(1);
   const amount = format(money(order.amountMinor, "GHS"));
   const base = deps.appUrl.replace(/\/$/, "");
+  const { biz } = await loadSiteText(db);
   if (buyer) {
-    await deliverEmail(deps, orderPlacedMessage(buyer.email, buyer.fullName, { reference: order.reference, productTitle: order.productTitle, amount, momoNetwork: SITE.momoNetwork, momoNumber: SITE.phoneDisplay, ordersLink: `${base}/account/orders` }));
-    await deliverEmail(deps, orderAlertMessage(deps.notifyEmail ?? SITE.email, { buyer: buyer.fullName, productTitle: order.productTitle, amount, reference: order.reference, link: `${base}/admin/orders` }));
+    await deliverEmail(deps, orderPlacedMessage(buyer.email, buyer.fullName, { reference: order.reference, productTitle: order.productTitle, amount, momoNetwork: biz.momoNetwork, momoNumber: biz.momoNumber, ordersLink: `${base}/account/orders` }));
+    await deliverEmail(deps, orderAlertMessage(deps.notifyEmail ?? biz.email, { buyer: buyer.fullName, productTitle: order.productTitle, amount, reference: order.reference, link: `${base}/admin/orders` }));
   }
   return { order, created: true };
 }

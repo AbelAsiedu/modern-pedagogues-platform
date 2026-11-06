@@ -1,18 +1,14 @@
-import type { Metadata } from "next";
 import Link from "next/link";
+import { seoMetadata } from "@/server/seo";
 import { Hero } from "@/components/site/Chrome";
 import { ProductCard } from "@/components/site/ProductCard";
-import { whatsappLink } from "@/lib/site";
 import { getSiteText } from "@/server/context";
 import { db } from "@/server/db";
 import { KIND_LABELS, RESOURCE_KINDS } from "@/server/resources/quality";
 import { resourceTaxonomy } from "@/server/resources/taxonomy";
 import { listPublicProducts, type PublicProduct, type ResourceFilter } from "@/server/shop/service";
 
-export const metadata: Metadata = {
-  title: "Resources",
-  description: "Books, courses, worksheets and past questions for Ghanaian learners. Free downloads and paid resources, each reviewed against a published quality standard.",
-};
+export const generateMetadata = () => seoMetadata("resources");
 export const dynamic = "force-dynamic";
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
@@ -79,7 +75,7 @@ export default async function Resources({ searchParams }: { searchParams: Promis
         ) : items.length === 0 ? (
           <div className="mt-10 rounded-2xl border border-navy/10 bg-white/70 p-8" role="status">
             <p>{filtered ? "No resources match those choices. Try clearing the filters." : t.text("shop.empty")}</p>
-            <a href={whatsappLink("Hello TMP, I am looking for a learning resource.")} className="mt-4 inline-block font-semibold underline decoration-gold underline-offset-4">Ask on WhatsApp</a>
+            <a href={t.whatsapp(`Hello ${t.biz.name}, I am looking for a learning resource.`)} className="mt-4 inline-block font-semibold underline decoration-gold underline-offset-4">Ask on WhatsApp</a>
           </div>
         ) : (
           <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" aria-label="Resources">

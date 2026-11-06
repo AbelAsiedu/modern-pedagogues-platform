@@ -1,49 +1,117 @@
 import Link from "next/link";
-import { dashboardCounts } from "@/server/admin/users";
-import { getBannerCount } from "@/server/content/banners";
+import { Icon, type IconName } from "@/components/admin/AdminNav";
+import { adminOverview } from "@/server/admin/overview";
 import { getSession } from "@/server/context";
-import { can } from "@/server/permissions/authorize";
 import { db } from "@/server/db";
+import { isMediaStaff } from "@/server/media/service";
+import { can } from "@/server/permissions/authorize";
+
+const greeting = () => {
+  const h = new Date().getUTCHours(); // Ghana is on UTC all year
+  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+};
+
+const ACTION_LABELS: Record<string, string> = {
+  "site_content.updated": "Edited site text",
+  "banner.created": "Added a slide",
+  "banner.updated": "Edited a slide",
+  "banner.deleted": "Removed a slide",
+  "media.uploaded": "Uploaded a picture",
+  "media.replaced": "Replaced a picture",
+  "media.deleted": "Deleted a picture",
+  "order.placed": "Order placed",
+  "order.paid": "Order marked paid",
+};
+const labelFor = (action: string) => ACTION_LABELS[action] ?? action.replace(/[._]/g, " ").replace(/^./, (c) => c.toUpperCase());
 
 export default async function AdminHome() {
-  // The layout already requires sign-in. Content-only staff (no users.view) get a dashboard of what they can do.
   const s = await getSession();
-  const counts = s && can(s.actor, "users.view") ? await dashboardCounts(db(), s.actor) : null;
-  const banners = await getBannerCount(db());
+  const actor = s?.actor ?? null;
+  const o = await adminOverview(db(), actor);
+  const first = (s?.user.fullName ?? "").split(" ")[0];
+
+  type Quick = { href: string; label: string; icon: IconName; show: boolean };
+  const quick: Quick[] = ([
+    { href: "/admin/banners", label: "Edit the home slideshow", icon: "slideshow", show: can(actor, "content.manage_site") },
+    { href: "/admin/content", label: "Edit site text", icon: "text", show: can(actor, "content.manage_site") },
+    { href: "/admin/tutors", label: "Manage tutor profiles", icon: "tutors", show: can(actor, "tutors.review_applications") },
+    { href: "/admin/media", label: "Upload or replace pictures", icon: "media", show: isMediaStaff(actor) },
+    { href: "/admin/review", label: "Review resources", icon: "check", show: can(actor, "marketplace.moderate") },
+    { href: "/admin/orders", label: "Confirm payments", icon: "receipt", show: can(actor, "commerce.manage_orders") },
+  ] satisfies Quick[]).filter((q) => q.show);
+
   return (
     <>
-      <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-      {counts ? (
-        <dl className="mt-8 grid gap-4 sm:grid-cols-4">
-          {[
-            ["Users", counts.total],
-            ["Active", counts.active],
-            ["Awaiting email confirmation", counts.pending],
-            ["Suspended", counts.suspended],
-          ].map(([k, v]) => (
-            <div key={String(k)} className="rounded-2xl border border-navy/10 bg-white/70 p-5">
-              <dt className="text-sm text-navy/70">{k}</dt>
-              <dd className="mt-1 text-3xl font-semibold">{v}</dd>
-            </div>
-          ))}
-        </dl>
+      <header>
+        <p className="text-sm font-medium text-navy/60">{greeting()}{first ? `, ${first}` : ""}</p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight">Dashboard</h1>
+      </header>
+
+      {o.attention.length > 0 ? (
+        <section aria-labelledby="attention" className="mt-8">
+          <h2 id="attention" className="text-sm font-semibold uppercase tracking-[0.14em] text-navy/55">Needs your attention</h2>
+          <ul className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {o.attention.map((t) => (
+              <li key={t.key}>
+                <Link href={t.href} className="admin-tile group block h-full rounded-2xl bg-white p-5">
+                  <span className="flex items-start justify-between">
+                    <span className="text-4xl font-semibold tabular-nums">{t.value}</span>
+                    <span className={`mt-1 h-2.5 w-2.5 rounded-full ${t.tone === "alert" ? "bg-gold" : "bg-emerald-500"}`} aria-hidden="true" />
+                  </span>
+                  <span className="mt-2 block text-sm font-medium">{t.label}</span>
+                  <span className="mt-1 block text-xs text-navy/55 group-hover:text-navy">{t.hint}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
-      <h2 className="mt-12 text-xl font-semibold">Manage</h2>
-      <ul className="mt-4 grid gap-4 sm:grid-cols-2">
-        {s && can(s.actor, "users.view") ? (
-          <li className="rounded-2xl border border-navy/10 bg-white/70 p-5">
-            <Link href="/admin/users" className="font-semibold underline decoration-gold underline-offset-4">Users and roles</Link>
-            <p className="mt-1 text-sm">Search accounts, suspend or restore, and assign roles.</p>
-          </li>
+
+      {o.numbers.length > 0 ? (
+        <section aria-labelledby="numbers" className="mt-10">
+          <h2 id="numbers" className="text-sm font-semibold uppercase tracking-[0.14em] text-navy/55">At a glance</h2>
+          <dl className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {o.numbers.map((t) => (
+              <Link key={t.key} href={t.href} className="admin-tile block rounded-2xl bg-white p-5">
+                <dd className="text-3xl font-semibold tabular-nums">{t.value}</dd>
+                <dt className="mt-1 text-sm text-navy/65">{t.label}</dt>
+              </Link>
+            ))}
+          </dl>
+        </section>
+      ) : null}
+
+      <div className="mt-10 grid gap-8 lg:grid-cols-5">
+        {quick.length > 0 ? (
+          <section aria-labelledby="quick" className="lg:col-span-3">
+            <h2 id="quick" className="text-sm font-semibold uppercase tracking-[0.14em] text-navy/55">Quick actions</h2>
+            <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+              {quick.map((q) => (
+                <li key={q.href}>
+                  <Link href={q.href} className="admin-tile flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 text-sm font-medium">
+                    <span className="grid h-9 w-9 place-items-center rounded-xl bg-navy text-gold"><Icon name={q.icon} /></span>
+                    {q.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
         ) : null}
-        <li className="rounded-2xl border border-navy/10 bg-white/70 p-5">
-          <Link href="/admin/banners" className="font-semibold underline decoration-gold underline-offset-4">Home banners</Link>
-          <p className="mt-1 text-sm">{banners.active} of {banners.total} slides are showing on the home page.</p>
-        </li>
-      </ul>
-      <p className="mt-10 rounded-lg bg-cream-deep p-4 text-sm">
-        Tutor applications, marketplace moderation, orders and payments will appear here as those features are built.
-      </p>
+        {o.recent.length > 0 ? (
+          <section aria-labelledby="recent" className="lg:col-span-2">
+            <h2 id="recent" className="text-sm font-semibold uppercase tracking-[0.14em] text-navy/55">Recent activity</h2>
+            <ol className="admin-tile mt-3 divide-y divide-navy/8 rounded-2xl bg-white">
+              {o.recent.map((r) => (
+                <li key={r.id} className="px-4 py-3 text-sm">
+                  <p className="font-medium">{labelFor(r.action)}</p>
+                  <p className="text-xs text-navy/55">{r.actorName ?? "System"} · {r.at.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Accra" })}</p>
+                </li>
+              ))}
+            </ol>
+            {can(actor, "audit.view") ? <Link href="/admin/audit" className="mt-3 inline-block text-sm font-semibold underline decoration-gold underline-offset-4">Full audit log</Link> : null}
+          </section>
+        ) : null}
+      </div>
     </>
   );
 }

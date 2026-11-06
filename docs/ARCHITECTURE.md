@@ -97,3 +97,11 @@ Each phase ends with passing lint, type-check, tests and a build before its comm
 - Publication rule enforced twice (service and a database CHECK): visible only when `status = APPROVED`, `is_published` and a file exists.
 - Not built: buyer reviews/ratings, versioned updates for buyers, bundles, Paystack (all payments still confirmed by hand).
 
+## Stage 5: editable everything and the new look (2026-11-06)
+- **Business facts live in the text registry** (`site.*` keys, group "business"). `buildSiteText` derives `t.biz` (name, motto, email, phone, `tel:` and `wa.me` forms, MoMo) from the stored values and the `{name} {email} {phone} {momo} {momo_number} {motto}` tokens use them. `src/lib/site.ts` (`SITE`) now only supplies the defaults. Server code that used `SITE` (order and application alert emails, Kaitlyn's knowledge and fallback, the MoMo payment email) reads `loadSiteText(db).biz` instead.
+- **Registry entries gained `validate` and `optional`.** `saveContentGroup` runs a validator on any non-empty typed value; an empty value still means "use the default". `optional` allows an intentionally empty default (testimonials).
+- **Per-page SEO** comes from `seo.<page>.title/description` through `src/server/seo.ts`; the root layout's `generateMetadata` supplies the business name and title template (the root layout is therefore dynamic).
+- **Motion**: CSS-only animations in `globals.css` (`.reveal`, `.rise`, `.blob`, `.marquee-track`, `.kb-img`, `.progress-fill`), all disabled under `prefers-reduced-motion`. `Reveal` leaves content visible from the server and only prepares below-the-fold items to animate. `useAutoplay` is the one timer behind the home slideshow and the testimonials: it loops forever, keeps time when paused, pauses for a resting mouse and a hidden tab but never for focus, and a pressed control overrides hover.
+- **Admin shell**: sidebar with groups and icons (`AdminNav`, closes on navigation, collapses to a menu button on phones). The dashboard is `adminOverview()` (`src/server/admin/overview.ts`): counts limited to what the role may open.
+- **Media**: `replaceMedia` (new row, move usages, delete old, one transaction); the upload route accepts `replaceId`.
+

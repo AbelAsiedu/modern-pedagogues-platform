@@ -1,7 +1,7 @@
 import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { format, money } from "../../lib/money";
-import { SITE } from "../../lib/site";
+import { loadSiteText } from "../content/site-content";
 import { recordAudit } from "../audit";
 import { enforceRateLimit } from "../auth/rate-limit";
 import { parseOrThrow } from "../auth/validation";
@@ -272,7 +272,7 @@ export async function submitForReview(deps: ShopDeps, actor: Actor | null, id: s
   const [u] = await db.select({ email: users.email }).from(users).where(eq(users.id, actor!.id)).limit(1);
   const base = deps.appUrl.replace(/\/$/, "");
   if (u) await deliverEmail(deps, resourceSubmittedMessage(u.email, profile.displayName, p.title, `${base}/creator/${id}`));
-  await deliverEmail(deps, resourceAlertMessage(deps.notifyEmail ?? SITE.email, profile.displayName, p.title, `${base}/admin/review/${id}`));
+  await deliverEmail(deps, resourceAlertMessage(deps.notifyEmail ?? (await loadSiteText(deps.db)).biz.email, profile.displayName, p.title, `${base}/admin/review/${id}`));
 }
 
 // ---------- earnings ----------

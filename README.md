@@ -22,7 +22,8 @@ This is a new, independent codebase. The legacy site (`AbelAsiedu/home-tutoring-
 | Seed data and first-super-admin script | Done |
 | Sign-in, sign-up, email confirmation, password reset, change password, account page | Done, checked in a real browser |
 | Admin area: dashboard, users (search, suspend, restore, roles), audit log, home banners, site text, tutors, Kaitlyn | Done, checked in a real browser |
-| Home-page hero slideshow (admin-managed banners, accessible, 3 default slides) | Done |
+| Home-page slideshow (admin-managed slides, loops automatically, pause control, reduced-motion safe), animated ultramodern public design, looping resources strip, curricula ticker, optional testimonials | Done, checked in a real browser |
+| Admin dashboard: sidebar with groups and icons, "needs attention" counts, quick actions, recent activity; everything on the site editable (business details, menu, page titles, text, slides, tutors, media with Replace picture) | Done, checked in a real browser |
 | Admin-editable site text: home, services, tutors, about, pricing, contact, footer, Kaitlyn's wording, and the terms/privacy/refunds policies (defaults in code, audited, reset-to-default) | Done, checked in a real browser |
 | Tutors: public directory with filters and profile pages, rate-limited application form, admin review queue (approve / request changes / reject), profile editing, publish/hide, staff-added tutors, staff-chosen photos | Done, checked in a real browser (photos: tests only); initials are shown when there is no photo |
 | Kaitlyn AI assistant: ported gateway (Gemini Interactions, then OpenRouter, then Mistral), admin-managed knowledge, chat widget, chat log and unanswered-question list, kill switch | Done and checked end to end **with a local stand-in for the AI provider**. **No real provider has been called**: it stays off until you set a key |

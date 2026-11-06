@@ -43,7 +43,7 @@ describe("site text registry", () => {
     for (const x of CONTENT_ENTRIES) {
       expect(groups.has(x.group), x.key).toBe(true);
       expect(x.default.length, x.key).toBeLessThanOrEqual(x.max);
-      expect(x.default.trim(), x.key).not.toBe("");
+      if (!x.optional) expect(x.default.trim(), x.key).not.toBe("");
       if (x.kind === "line") expect(x.default, x.key).not.toContain("\n");
     }
   });

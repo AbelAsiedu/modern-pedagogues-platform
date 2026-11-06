@@ -1,12 +1,9 @@
-import type { Metadata } from "next";
+import { seoMetadata } from "@/server/seo";
 import { Hero } from "@/components/site/Chrome";
 import { RichText } from "@/components/site/RichText";
 import { getSiteText } from "@/server/context";
 
-export const metadata: Metadata = {
-  title: "About",
-  description: "The Modern Pedagogues was founded in 2019 on the belief that education should not stay frozen in the past.",
-};
+export const generateMetadata = () => seoMetadata("about");
 
 export default async function About() {
   const t = await getSiteText();

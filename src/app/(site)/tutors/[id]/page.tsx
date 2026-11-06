@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/site/TutorCard";
-import { whatsappLink } from "@/lib/site";
+import { getSiteText } from "@/server/context";
 import { db } from "@/server/db";
 import { getPublicTutor } from "@/server/tutors/service";
 
@@ -22,12 +22,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function TutorPage({ params }: Props) {
-  const t = await load((await params).id);
+  const [t, site] = await Promise.all([load((await params).id), getSiteText()]);
   if (!t) notFound();
   return (
     <div className="mx-auto max-w-3xl px-6 py-14">
       <Link href="/tutors" className="text-sm underline">← All tutors</Link>
-      <div className="mt-6 flex items-center gap-5">
+      <div className="glass mt-6 flex items-center gap-5 rounded-3xl p-6">
         <Avatar name={t.displayName} photoPath={t.photoPath} size="h-20 w-20 text-2xl" />
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">{t.displayName}</h1>
@@ -43,7 +43,7 @@ export default async function TutorPage({ params }: Props) {
         {t.yearsExperience != null ? <div><dt className="text-sm font-semibold uppercase tracking-widest text-gold">Experience</dt><dd className="mt-1">{t.yearsExperience} {t.yearsExperience === 1 ? "year" : "years"}</dd></div> : null}
       </dl>
       <p className="mt-10 text-sm text-navy/70">Rates are agreed with TMP per learner. Contact details are not shared; we arrange every introduction.</p>
-      <a href={whatsappLink(`Hello TMP, I would like to ask about ${t.displayName} as a tutor for my ward.`)} className="mt-4 inline-block rounded-full bg-navy px-6 py-3 font-semibold text-cream">
+      <a href={site.whatsapp(`Hello ${site.biz.name}, I would like to ask about ${t.displayName} as a tutor for my ward.`)} className="mt-4 inline-block rounded-full bg-navy px-6 py-3 font-semibold text-cream">
         Ask TMP about this tutor
       </a>
     </div>

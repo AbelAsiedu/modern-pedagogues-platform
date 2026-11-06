@@ -13,3 +13,74 @@ body {
   background: var(--color-cream);
   color: var(--color-navy);
 }
+
+/* ---------- Public site: motion and surfaces ---------- */
+/* Every animation below is switched off for visitors who ask for reduced motion (see the media query at the end of this block). */
+html { scroll-behavior: smooth; }
+@keyframes tmp-rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+@keyframes tmp-float { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(4%, -6%, 0) scale(1.12); } }
+@keyframes tmp-marquee { to { transform: translateX(-50%); } }
+@keyframes tmp-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes tmp-shimmer { to { background-position: 200% center; } }
+@keyframes tmp-pulse-ring { 0% { box-shadow: 0 0 0 0 rgb(201 152 62 / 0.45); } 100% { box-shadow: 0 0 0 16px rgb(201 152 62 / 0); } }
+
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.85s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms), transform 0.85s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms); }
+.reveal.is-in { opacity: 1; transform: none; }
+.rise { animation: tmp-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: var(--d, 0ms); }
+
+.mesh { background:
+  radial-gradient(60rem 30rem at 85% -10%, rgb(201 152 62 / 0.22), transparent 60%),
+  radial-gradient(40rem 26rem at -10% 110%, rgb(60 110 160 / 0.35), transparent 60%),
+  var(--color-navy); }
+.blob { position: absolute; border-radius: 9999px; filter: blur(64px); opacity: 0.5; animation: tmp-float 16s ease-in-out infinite; pointer-events: none; }
+.grid-fade { background-image: linear-gradient(rgb(251 246 234 / 0.06) 1px, transparent 1px), linear-gradient(90deg, rgb(251 246 234 / 0.06) 1px, transparent 1px); background-size: 44px 44px; mask-image: radial-gradient(ellipse at 70% 30%, #000 20%, transparent 70%); }
+.gradient-text { background: linear-gradient(90deg, #f5dc9a, #c9983e 45%, #f5dc9a 90%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: tmp-shimmer 7s linear infinite; }
+
+.glass { background: rgb(255 255 255 / 0.62); backdrop-filter: blur(14px); border: 1px solid rgb(18 36 58 / 0.08); box-shadow: 0 1px 2px rgb(18 36 58 / 0.04), 0 18px 40px -24px rgb(18 36 58 / 0.3); }
+.glass-dark { background: rgb(251 246 234 / 0.07); backdrop-filter: blur(14px); border: 1px solid rgb(251 246 234 / 0.14); }
+.lift { transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.35s ease; }
+.lift:hover { transform: translateY(-6px); box-shadow: 0 2px 4px rgb(18 36 58 / 0.05), 0 28px 48px -22px rgb(18 36 58 / 0.35); }
+.pulse-ring { animation: tmp-pulse-ring 2.4s ease-out infinite; }
+
+.marquee { overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.marquee-track { display: flex; width: max-content; animation: tmp-marquee var(--dur, 40s) linear infinite; }
+.marquee:hover .marquee-track, .marquee:focus-within .marquee-track { animation-play-state: paused; }
+
+.slide-in { opacity: 0; transform: translateY(22px); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.slide-in.is-active { opacity: 1; transform: none; }
+.slide-in > * { transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); opacity: 0; transform: translateY(18px); }
+.slide-in.is-active > * { opacity: 1; transform: none; transition-delay: calc(var(--i, 0) * 110ms + 120ms); }
+.kb-img { transform: scale(1); opacity: 0; transition: opacity 0.9s ease, transform 0s linear 0.9s; }
+.kb-img.is-active { opacity: 1; transform: scale(1.1); transition: opacity 0.9s ease, transform 12s linear; }
+.progress-fill { transform-origin: left; animation: tmp-progress var(--dur, 6s) linear forwards; }
+.progress-fill[data-paused="true"] { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal, .reveal.is-in { opacity: 1; transform: none; transition: none; }
+  .rise { animation: none; }
+  .blob, .pulse-ring { animation: none; }
+  .gradient-text { animation: none; }
+  .lift, .lift:hover { transform: none; transition: none; }
+  .marquee { overflow-x: auto; mask-image: none; }
+  .marquee-track { animation: none; }
+  .marquee [data-dup] { display: none; }
+  .slide-in, .slide-in > *, .kb-img, .kb-img.is-active { transition: none; }
+  .kb-img.is-active { transform: none; }
+  .progress-fill { animation: none; transform: none; }
+}
+
+/* ---------- Admin ---------- */
+.admin-shell { color: var(--color-navy); }
+.admin-main h1 { font-size: 1.875rem; line-height: 2.25rem; font-weight: 600; letter-spacing: -0.02em; }
+.admin-main .bg-white\/70 {
+  background: #fff;
+  border-color: rgb(18 36 58 / 0.07);
+  box-shadow: 0 1px 2px rgb(18 36 58 / 0.05), 0 10px 28px -16px rgb(18 36 58 / 0.18);
+}
+.admin-tile {
+  box-shadow: 0 1px 2px rgb(18 36 58 / 0.05), 0 10px 28px -16px rgb(18 36 58 / 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+a.admin-tile:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgb(18 36 58 / 0.06), 0 16px 32px -14px rgb(18 36 58 / 0.28); }
+@media (prefers-reduced-motion: reduce) { .admin-tile { transition: none; } a.admin-tile:hover { transform: none; } }

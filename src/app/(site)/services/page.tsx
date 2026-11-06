@@ -1,12 +1,8 @@
-import type { Metadata } from "next";
+import { seoMetadata } from "@/server/seo";
 import { Hero } from "@/components/site/Chrome";
-import { CURRICULA_NAMES, whatsappLink } from "@/lib/site";
 import { getSiteText } from "@/server/context";
 
-export const metadata: Metadata = {
-  title: "Services",
-  description: "Home tuition, online and international support, Final Lap exam preparation, Pre-SHS Launchpad, and curriculum consulting.",
-};
+export const generateMetadata = () => seoMetadata("services");
 
 export default async function Services() {
   const t = await getSiteText();
@@ -29,7 +25,7 @@ export default async function Services() {
         <section className="mt-16">
           <h2 className="text-2xl font-semibold">{t.text("services.curricula.heading")}</h2>
           <ul className="mt-4 flex flex-wrap gap-2">
-            {CURRICULA_NAMES.map((c) => (
+            {t.lines("home.curricula").map((c) => (
               <li key={c} className="rounded-full bg-cream-deep px-4 py-2 text-sm">{c}</li>
             ))}
           </ul>
@@ -39,7 +35,7 @@ export default async function Services() {
           <h2 className="text-2xl font-semibold">{t.text("services.tutors.heading")}</h2>
           <p className="mt-3 max-w-3xl">{t.text("services.tutors.body")}</p>
           <a
-            href={whatsappLink("Hello TMP, I would like help choosing a programme for my ward.")}
+            href={t.whatsapp(`Hello ${t.biz.name}, I would like help choosing a programme for my ward.`)}
             className="mt-6 inline-block rounded-full bg-navy px-6 py-3 font-semibold text-cream"
           >
             Get help choosing

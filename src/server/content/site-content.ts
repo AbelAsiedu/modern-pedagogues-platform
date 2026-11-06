@@ -6,6 +6,7 @@ import { siteContent } from "../db/schema";
 import { ForbiddenError, ValidationError } from "../errors";
 import { assertCan, can, type Actor } from "../permissions/authorize";
 import { CONTENT_ENTRIES, CONTENT_GROUPS, getEntry, type ContentEntry, type ContentGroupId } from "./registry";
+import { businessFrom, whatsappUrl, type Business } from "@/lib/business";
 import { fillTemplate, templateVars } from "@/lib/site-content";
 
 /** Normalise line endings and trim; the stored value never has CR characters. */
@@ -18,6 +19,10 @@ export type SiteText = {
   text(key: string, extra?: Record<string, string>): string;
   /** A "lines" entry as a list, empty lines removed. */
   lines(key: string): string[];
+  /** Business facts (name, email, phone, MoMo) after the admin's edits. */
+  biz: Business;
+  /** A wa.me link to the business WhatsApp number. */
+  whatsapp(message: string): string;
 };
 
 export function buildSiteText(overrides: ReadonlyMap<string, string>): SiteText {
@@ -28,14 +33,17 @@ export function buildSiteText(overrides: ReadonlyMap<string, string>): SiteText 
     if (!entry) throw new Error(`Unknown site text key: ${key}`);
     return entry.default;
   };
+  const biz = businessFrom(raw);
   return {
     raw,
-    text: (key, extra) => fillTemplate(raw(key), templateVars(extra)),
+    text: (key, extra) => fillTemplate(raw(key), templateVars(extra, biz)),
     lines: (key) =>
-      fillTemplate(raw(key), templateVars())
+      fillTemplate(raw(key), templateVars({}, biz))
         .split("\n")
         .map((l) => l.trim())
         .filter(Boolean),
+    biz,
+    whatsapp: (message) => whatsappUrl(biz, message),
   };
 }
 
@@ -92,6 +100,9 @@ export async function saveContentGroup(
     if (entry.kind !== "rich" && entry.kind !== "text" && entry.kind !== "lines" && value.includes("\n")) {
       throw new ValidationError({ [entry.key]: ["Use a single line."] });
     }
+    // An empty value means "use the default", so only a typed value is checked.
+    const problem = value === "" ? null : entry.validate?.(value) ?? null;
+    if (problem) throw new ValidationError({ [entry.key]: [problem] });
     if (value === "" || value === clean(entry.default)) toReset.push(entry.key);
     else toSet.push({ key: entry.key, value });
   }

@@ -1,4 +1,4 @@
-import { SERVICES } from "@/lib/site";
+import { CURRICULA_NAMES, SERVICES, SITE } from "@/lib/site";
 
 /**
  * Every piece of site text an administrator can edit. The `default` is what visitors see until an editor
@@ -10,7 +10,7 @@ import { SERVICES } from "@/lib/site";
  */
 
 export type ContentKind = "line" | "text" | "lines" | "rich";
-export type ContentGroupId = "home" | "services" | "tutors" | "assistant" | "shop" | "about" | "pricing" | "contact" | "footer" | "policies";
+export type ContentGroupId = "business" | "navigation" | "seo" | "home" | "services" | "tutors" | "assistant" | "shop" | "about" | "pricing" | "contact" | "footer" | "policies";
 
 export type ContentEntry = {
   key: string;
@@ -20,19 +20,26 @@ export type ContentEntry = {
   max: number;
   default: string;
   help?: string;
-  /** Policies need the legal permission; everything else needs the site permission. */
+  /** Policies and business details need the legal permission; everything else needs the site permission. */
   permission: "content.manage_site" | "content.manage_legal";
+  /** May be left empty (an empty default). */
+  optional?: boolean;
+  /** Returns a plain-words problem, or null when the value is acceptable. Checked on save. */
+  validate?: (value: string) => string | null;
 };
 
 export const CONTENT_GROUPS: readonly { id: ContentGroupId; label: string; blurb: string }[] = [
-  { id: "home", label: "Home page", blurb: "Text under the slideshow. Edit the slides themselves under Home banners." },
+  { id: "business", label: "Business details", blurb: "Name, motto, email and the phone, WhatsApp and Mobile Money numbers shown everywhere on the site and in emails. The MoMo number is where buyers send money, so only people who can edit legal text may change these." },
+  { id: "navigation", label: "Menu and buttons", blurb: "The words in the top menu, the sign-in link, the main button and the footer headings." },
+  { id: "seo", label: "Page titles and search descriptions", blurb: "What shows in the browser tab and in Google results for each main page. Keep titles under about 60 characters and descriptions under about 160." },
+  { id: "home", label: "Home page", blurb: "Text around the slideshow, the figures strip, the curricula strip, how it works, testimonials and the closing banner. Edit the slides themselves under Home slideshow." },
   { id: "services", label: "Services page", blurb: "The service descriptions here also appear on the home page." },
   { id: "tutors", label: "Tutors pages", blurb: "Wording around the tutor directory and the tutor application. Tutor profiles themselves are edited under Tutors." },
   { id: "assistant", label: "Kaitlyn (chat assistant)", blurb: "The words around the chat window. What Kaitlyn knows is edited under Kaitlyn in the admin menu." },
   { id: "shop", label: "Resources", blurb: "Wording on the Resources pages (browse, quality standards, becoming a creator) and the payment steps shown to buyers. The resources themselves are edited under Resources in the admin menu." },
   { id: "about", label: "About page", blurb: "Who we are and what we stand for." },
   { id: "pricing", label: "Pricing page", blurb: "The rate itself comes from site settings, not from this text." },
-  { id: "contact", label: "Contact page", blurb: "Phone, email and MoMo numbers are fixed business facts and are not edited here." },
+  { id: "contact", label: "Contact page", blurb: "The Contact page wording. The email, phone and Mobile Money numbers it shows are set under Business details." },
   { id: "footer", label: "Footer", blurb: "The line shown at the bottom of every page." },
   { id: "policies", label: "Terms, privacy and refunds", blurb: "Legal text. Have it reviewed by a lawyer before relying on it." },
 ];
@@ -47,9 +54,9 @@ function e(
   kind: ContentKind,
   max: number,
   def: string,
-  extra: { help?: string; permission?: ContentEntry["permission"] } = {},
+  extra: { help?: string; permission?: ContentEntry["permission"]; optional?: boolean; validate?: ContentEntry["validate"] } = {},
 ): ContentEntry {
-  return { key, group, label, kind, max, default: def, help: extra.help, permission: extra.permission ?? SITE_PERM };
+  return { key, group, label, kind, max, default: def, help: extra.help, permission: extra.permission ?? SITE_PERM, optional: extra.optional, validate: extra.validate };
 }
 
 const SERVICE_ENTRIES = SERVICES.flatMap((s, i) => [
@@ -58,6 +65,87 @@ const SERVICE_ENTRIES = SERVICES.flatMap((s, i) => [
 ]);
 
 export const CONTENT_ENTRIES: readonly ContentEntry[] = [
+  // Business details (also feed the {name} {email} {phone} {momo} {momo_number} {motto} tokens)
+  e("site.name", "business", "Business name", "line", 80, SITE.name, { permission: LEGAL_PERM }),
+  e("site.motto", "business", "Motto", "line", 120, SITE.motto, { permission: LEGAL_PERM }),
+  e("site.email", "business", "Public email", "line", 120, SITE.email, {
+    permission: LEGAL_PERM,
+    help: "Shown on the Contact page and in the footer, and used for order and application alerts.",
+    validate: (v) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : "Enter a valid email address."),
+  }),
+  e("site.phone", "business", "Phone and WhatsApp number", "line", 30, SITE.phoneDisplay, {
+    permission: LEGAL_PERM,
+    help: "Include the country code, for example +233 59 366 0708. The Call and WhatsApp links are made from it.",
+    validate: (v) => (/^\+?[0-9 ()-]{7,20}$/.test(v) && v.replace(/\D/g, "").length >= 9 ? null : "Enter a valid phone number with its country code."),
+  }),
+  e("site.momo_network", "business", "Mobile Money network", "line", 40, SITE.momoNetwork, { permission: LEGAL_PERM }),
+  e("site.momo_number", "business", "Mobile Money number", "line", 30, SITE.phoneDisplay, {
+    permission: LEGAL_PERM,
+    help: "The number buyers send payments to. Changing it changes the payment steps buyers see straight away.",
+    validate: (v) => (/^\+?[0-9 ()-]{7,20}$/.test(v) && v.replace(/\D/g, "").length >= 9 ? null : "Enter a valid Mobile Money number."),
+  }),
+
+  // Menu and buttons
+  e("nav.services", "navigation", "Menu: Services", "line", 24, "Services"),
+  e("nav.tutors", "navigation", "Menu: Tutors", "line", 24, "Tutors"),
+  e("nav.resources", "navigation", "Menu: Resources", "line", 24, "Resources"),
+  e("nav.pricing", "navigation", "Menu: Pricing", "line", 24, "Pricing"),
+  e("nav.about", "navigation", "Menu: About", "line", 24, "About"),
+  e("nav.contact", "navigation", "Menu: Contact", "line", 24, "Contact"),
+  e("nav.account", "navigation", "Menu: My account (signed in)", "line", 24, "My account"),
+  e("nav.signin", "navigation", "Menu: Sign in (signed out)", "line", 24, "Sign in"),
+  e("nav.cta", "navigation", "Main button", "line", 30, "Request a tutor"),
+  e("footer.contact_heading", "navigation", "Footer: contact heading", "line", 30, "Contact"),
+  e("footer.policies_heading", "navigation", "Footer: policies heading", "line", 30, "Policies"),
+
+  // Page titles and search descriptions
+  e("seo.home.title", "seo", "Home: title", "line", 70, "The Modern Pedagogues: tutoring and learning resources in Ghana"),
+  e("seo.home.description", "seo", "Home: description", "text", 170, "Personalised tutoring, exam preparation and quality learning resources for Ghanaian and international learners."),
+  e("seo.services.title", "seo", "Services: title", "line", 70, "Services"),
+  e("seo.services.description", "seo", "Services: description", "text", 170, "Home tuition, online and international support, Final Lap exam preparation, Pre-SHS Launchpad, and curriculum consulting."),
+  e("seo.tutors.title", "seo", "Tutors: title", "line", 70, "Our tutors"),
+  e("seo.tutors.description", "seo", "Tutors: description", "text", 170, "Meet tutors reviewed and approved by The Modern Pedagogues, for home and online lessons across Ghana."),
+  e("seo.resources.title", "seo", "Resources: title", "line", 70, "Resources"),
+  e("seo.resources.description", "seo", "Resources: description", "text", 170, "Books, courses, worksheets and past questions for Ghanaian learners. Free downloads and paid resources, each reviewed against a published quality standard."),
+  e("seo.pricing.title", "seo", "Pricing: title", "line", 70, "Pricing"),
+  e("seo.pricing.description", "seo", "Pricing: description", "text", 170, "How tutoring fees work at The Modern Pedagogues: agreed per learner, from {rate} per session."),
+  e("seo.about.title", "seo", "About: title", "line", 70, "About"),
+  e("seo.about.description", "seo", "About: description", "text", 170, "Who we are and what we stand for at The Modern Pedagogues."),
+  e("seo.contact.title", "seo", "Contact: title", "line", 70, "Contact"),
+  e("seo.contact.description", "seo", "Contact: description", "text", 170, "Talk to The Modern Pedagogues by phone, WhatsApp or email."),
+
+  // Home (new design)
+  e("home.slideshow.seconds", "home", "Slideshow: seconds per slide", "line", 3, "6", {
+    help: "Whole seconds, from 3 to 20. The slideshow loops on its own; visitors can pause it.",
+    validate: (v) => (/^\d{1,2}$/.test(v) && Number(v) >= 3 && Number(v) <= 20 ? null : "Enter a whole number of seconds from 3 to 20."),
+  }),
+  e("home.curricula", "home", "Curricula strip (one per line)", "lines", 400, CURRICULA_NAMES.join("\n"), { help: "Scrolls across the home page and is listed on the Services page." }),
+  e("home.stat1.value", "home", "Figure 1: value", "line", 20, "Since 2019"),
+  e("home.stat1.label", "home", "Figure 1: label", "line", 50, "Teaching in Ghana"),
+  e("home.stat2.value", "home", "Figure 2: value", "line", 20, "5"),
+  e("home.stat2.label", "home", "Figure 2: label", "line", 50, "Curricula supported"),
+  e("home.stat3.value", "home", "Figure 3: value", "line", 20, "Pre-school to SHS"),
+  e("home.stat3.label", "home", "Figure 3: label", "line", 50, "Every stage covered"),
+  e("home.stat4.value", "home", "Figure 4: value", "line", 20, "Home + online"),
+  e("home.stat4.label", "home", "Figure 4: label", "line", 50, "Lessons where you are"),
+  e("home.how.heading", "home", "How it works: heading", "line", 80, "How it works"),
+  e("home.how1.title", "home", "Step 1: title", "line", 50, "Tell us what you need"),
+  e("home.how1.body", "home", "Step 1: text", "text", 200, "Message us on WhatsApp or call. Tell us the level, the subjects and what your ward is aiming for."),
+  e("home.how2.title", "home", "Step 2: title", "line", 50, "We match a tutor"),
+  e("home.how2.body", "home", "Step 2: text", "text", 200, "We recommend a reviewed, approved tutor and agree the rate with you before the first lesson."),
+  e("home.how3.title", "home", "Step 3: title", "line", 50, "Learn and track progress"),
+  e("home.how3.body", "home", "Step 3: text", "text", 200, "Lessons start, and you get honest progress reports with a direct line to TMP."),
+  e("home.resources.heading", "home", "Resources strip: heading", "line", 80, "Fresh from the library"),
+  e("home.resources.body", "home", "Resources strip: text", "text", 200, "Free and paid books, courses and worksheets, each checked against our quality standard."),
+  e("home.testimonials.heading", "home", "Testimonials: heading", "line", 80, "What families say"),
+  e("home.testimonials", "home", "Testimonials (one per line: quote | name, role)", "lines", 2000, "", {
+    optional: true,
+    help: "Leave empty to hide the section. Only add real quotes you have permission to use. Format: The lessons changed how she studies. | Ama, parent. They rotate automatically.",
+  }),
+  e("home.cta.heading", "home", "Closing banner: heading", "line", 100, "Ready to start learning?"),
+  e("home.cta.body", "home", "Closing banner: text", "text", 240, "Tell us what your ward needs and we will suggest the right programme and tutor."),
+  e("home.cta.button", "home", "Closing banner: button", "line", 40, "Message us on WhatsApp"),
+
   // Home
   e("home.pillar1.title", "home", "Highlight 1: title", "line", 60, "Pre-school to SHS"),
   e("home.pillar1.body", "home", "Highlight 1: text", "text", 200, "Support at every stage of a learner's journey."),
@@ -129,8 +217,8 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
     "Payment steps",
     "lines",
     600,
-    "Send the amount shown by {momo} to {phone}.\nUse your order reference as the payment reference.\nWe confirm payments personally, usually within a few hours. Your download then appears under My orders.",
-    { help: "One step per line. {momo} and {phone} are filled in automatically." },
+    "Send the amount shown by {momo} to {momo_number}.\nUse your order reference as the payment reference.\nWe confirm payments personally, usually within a few hours. Your download then appears under My orders.",
+    { help: "One step per line. {momo} and {momo_number} are filled in automatically." },
   ),
 
   e(
@@ -259,7 +347,7 @@ We will update this page and its date if the terms change.`,
     "Paying: text",
     "text",
     900,
-    "All fees are in Ghana cedis (GH₵). You can pay by {momo} to our MoMo number, {phone}. Please confirm the payment details with us on WhatsApp before you send money, and keep your payment confirmation. Online payment through Paystack, including MTN Mobile Money and cards, is being set up; TMP never sees or stores your card number or Mobile Money PIN.",
+    "All fees are in Ghana cedis (GH₵). You can pay by {momo} to our MoMo number, {momo_number}. Please confirm the payment details with us on WhatsApp before you send money, and keep your payment confirmation. Online payment through Paystack, including MTN Mobile Money and cards, is being set up; TMP never sees or stores your card number or Mobile Money PIN.",
     { help: "Update this when online payment goes live." },
   ),
   e("pricing.other.heading", "pricing", "Other programmes: heading", "line", 80, "Other programmes"),

@@ -19,7 +19,7 @@ export default async function MediaPage() {
     <>
       <h1 className="text-3xl font-semibold tracking-tight">Media</h1>
       <p className="mt-2 max-w-2xl text-sm text-navy/70">
-        Pictures for home banners, tutor photos and shop covers. Upload here, then choose the picture from the list when you edit a banner, tutor or product.
+        Pictures for the home slideshow, tutor photos and resource covers. Upload here, then choose the picture from the list when you edit a slide, tutor or resource. To change a picture everywhere it is used, open Edit on it and choose Replace picture.
       </p>
 
       <section className="mt-8 rounded-2xl border border-navy/10 bg-white/70 p-6">
@@ -42,6 +42,10 @@ export default async function MediaPage() {
                 <summary className="cursor-pointer text-sm font-semibold underline decoration-gold underline-offset-4">Edit</summary>
                 <div className="mt-3 space-y-3">
                   <ActionForm action={updateMediaAltAction} hidden={{ mediaId: m.id }} fields={[{ name: "altText", label: "Description", defaultValue: m.altText }]} submitLabel="Save description" tone="quiet" />
+                  <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
+                    <ImageUploader label="Replace this picture" replaceId={m.id} submitLabel="Replace picture" />
+                    <p className="mt-2 text-xs text-navy/70">Every banner, tutor photo and resource cover that uses this picture switches to the new one.</p>
+                  </div>
                   <ActionForm action={deleteMediaAction} hidden={{ mediaId: m.id }} fields={[]} submitLabel="Delete picture" tone="danger" />
                 </div>
               </details>

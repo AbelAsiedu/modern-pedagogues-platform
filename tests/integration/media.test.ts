@@ -4,7 +4,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { createBanner } from "@/server/content/banners";
 import { heroBanners, mediaFiles, tutorProfiles } from "@/server/db/schema";
 import { ConflictError, ForbiddenError, NotFoundError } from "@/server/errors";
-import { deleteMedia, getMediaFile, listMedia, mediaOptions, saveImage, updateMediaAlt } from "@/server/media/service";
+import { deleteMedia, getMediaFile, listMedia, mediaOptions, replaceMedia, saveImage, updateMediaAlt } from "@/server/media/service";
 import { createTutorByAdmin, profileEditInput, updateTutorProfile, getPublicTutor } from "@/server/tutors/service";
 import { makeActor, openTestDb, resetData } from "../support/harness";
 
@@ -85,6 +85,42 @@ describe("media library", () => {
     const saved = await saveImage(db, admin, { filename: "x.png", bytes: await png() });
     await updateMediaAlt(db, admin, saved.id, "A new description");
     expect((await listMedia(db, admin))[0]?.altText).toBe("A new description");
+  });
+});
+
+describe("replacing a picture", () => {
+  const jpg = () => sharp({ create: { width: 40, height: 30, channels: 3, background: "#aa3322" } }).jpeg().toBuffer();
+
+  it("moves every banner, tutor photo and resource cover to the new picture and removes the old one", async () => {
+    const admin = await makeActor(db, "a@example.com", ["admin"]);
+    const old = await saveImage(db, admin, { filename: "old.png", bytes: await png(), altText: "Old description" });
+    await createBanner(db, admin, { title: "Hello there", imagePath: old.path, imageAlt: "x" });
+    const tutor = await createTutorByAdmin(db, admin, { fullName: "Ama Mensah", email: "ama@example.com" });
+    await db.update(tutorProfiles).set({ photoPath: old.path }).where(eq(tutorProfiles.id, tutor));
+
+    const r = await replaceMedia(db, admin, old.id, { filename: "new.jpg", bytes: await jpg() }, "203.0.113.4");
+    expect(r.path).toMatch(/^\/media\/[0-9a-f-]{36}\.jpg$/);
+    expect(r.path).not.toBe(old.path);
+    expect(r.moved).toEqual({ banners: 1, tutors: 1, resources: 0 });
+
+    expect((await db.select().from(heroBanners))[0]?.imagePath).toBe(r.path);
+    expect((await db.select().from(tutorProfiles).where(eq(tutorProfiles.id, tutor)))[0]?.photoPath).toBe(r.path);
+    expect(await getMediaFile(db, old.id)).toBeNull();
+    expect((await getMediaFile(db, r.id))?.contentType).toBe("image/jpeg");
+    // The description carries over when none is given.
+    expect((await listMedia(db, admin))[0]?.altText).toBe("Old description");
+  });
+
+  it("is refused for people who are not staff, for missing pictures and for non-images, and changes nothing", async () => {
+    const admin = await makeActor(db, "a@example.com", ["admin"]);
+    const creator = await makeActor(db, "c@example.com", ["creator"]);
+    const old = await saveImage(db, admin, { filename: "old.png", bytes: await png() });
+    await expect(replaceMedia(db, creator, old.id, { filename: "n.jpg", bytes: await jpg() })).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(replaceMedia(db, null, old.id, { filename: "n.jpg", bytes: await jpg() })).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(replaceMedia(db, admin, "00000000-0000-7000-8000-000000000000", { filename: "n.jpg", bytes: await jpg() })).rejects.toBeInstanceOf(NotFoundError);
+    await expect(replaceMedia(db, admin, old.id, { filename: "n.svg", bytes: Buffer.from("<svg/>") })).rejects.toMatchObject({ code: "VALIDATION" });
+    const rows = await db.select().from(mediaFiles);
+    expect(rows.map((x) => x.id)).toEqual([old.id]);
   });
 });
 

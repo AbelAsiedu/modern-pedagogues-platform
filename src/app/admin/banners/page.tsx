@@ -6,7 +6,7 @@ import { mediaOptions } from "@/server/media/service";
 import { db } from "@/server/db";
 import { createBannerAction, deleteBannerAction, toggleBannerAction, updateBannerAction } from "../actions";
 
-export const metadata = { title: "Home banners" };
+export const metadata = { title: "Home slideshow" };
 
 const KNOWN_IMAGES = ["/images/slide-learning.svg", "/images/slide-exams.svg", "/images/slide-team.svg"] as const;
 
@@ -36,9 +36,9 @@ export default async function BannersPage() {
   const pictures = await mediaOptions(db(), s.actor);
   return (
     <>
-      <h1 className="text-3xl font-semibold tracking-tight">Home banners</h1>
+      <h1>Home slideshow</h1>
       <p className="mt-2 max-w-2xl text-sm text-navy/70">
-        Active banners rotate as a slideshow at the top of the home page. If none are active, TMP&apos;s default slides are shown.
+        Showing slides loop automatically at the top of the home page, lowest order first, and visitors can pause them. If none are showing, TMP&apos;s default slides are used. The seconds per slide is set under Site text, Home page.
       </p>
 
       <section className="mt-8 rounded-2xl border border-navy/10 bg-white/70 p-6">
@@ -57,7 +57,9 @@ export default async function BannersPage() {
         {banners.map((b) => (
           <li key={b.id} className="rounded-2xl border border-navy/10 bg-white/70 p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="font-semibold">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={b.imagePath} alt="" className="h-14 w-20 rounded-lg bg-cream-deep object-cover" />
+              <p className="min-w-0 flex-1 font-semibold">
                 {b.title}{" "}
                 <span className={`ml-2 rounded-full px-3 py-1 text-xs font-normal ${b.isActive ? "bg-green-100 text-green-900" : "bg-navy/10"}`}>
                   {b.isActive ? "Showing" : "Hidden"}

@@ -1,15 +1,13 @@
-import type { Metadata } from "next";
 import Link from "next/link";
+import { seoMetadata } from "@/server/seo";
 import { Hero } from "@/components/site/Chrome";
+import { Reveal } from "@/components/site/Reveal";
 import { TutorCard } from "@/components/site/TutorCard";
 import { getSiteText } from "@/server/context";
 import { db } from "@/server/db";
 import { listPublicTutors, tutorFilterOptions, TEACHING_MODES, MODE_LABELS, type PublicTutor } from "@/server/tutors/service";
 
-export const metadata: Metadata = {
-  title: "Our tutors",
-  description: "Meet the qualified tutors of The Modern Pedagogues, reviewed and approved by our team.",
-};
+export const generateMetadata = () => seoMetadata("tutors");
 
 type Search = Promise<Record<string, string | string[] | undefined>>;
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
@@ -72,7 +70,7 @@ export default async function Tutors({ searchParams }: { searchParams: Search })
           <p className="mt-10 max-w-2xl" role="status">{t.text("tutors.empty")}</p>
         ) : (
           <ul className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3" aria-label="Tutors">
-            {tutors.map((x) => <li key={x.id}><TutorCard tutor={x} /></li>)}
+            {tutors.map((x, i) => <Reveal as="li" key={x.id} delay={(i % 3) * 90}><TutorCard tutor={x} whatsapp={t.whatsapp} /></Reveal>)}
           </ul>
         )}
 

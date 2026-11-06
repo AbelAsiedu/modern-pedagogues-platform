@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { SITE } from "../../lib/site";
+import { loadSiteText } from "../content/site-content";
 import { recordAudit } from "../audit";
 import { enforceRateLimit } from "../auth/rate-limit";
 import { emailSchema, parseOrThrow } from "../auth/validation";
@@ -161,7 +161,7 @@ export async function submitApplication(deps: ApplyDeps, input: unknown, ctx: { 
   await deliverEmail(deps, tutorApplicationReceivedMessage(data.email, data.fullName));
   await deliverEmail(
     deps,
-    tutorApplicationAlertMessage(deps.notifyEmail ?? SITE.email, data.fullName, `${deps.appUrl.replace(/\/$/, "")}/admin/tutors/${row.id}`),
+    tutorApplicationAlertMessage(deps.notifyEmail ?? (await loadSiteText(deps.db)).biz.email, data.fullName, `${deps.appUrl.replace(/\/$/, "")}/admin/tutors/${row.id}`),
   );
 }
 

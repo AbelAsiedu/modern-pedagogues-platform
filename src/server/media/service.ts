@@ -176,3 +176,48 @@ export async function deleteMedia(db: Db, actor: Actor | null, id: string, ip?: 
   await db.delete(mediaFiles).where(eq(mediaFiles.id, id));
   await recordAudit(db, { actorId: actor.id, action: "media.deleted", entityType: "media", entityId: id, ip });
 }
+
+/**
+ * Swap a picture for a new one everywhere it is used. The new picture is stored under a new address (addresses are
+ * cached for a year), then every home banner, tutor photo and resource cover that pointed at the old address is moved
+ * to the new one in the same transaction, and the old picture is removed. The description is kept unless a new one is given.
+ */
+export async function replaceMedia(
+  db: Db,
+  actor: Actor | null,
+  id: string,
+  input: { filename: string; bytes: Buffer; altText?: string },
+  ip?: string | null,
+) {
+  assertCanUpload(actor);
+  if (!isMediaStaff(actor)) throw new ForbiddenError("missing permission: replace media");
+  const img = await processImage(input.bytes);
+  return db.transaction(async (tx) => {
+    const [old] = await tx.select({ id: mediaFiles.id, contentType: mediaFiles.contentType, altText: mediaFiles.altText }).from(mediaFiles).where(eq(mediaFiles.id, id)).limit(1);
+    if (!old) throw new NotFoundError("Image not found.");
+    const oldPath = mediaPath(old);
+    const [row] = await tx
+      .insert(mediaFiles)
+      .values({
+        filename: cleanName(input.filename),
+        contentType: img.contentType,
+        byteSize: img.data.length,
+        width: img.width,
+        height: img.height,
+        sha256: createHash("sha256").update(img.data).digest("hex"),
+        altText: (input.altText?.trim() ? input.altText.trim() : old.altText).slice(0, 200),
+        data: img.data,
+        uploadedById: actor.id,
+      })
+      .returning({ id: mediaFiles.id, contentType: mediaFiles.contentType });
+    const newPath = mediaPath(row!);
+    const moved = {
+      banners: (await tx.update(heroBanners).set({ imagePath: newPath }).where(eq(heroBanners.imagePath, oldPath)).returning({ id: heroBanners.id })).length,
+      tutors: (await tx.update(tutorProfiles).set({ photoPath: newPath }).where(eq(tutorProfiles.photoPath, oldPath)).returning({ id: tutorProfiles.id })).length,
+      resources: (await tx.update(products).set({ coverPath: newPath }).where(eq(products.coverPath, oldPath)).returning({ id: products.id })).length,
+    };
+    await tx.delete(mediaFiles).where(eq(mediaFiles.id, id));
+    await recordAudit(tx, { actorId: actor.id, action: "media.replaced", entityType: "media", entityId: row!.id, metadata: { replaced: id, ...moved }, ip });
+    return { id: row!.id, path: newPath, moved };
+  });
+}

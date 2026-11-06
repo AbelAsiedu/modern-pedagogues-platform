@@ -11,12 +11,13 @@ export default async function ContentPage() {
   const groups = await listEditableContent(db(), s.actor);
   return (
     <>
-      <h1 className="text-3xl font-semibold tracking-tight">Site text</h1>
+      <h1>Site text</h1>
       <p className="mt-2 max-w-2xl text-sm text-navy/70">
-        Edit the wording of the public pages. Clear a box and save to bring back the original text. You can use{" "}
-        <code>{"{name}"}</code>, <code>{"{email}"}</code>, <code>{"{phone}"}</code>, <code>{"{momo}"}</code> and{" "}
-        <code>{"{rate}"}</code> where they make sense; they always show the current business details. Page titles in the browser
-        tab and the phone, email and MoMo numbers are fixed in the code. Slideshow banners are edited under Home banners.
+        Edit the wording of every public page, the menu, the page titles shown in the browser tab and Google, and the business
+        details (name, email, phone and Mobile Money number). Clear a box and save to bring back the original text. You can use{" "}
+        <code>{"{name}"}</code>, <code>{"{email}"}</code>, <code>{"{phone}"}</code>, <code>{"{momo}"}</code>, <code>{"{momo_number}"}</code> and{" "}
+        <code>{"{rate}"}</code> where they make sense; they always show the current business details. Slideshow pictures and
+        buttons are edited under Home slideshow; pictures are managed in the Media library.
       </p>
       <div className="mt-8 space-y-4">
         {groups.map((g) => {

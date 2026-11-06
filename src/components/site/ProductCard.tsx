@@ -17,7 +17,7 @@ export function ProductCover({ path, alt = "", className = "h-44" }: { path: str
 export function ProductCard({ product }: { product: PublicProduct }) {
   const href = `/resources/${product.slug}`;
   return (
-    <article className="flex h-full flex-col rounded-2xl border border-navy/10 bg-white/70 p-5">
+    <article className="lift glass flex h-full flex-col rounded-3xl p-5">
       <Link href={href} aria-label={product.title}>
         <ProductCover path={product.coverPath} />
       </Link>

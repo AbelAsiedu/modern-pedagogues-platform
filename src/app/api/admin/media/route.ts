@@ -4,7 +4,7 @@ import { db } from "@/server/db";
 import { env } from "@/server/env";
 import { toErrorResponse } from "@/server/errors";
 import { logger } from "@/server/logger";
-import { canUploadMedia, MAX_UPLOAD_BYTES, saveImage } from "@/server/media/service";
+import { canUploadMedia, MAX_UPLOAD_BYTES, replaceMedia, saveImage } from "@/server/media/service";
 
 export const dynamic = "force-dynamic";
 
@@ -37,12 +37,14 @@ export async function POST(req: Request) {
     const form = await req.formData();
     const file = form.get("file");
     if (!(file instanceof File)) return fail(400, "Choose an image to upload.");
-    const saved = await saveImage(
-      db(),
-      actor,
-      { filename: file.name, bytes: Buffer.from(await file.arrayBuffer()), altText: String(form.get("altText") ?? "") },
-      (await requestContext()).ip,
-    );
+    const input = { filename: file.name, bytes: Buffer.from(await file.arrayBuffer()), altText: String(form.get("altText") ?? "") };
+    const ip = (await requestContext()).ip;
+    const replaceId = String(form.get("replaceId") ?? "");
+    if (replaceId) {
+      const r = await replaceMedia(db(), actor, replaceId, input, ip);
+      return NextResponse.json({ ok: true, id: r.id, path: r.path, moved: r.moved }, { headers: { "Cache-Control": "no-store" } });
+    }
+    const saved = await saveImage(db(), actor, input, ip);
     return NextResponse.json({ ok: true, id: saved.id, path: saved.path }, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {
     const { status, body } = toErrorResponse(err);

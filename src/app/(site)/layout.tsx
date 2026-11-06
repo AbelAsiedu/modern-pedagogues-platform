@@ -1,6 +1,5 @@
 import { KaitlynChat } from "@/components/site/KaitlynChat";
 import { PageShell } from "@/components/site/Chrome";
-import { whatsappLink } from "@/lib/site";
 import { isAssistantAvailable } from "@/server/assistant/service";
 import { assistantProviders, getSiteText } from "@/server/context";
 import { db } from "@/server/db";
@@ -19,7 +18,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         <KaitlynChat
           greeting={t.text("assistant.greeting")}
           disclaimer={t.text("assistant.disclaimer")}
-          whatsappHref={whatsappLink("Hello TMP, I have a question.")}
+          whatsappHref={t.whatsapp(`Hello ${t.biz.name}, I have a question.`)}
         />
       ) : null}
     </PageShell>
