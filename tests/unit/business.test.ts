@@ -46,8 +46,11 @@ describe("business detail validation", () => {
     expect(check("home.slideshow.seconds", "fast")).toMatch(/3 to 20/);
   });
 
-  it("business details need the legal permission", () => {
-    for (const x of CONTENT_ENTRIES.filter((e) => e.key.startsWith("site."))) expect(x.permission, x.key).toBe("content.manage_legal");
+  it("business details need the legal permission, while social links and the logo need only the site permission", () => {
+    const open = new Set(["site.facebook", "site.instagram", "site.x", "site.youtube", "site.linkedin", "site.tiktok", "site.logo"]);
+    for (const x of CONTENT_ENTRIES.filter((e) => e.key.startsWith("site."))) {
+      expect(x.permission, x.key).toBe(open.has(x.key) ? "content.manage_site" : "content.manage_legal");
+    }
   });
 });
 

@@ -9,6 +9,7 @@ import { setAssistantEnabled, testProviders } from "@/server/assistant/service";
 import { saveContentGroup } from "@/server/content/site-content";
 import { createBanner, deleteBanner, setBannerActive, updateBanner } from "@/server/content/banners";
 import { assistantProviders, emailDeps, requestContext, requireActor } from "@/server/context";
+import { setImageSlot } from "@/server/content/images";
 import { deleteMedia, updateMediaAlt } from "@/server/media/service";
 import { cancelOrderByStaff, createProduct, deleteProduct, markOrderPaid, updateProduct } from "@/server/shop/service";
 import { listingFromForm } from "@/lib/listing-form";
@@ -257,6 +258,16 @@ export async function updateMediaAltAction(_: ActionState, form: FormData): Prom
     await updateMediaAlt(db(), actor, str(form, "mediaId"), str(form, "altText"), (await requestContext()).ip);
     revalidatePath("/admin/media");
     return { ok: true, message: "Saved." };
+  });
+}
+
+export async function setImageSlotAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    const path = str(form, "path");
+    await setImageSlot(db(), actor, str(form, "slot"), path, (await requestContext()).ip);
+    revalidatePath("/admin/images");
+    return { ok: true, message: path ? "Saved. The picture is now showing." : "Removed. The built-in illustration is showing." };
   });
 }
 

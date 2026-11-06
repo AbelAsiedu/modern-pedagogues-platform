@@ -101,7 +101,7 @@ describe("replacing a picture", () => {
     const r = await replaceMedia(db, admin, old.id, { filename: "new.jpg", bytes: await jpg() }, "203.0.113.4");
     expect(r.path).toMatch(/^\/media\/[0-9a-f-]{36}\.jpg$/);
     expect(r.path).not.toBe(old.path);
-    expect(r.moved).toEqual({ banners: 1, tutors: 1, resources: 0 });
+    expect(r.moved).toEqual({ banners: 1, tutors: 1, resources: 0, slots: 0 });
 
     expect((await db.select().from(heroBanners))[0]?.imagePath).toBe(r.path);
     expect((await db.select().from(tutorProfiles).where(eq(tutorProfiles.id, tutor)))[0]?.photoPath).toBe(r.path);

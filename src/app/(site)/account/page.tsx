@@ -53,7 +53,7 @@ export default async function AccountPage() {
       </div>
 
       <form action={logoutAction} className="mt-10">
-        <button className="rounded-full border border-navy/30 px-5 py-2 text-sm font-semibold hover:border-navy">Sign out</button>
+        <button className="rounded-full border-2 border-royal px-5 py-2 text-sm font-semibold text-royal hover:bg-royal hover:text-cream">Sign out</button>
       </form>
     </div>
   );

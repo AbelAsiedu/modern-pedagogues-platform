@@ -20,6 +20,7 @@ const ICONS = {
   receipt: "M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2zM9 8h6M9 12h6",
   list: "M9 5h11M9 12h11M9 19h11M4 5h.01M4 12h.01M4 19h.01",
   external: "M14 4h6v6M20 4l-9 9M18 14v5H5V6h5",
+  layout: "M3 4h18v6H3zM3 14h8v6H3zM15 14h6v6h-6z",
   menu: "M4 6h16M4 12h16M4 18h16",
   close: "M6 6l12 12M18 6L6 18",
 } as const;

@@ -35,6 +35,7 @@ export default async function AdminHome() {
     { href: "/admin/banners", label: "Edit the home slideshow", icon: "slideshow", show: can(actor, "content.manage_site") },
     { href: "/admin/content", label: "Edit site text", icon: "text", show: can(actor, "content.manage_site") },
     { href: "/admin/tutors", label: "Manage tutor profiles", icon: "tutors", show: can(actor, "tutors.review_applications") },
+    { href: "/admin/images", label: "Change site pictures", icon: "layout", show: can(actor, "content.manage_site") },
     { href: "/admin/media", label: "Upload or replace pictures", icon: "media", show: isMediaStaff(actor) },
     { href: "/admin/review", label: "Review resources", icon: "check", show: can(actor, "marketplace.moderate") },
     { href: "/admin/orders", label: "Confirm payments", icon: "receipt", show: can(actor, "commerce.manage_orders") },

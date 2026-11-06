@@ -9,8 +9,8 @@ import { CURRICULA_NAMES, SERVICES, SITE } from "@/lib/site";
  * described in lib/richtext.ts.
  */
 
-export type ContentKind = "line" | "text" | "lines" | "rich";
-export type ContentGroupId = "business" | "navigation" | "seo" | "home" | "services" | "tutors" | "assistant" | "shop" | "about" | "pricing" | "contact" | "footer" | "policies";
+export type ContentKind = "line" | "text" | "lines" | "rich" | "image";
+export type ContentGroupId = "business" | "navigation" | "seo" | "images" | "home" | "services" | "tutors" | "assistant" | "shop" | "about" | "pricing" | "contact" | "footer" | "policies";
 
 export type ContentEntry = {
   key: string;
@@ -32,6 +32,7 @@ export const CONTENT_GROUPS: readonly { id: ContentGroupId; label: string; blurb
   { id: "business", label: "Business details", blurb: "Name, motto, email and the phone, WhatsApp and Mobile Money numbers shown everywhere on the site and in emails. The MoMo number is where buyers send money, so only people who can edit legal text may change these." },
   { id: "navigation", label: "Menu and buttons", blurb: "The words in the top menu, the sign-in link, the main button and the footer headings." },
   { id: "seo", label: "Page titles and search descriptions", blurb: "What shows in the browser tab and in Google results for each main page. Keep titles under about 60 characters and descriptions under about 160." },
+  { id: "images", label: "Site images", blurb: "Pictures used around the site. Managed on the Site images page, not here." },
   { id: "home", label: "Home page", blurb: "Text around the slideshow, the figures strip, the curricula strip, how it works, testimonials and the closing banner. Edit the slides themselves under Home slideshow." },
   { id: "services", label: "Services page", blurb: "The service descriptions here also appear on the home page." },
   { id: "tutors", label: "Tutors pages", blurb: "Wording around the tutor directory and the tutor application. Tutor profiles themselves are edited under Tutors." },
@@ -64,6 +65,15 @@ const SERVICE_ENTRIES = SERVICES.flatMap((s, i) => [
   e(`services.${i + 1}.body`, "services", `Service ${i + 1}: description`, "text", 400, s.body),
 ]);
 
+const httpsUrl = (v: string) => {
+  try {
+    const u = new URL(v);
+    return u.protocol === "https:" && u.hostname.includes(".") ? null : "Enter a full link starting with https://";
+  } catch {
+    return "Enter a full link starting with https://";
+  }
+};
+
 export const CONTENT_ENTRIES: readonly ContentEntry[] = [
   // Business details (also feed the {name} {email} {phone} {momo} {momo_number} {motto} tokens)
   e("site.name", "business", "Business name", "line", 80, SITE.name, { permission: LEGAL_PERM }),
@@ -85,7 +95,28 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
     validate: (v) => (/^\+?[0-9 ()-]{7,20}$/.test(v) && v.replace(/\D/g, "").length >= 9 ? null : "Enter a valid Mobile Money number."),
   }),
 
+  e("site.facebook", "business", "Facebook page link", "line", 200, "", { optional: true, help: "Optional. A full https:// link. Leave empty to hide the icon.", validate: httpsUrl }),
+  e("site.instagram", "business", "Instagram link", "line", 200, "", { optional: true, help: "Optional. Leave empty to hide the icon.", validate: httpsUrl }),
+  e("site.x", "business", "X (Twitter) link", "line", 200, "", { optional: true, help: "Optional. Leave empty to hide the icon.", validate: httpsUrl }),
+  e("site.youtube", "business", "YouTube link", "line", 200, "", { optional: true, help: "Optional. Leave empty to hide the icon.", validate: httpsUrl }),
+  e("site.linkedin", "business", "LinkedIn link", "line", 200, "", { optional: true, help: "Optional. Leave empty to hide the icon.", validate: httpsUrl }),
+  e("site.tiktok", "business", "TikTok link", "line", 200, "", { optional: true, help: "Optional. Leave empty to hide the icon.", validate: httpsUrl }),
+
+  // Site images (edited on the Site images page; empty means the built-in illustration is shown)
+  e("site.logo", "images", "Logo", "image", 200, "", { optional: true, help: "Replaces the built-in TMP wordmark in the header and footer. Use a transparent PNG or WebP that looks good on dark blue, about 400 × 120." }),
+  e("home.about.image", "images", "Home: Building a Brighter Future picture", "image", 200, "", { optional: true, help: "Learners or a classroom. Landscape, about 1200 × 900." }),
+  e("home.impact.image", "images", "Home: Our Impact picture", "image", 200, "", { optional: true, help: "A campus, school or group photo. Landscape, about 1200 × 800." }),
+  e("home.testimonials.image", "images", "Home: testimonials picture", "image", 200, "", { optional: true, help: "Shown beside the quotes, for example graduates or a class. Landscape, about 1000 × 800." }),
+  e("home.cta.image", "images", "Home: closing banner picture", "image", 200, "", { optional: true, help: "A smiling learner works well. Portrait or square, about 900 × 900." }),
+  e("page.services.image", "images", "Services page: banner picture", "image", 200, "", { optional: true, help: "Shown on the right of the blue banner. About 1000 × 800." }),
+  e("page.tutors.image", "images", "Tutors page: banner picture", "image", 200, "", { optional: true, help: "About 1000 × 800." }),
+  e("page.resources.image", "images", "Resources page: banner picture", "image", 200, "", { optional: true, help: "About 1000 × 800." }),
+  e("page.pricing.image", "images", "Pricing page: banner picture", "image", 200, "", { optional: true, help: "About 1000 × 800." }),
+  e("page.about.image", "images", "About page: banner picture", "image", 200, "", { optional: true, help: "About 1000 × 800." }),
+  e("page.contact.image", "images", "Contact page: banner picture", "image", 200, "", { optional: true, help: "About 1000 × 800." }),
+
   // Menu and buttons
+  e("nav.home", "navigation", "Menu: Home", "line", 24, "Home"),
   e("nav.services", "navigation", "Menu: Services", "line", 24, "Services"),
   e("nav.tutors", "navigation", "Menu: Tutors", "line", 24, "Tutors"),
   e("nav.resources", "navigation", "Menu: Resources", "line", 24, "Resources"),
@@ -95,6 +126,7 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
   e("nav.account", "navigation", "Menu: My account (signed in)", "line", 24, "My account"),
   e("nav.signin", "navigation", "Menu: Sign in (signed out)", "line", 24, "Sign in"),
   e("nav.cta", "navigation", "Main button", "line", 30, "Request a tutor"),
+  e("footer.tagline", "navigation", "Footer: tagline", "line", 60, "Educate · Empower · Transform"),
   e("footer.contact_heading", "navigation", "Footer: contact heading", "line", 30, "Contact"),
   e("footer.policies_heading", "navigation", "Footer: policies heading", "line", 30, "Policies"),
 
@@ -120,6 +152,17 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
     validate: (v) => (/^\d{1,2}$/.test(v) && Number(v) >= 3 && Number(v) <= 20 ? null : "Enter a whole number of seconds from 3 to 20."),
   }),
   e("home.curricula", "home", "Curricula strip (one per line)", "lines", 400, CURRICULA_NAMES.join("\n"), { help: "Scrolls across the home page and is listed on the Services page." }),
+  e("home.hero.kicker", "home", "Slideshow: small line above the headline", "line", 50, "Learn · Grow · Succeed"),
+  e("home.hero.search", "home", "Slideshow: search box hint", "line", 60, "Search resources…"),
+  e("home.services.sub", "home", "Services section: small text", "line", 140, "Comprehensive educational solutions for every learner."),
+  e("home.about.heading", "home", "Split section: heading", "line", 80, "Building a Brighter Future"),
+  e("home.about.body", "home", "Split section: text", "text", 400, "Since {founded}, {name} has supported learners across Ghana and beyond with qualified tutors, plans built around each learner, and honest progress reporting. We believe in the power of education to transform lives and communities."),
+  e("home.about.button", "home", "Split section: button", "line", 30, "Learn more"),
+  e("home.impact.heading", "home", "Our Impact: heading", "line", 60, "Our Impact"),
+  e("home.impact.sub", "home", "Our Impact: small text", "line", 140, "Through education, we create opportunities."),
+  e("home.tutors.heading", "home", "Meet our tutors: heading", "line", 60, "Meet Our Tutors"),
+  e("home.tutors.sub", "home", "Meet our tutors: small text", "line", 140, "Learn from qualified and passionate educators."),
+  e("home.tutors.button", "home", "Meet our tutors: button", "line", 30, "See all tutors"),
   e("home.stat1.value", "home", "Figure 1: value", "line", 20, "Since 2019"),
   e("home.stat1.label", "home", "Figure 1: label", "line", 50, "Teaching in Ghana"),
   e("home.stat2.value", "home", "Figure 2: value", "line", 20, "5"),
@@ -137,14 +180,15 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
   e("home.how3.body", "home", "Step 3: text", "text", 200, "Lessons start, and you get honest progress reports with a direct line to TMP."),
   e("home.resources.heading", "home", "Resources strip: heading", "line", 80, "Fresh from the library"),
   e("home.resources.body", "home", "Resources strip: text", "text", 200, "Free and paid books, courses and worksheets, each checked against our quality standard."),
-  e("home.testimonials.heading", "home", "Testimonials: heading", "line", 80, "What families say"),
+  e("home.testimonials.heading", "home", "Testimonials: heading", "line", 80, "What Our Learners Say"),
+  e("home.testimonials.sub", "home", "Testimonials: small text", "line", 120, "Trusted by students, parents and educators."),
   e("home.testimonials", "home", "Testimonials (one per line: quote | name, role)", "lines", 2000, "", {
     optional: true,
     help: "Leave empty to hide the section. Only add real quotes you have permission to use. Format: The lessons changed how she studies. | Ama, parent. They rotate automatically.",
   }),
-  e("home.cta.heading", "home", "Closing banner: heading", "line", 100, "Ready to start learning?"),
+  e("home.cta.heading", "home", "Closing banner: heading", "line", 100, "Ready to take the next step?"),
   e("home.cta.body", "home", "Closing banner: text", "text", 240, "Tell us what your ward needs and we will suggest the right programme and tutor."),
-  e("home.cta.button", "home", "Closing banner: button", "line", 40, "Message us on WhatsApp"),
+  e("home.cta.button", "home", "Closing banner: button", "line", 40, "Contact us"),
 
   // Home
   e("home.pillar1.title", "home", "Highlight 1: title", "line", 60, "Pre-school to SHS"),
@@ -153,7 +197,7 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
   e("home.pillar2.body", "home", "Highlight 2: text", "text", 200, "GES, Cambridge / British, Pearson Edexcel, IB and Canadian curricula."),
   e("home.pillar3.title", "home", "Highlight 3: title", "line", 60, "Tracked progress"),
   e("home.pillar3.body", "home", "Highlight 3: text", "text", 200, "Honest reporting every term, and a direct line to TMP, not just the tutor."),
-  e("home.services.heading", "home", "Services section heading", "line", 80, "What we do"),
+  e("home.services.heading", "home", "Services section heading", "line", 80, "Our Services"),
   e("home.fees.heading", "home", "Fees section heading", "line", 80, "Fees that fit the learner"),
   e(
     "home.fees.body",

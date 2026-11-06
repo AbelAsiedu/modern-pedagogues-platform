@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
+import { SiteIcon, Wave } from "./Brand";
 import { useAutoplay } from "./useAutoplay";
 
 export type Slide = {
@@ -16,29 +17,26 @@ export type Slide = {
 };
 
 function SlideLink({ href, children }: { href: string; children: React.ReactNode }) {
-  const cls = "pulse-ring inline-flex items-center gap-2 rounded-full bg-gold px-7 py-3.5 font-semibold text-navy transition-transform hover:scale-[1.03] hover:bg-[#d8a94d]";
+  const cls = "pulse-ring inline-flex items-center gap-2 rounded-full bg-gold px-7 py-3.5 font-semibold text-navy shadow-lg shadow-black/25 transition-transform hover:scale-[1.04] hover:bg-[#ffd04a]";
   const inner = (
     <>
       {children}
-      <span aria-hidden="true">→</span>
+      <SiteIcon name="arrow" className="h-4 w-4" stroke={2.2} />
     </>
   );
   return href.startsWith("/") ? <Link href={href} className={cls}>{inner}</Link> : <a href={href} className={cls}>{inner}</a>;
 }
 
-const pad = (n: number) => String(n).padStart(2, "0");
-
 /**
- * The home page's looping slideshow. It starts by itself, advances every `seconds` and starts over after the
- * last slide. A mouse resting on it pauses it; there is always a visible Pause button, arrow keys work, and
- * touch devices can swipe. Visitors who prefer reduced motion get the same slides without the movement.
- * Only the current slide is exposed to screen readers.
+ * The home page's looping slideshow: blue banner, headline on the left, photo on the right fading into the blue, a curved
+ * edge into the page. It starts by itself, advances every `seconds` and starts over after the last slide. A mouse resting
+ * on it pauses it; there is always a visible Pause button, arrow keys work, and touch devices can swipe. Visitors who
+ * prefer reduced motion get the same slides without the movement. Only the current slide is exposed to screen readers.
  */
-export function HeroSlideshow({ slides, seconds = 6, kicker }: { slides: Slide[]; seconds?: number; kicker?: string }) {
+export function HeroSlideshow({ slides, seconds = 6, kicker, searchHint }: { slides: Slide[]; seconds?: number; kicker?: string; searchHint?: string }) {
   const count = slides.length;
   const intervalMs = Math.min(20, Math.max(3, seconds)) * 1000;
   const { index, go, next, prev, playing, userPaused, toggle, hoverProps } = useAutoplay(count, intervalMs);
-
   const startX = useRef<number | null>(null);
   if (count === 0) return null;
 
@@ -62,14 +60,29 @@ export function HeroSlideshow({ slides, seconds = 6, kicker }: { slides: Slide[]
         startX.current = null;
       }}
     >
-      <div className="blob -left-24 top-10 h-72 w-72 bg-gold/60" aria-hidden="true" />
-      <div className="blob -bottom-24 right-10 h-80 w-80 bg-sky-500/40 [animation-delay:-6s]" aria-hidden="true" />
+      <div className="blob -left-24 top-10 h-72 w-72 bg-gold/40" aria-hidden="true" />
       <div className="grid-fade absolute inset-0 -z-10" aria-hidden="true" />
 
-      <div className="mx-auto max-w-6xl px-6 pb-10 pt-12 md:pb-14 md:pt-20">
-        <div className="grid items-center gap-10 md:grid-cols-[1.05fr_1fr] md:gap-14">
-          {/* Text: every slide sits in the same grid cell so the section never changes height. */}
-          <div className="grid" aria-live={playing ? "off" : "polite"}>
+      {/* Picture: on large screens it fills the right half edge to edge and fades into the blue. */}
+      <div className="relative mx-6 mt-8 aspect-[4/3] overflow-hidden rounded-[1.75rem] ring-1 ring-cream/20 md:absolute md:inset-y-0 md:right-0 md:mx-0 md:mt-0 md:aspect-auto md:w-[52%] md:rounded-none md:ring-0 md:[mask-image:linear-gradient(to_right,transparent_0%,#000_38%)]">
+        {slides.map((s, i) => (
+          <Image
+            key={s.id}
+            src={s.imagePath}
+            alt={i === index ? s.imageAlt : ""}
+            aria-hidden={i !== index}
+            fill
+            unoptimized
+            priority={i === 0}
+            sizes="(min-width: 768px) 52vw, 100vw"
+            className={`kb-img object-cover ${i === index ? "is-active" : ""}`}
+          />
+        ))}
+      </div>
+
+      <div className="mx-auto max-w-6xl px-6 pb-24 pt-10 md:pb-28 md:pt-16">
+        <div className="md:w-[52%]">
+          <div className="grid md:min-h-[21rem]" aria-live={playing ? "off" : "polite"}>
             {slides.map((s, i) => {
               const active = i === index;
               return (
@@ -82,17 +95,17 @@ export function HeroSlideshow({ slides, seconds = 6, kicker }: { slides: Slide[]
                   className={`slide-in col-start-1 row-start-1 flex flex-col justify-center ${active ? "is-active" : "pointer-events-none"}`}
                   {...(!active ? { inert: true } : {})}
                 >
-                  <p style={{ "--i": 0 } as React.CSSProperties} className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">
-                    {kicker ? `${kicker} · ` : ""}{pad(i + 1)} / {pad(count)}
-                  </p>
-                  <h2 style={{ "--i": 1 } as React.CSSProperties} className="mt-4 text-4xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
+                  {kicker ? (
+                    <p style={{ "--i": 0 } as React.CSSProperties} className="text-xs font-bold uppercase tracking-[0.26em] text-gold">{kicker}</p>
+                  ) : null}
+                  <h2 style={{ "--i": 1 } as React.CSSProperties} className="mt-4 text-4xl font-semibold leading-[1.08] tracking-tight md:text-[3.4rem]">
                     {s.title}
                   </h2>
                   {s.subtitle ? (
-                    <p style={{ "--i": 2 } as React.CSSProperties} className="mt-5 max-w-xl text-lg leading-8 text-cream/80">{s.subtitle}</p>
+                    <p style={{ "--i": 2 } as React.CSSProperties} className="mt-5 max-w-lg text-lg leading-8 text-cream/85">{s.subtitle}</p>
                   ) : null}
                   {s.buttonText && s.buttonUrl ? (
-                    <div style={{ "--i": 3 } as React.CSSProperties} className="mt-8">
+                    <div style={{ "--i": 3 } as React.CSSProperties} className="mt-7">
                       <SlideLink href={s.buttonUrl}>{s.buttonText}</SlideLink>
                     </div>
                   ) : null}
@@ -101,72 +114,60 @@ export function HeroSlideshow({ slides, seconds = 6, kicker }: { slides: Slide[]
             })}
           </div>
 
-          {/* Picture */}
-          <div className="relative">
-            <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-br from-gold/40 via-transparent to-sky-400/30 blur-xl" aria-hidden="true" />
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[1.75rem] bg-navy/60 ring-1 ring-cream/20 shadow-2xl shadow-black/40">
-              {slides.map((s, i) => (
-                <Image
-                  key={s.id}
-                  src={s.imagePath}
-                  alt={i === index ? s.imageAlt : ""}
-                  aria-hidden={i !== index}
-                  fill
-                  unoptimized
-                  priority={i === 0}
-                  sizes="(min-width: 768px) 50vw, 100vw"
-                  className={`kb-img object-cover ${i === index ? "is-active" : ""}`}
-                />
-              ))}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-navy/40 via-transparent to-transparent" aria-hidden="true" />
-            </div>
-          </div>
-        </div>
-
-        {count > 1 ? (
-          <div className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-4">
-            <ol className="flex flex-1 basis-64 gap-2" aria-label="Choose a slide">
-              {slides.map((s, i) => (
-                <li key={s.id} className="flex-1">
-                  <button
-                    type="button"
-                    onClick={() => go(i)}
-                    aria-label={`Go to slide ${i + 1}: ${s.title}`}
-                    aria-current={i === index}
-                    className="group block w-full py-2"
-                  >
-                    <span className="block h-1 overflow-hidden rounded-full bg-cream/20 group-hover:bg-cream/35">
-                      {i === index ? (
-                        <span
-                          key={`${index}-${intervalMs}`}
-                          className="progress-fill block h-full w-full rounded-full bg-gold"
-                          data-paused={!playing}
-                          style={{ "--dur": `${intervalMs}ms` } as React.CSSProperties}
-                        />
-                      ) : i < index ? (
-                        <span className="block h-full w-full rounded-full bg-cream/50" />
-                      ) : null}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ol>
-            <div className="flex items-center gap-2">
-              <button type="button" onClick={prev} aria-label="Previous slide" className="glass-dark grid h-10 w-10 place-items-center rounded-full hover:bg-cream/20">‹</button>
-              <button type="button" onClick={next} aria-label="Next slide" className="glass-dark grid h-10 w-10 place-items-center rounded-full hover:bg-cream/20">›</button>
-              <button
-                type="button"
-                onClick={toggle}
-                aria-pressed={userPaused}
-                className="glass-dark ml-1 inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium hover:bg-cream/20"
-              >
-                <span aria-hidden="true">{userPaused ? "▶" : "❚❚"}</span>
-                {userPaused ? "Play slideshow" : "Pause slideshow"}
+          {searchHint ? (
+            <form action="/resources" method="get" role="search" className="mt-8 flex max-w-md items-center rounded-full bg-cream p-1.5 pl-5 text-navy shadow-xl shadow-black/25">
+              <label htmlFor="hero-search" className="sr-only">Search resources</label>
+              <input id="hero-search" name="q" type="search" maxLength={80} placeholder={searchHint} className="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-navy/50" />
+              <button type="submit" aria-label="Search" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold text-navy transition-transform hover:scale-105">
+                <SiteIcon name="search" className="h-5 w-5" stroke={2} />
               </button>
+            </form>
+          ) : null}
+
+          {count > 1 ? (
+            <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
+              <ol className="flex items-center gap-2" aria-label="Choose a slide">
+                {slides.map((s, i) => (
+                  <li key={s.id}>
+                    <button
+                      type="button"
+                      onClick={() => go(i)}
+                      aria-label={`Go to slide ${i + 1}: ${s.title}`}
+                      aria-current={i === index}
+                      className="group block py-3"
+                    >
+                      <span className={`block h-2.5 overflow-hidden rounded-full transition-all ${i === index ? "w-10 bg-cream/30" : "w-2.5 bg-cream/40 group-hover:bg-cream/70"}`}>
+                        {i === index ? (
+                          <span
+                            key={`${index}-${intervalMs}`}
+                            className="progress-fill block h-full w-full rounded-full bg-gold"
+                            data-paused={!playing}
+                            style={{ "--dur": `${intervalMs}ms` } as React.CSSProperties}
+                          />
+                        ) : null}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={prev} aria-label="Previous slide" className="glass-dark grid h-9 w-9 place-items-center rounded-full hover:bg-cream/20"><SiteIcon name="left" className="h-4 w-4" stroke={2.2} /></button>
+                <button type="button" onClick={next} aria-label="Next slide" className="glass-dark grid h-9 w-9 place-items-center rounded-full hover:bg-cream/20"><SiteIcon name="right" className="h-4 w-4" stroke={2.2} /></button>
+                <button
+                  type="button"
+                  onClick={toggle}
+                  aria-pressed={userPaused}
+                  className="glass-dark inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-medium hover:bg-cream/20"
+                >
+                  <SiteIcon name={userPaused ? "play" : "pause"} className="h-3.5 w-3.5" stroke={2.4} />
+                  {userPaused ? "Play slideshow" : "Pause slideshow"}
+                </button>
+              </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
+      <Wave />
     </section>
   );
 }

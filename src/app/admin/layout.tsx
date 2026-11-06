@@ -30,6 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       links: [
         { href: "/admin/banners", label: "Home slideshow", icon: "slideshow", show: can(a, "content.manage_site") },
         { href: "/admin/content", label: "Site text", icon: "text", show: can(a, "content.manage_site") },
+        { href: "/admin/images", label: "Site images", icon: "layout", show: can(a, "content.manage_site") },
         { href: "/admin/media", label: "Media library", icon: "media", show: isMediaStaff(a) },
         { href: "/admin/assistant", label: "Kaitlyn", icon: "chat", show: can(a, "assistant.manage_knowledge") },
       ],
@@ -54,7 +55,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // The Dashboard link is always present, so require at least one other area.
   if (groups.reduce((n, g) => n + g.links.length, 0) <= 1) notFound();
   return (
-    <div className="admin-shell min-h-screen bg-[#f4f1e8]">
+    <div className="admin-shell min-h-screen bg-[#f1f4fb]">
       <AdminNav
         groups={groups}
         signOut={

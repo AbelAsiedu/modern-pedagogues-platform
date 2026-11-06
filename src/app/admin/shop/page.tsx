@@ -58,7 +58,7 @@ export default async function ResourcesAdmin() {
       <ul className="mt-4 space-y-2">
         {creators.map((p) => (
           <li key={p.id} className="rounded-xl border border-navy/10 bg-white/60 px-4 py-3 text-sm">
-            <Link href={`/admin/review/${p.id}`} className="font-semibold hover:text-gold">{p.title}</Link> · {p.ownerName} · {priceText(p)}
+            <Link href={`/admin/review/${p.id}`} className="font-semibold hover:text-royal">{p.title}</Link> · {p.ownerName} · {priceText(p)}
             <span className={`ml-2 rounded-full px-3 py-1 text-xs ${STATUS_BADGE[p.status]}`}>{STATUS_LABEL[p.status]}</span>
           </li>
         ))}

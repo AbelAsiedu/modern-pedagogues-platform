@@ -13,10 +13,11 @@ export function FeaturedResources({ items, heading, body }: { items: PublicProdu
     <section className="py-20" aria-labelledby="featured-resources">
       <div className="mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-4 px-6">
         <div>
-          <h2 id="featured-resources" className="text-3xl font-semibold tracking-tight md:text-4xl">{heading}</h2>
-          <p className="mt-3 max-w-xl text-navy/75">{body}</p>
+          <h2 id="featured-resources" className="text-3xl font-semibold tracking-tight md:text-[2.5rem]">{heading}</h2>
+          <span className="mt-4 block h-1 w-14 rounded-full bg-gold" aria-hidden="true" />
+          <p className="mt-4 max-w-xl text-navy/75">{body}</p>
         </div>
-        <Link href="/resources" className="rounded-full border border-navy px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-navy hover:text-cream">
+        <Link href="/resources" className="rounded-full bg-royal-deep px-6 py-3 text-sm font-semibold text-cream transition-transform hover:scale-[1.03] hover:bg-navy">
           Browse all resources →
         </Link>
       </div>

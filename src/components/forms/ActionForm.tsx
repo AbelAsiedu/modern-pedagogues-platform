@@ -24,16 +24,16 @@ function Submit({ label, tone = "primary" }: { label: string; tone?: "primary" |
     tone === "danger"
       ? "bg-red-700 text-white hover:bg-red-800"
       : tone === "quiet"
-        ? "border border-navy/30 hover:border-navy"
-        : "bg-navy text-cream hover:bg-navy/90";
+        ? "border-2 border-royal text-royal hover:bg-royal hover:text-cream"
+        : "bg-royal text-cream shadow hover:bg-royal-deep";
   return (
-    <button type="submit" disabled={pending} className={`rounded-full px-5 py-2 text-sm font-semibold disabled:opacity-60 ${cls}`}>
+    <button type="submit" disabled={pending} className={`rounded-full px-6 py-2.5 text-sm font-semibold transition-colors disabled:opacity-60 ${cls}`}>
       {pending ? "Working…" : label}
     </button>
   );
 }
 
-const inputCls = "mt-1 w-full rounded-lg border border-navy/25 bg-white px-3 py-2 text-base focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/40";
+const inputCls = "mt-1 w-full rounded-xl border border-navy/25 bg-white px-3.5 py-2.5 text-base focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/30";
 
 /** Generic form bound to a server action. Shows field errors, a general error, and a success message. */
 export function ActionForm({

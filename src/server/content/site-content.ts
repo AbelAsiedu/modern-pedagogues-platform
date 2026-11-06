@@ -2,7 +2,7 @@ import { eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { recordAudit } from "../audit";
 import type { Db, DbOrTx } from "../db";
-import { siteContent } from "../db/schema";
+import { mediaFiles, siteContent } from "../db/schema";
 import { ForbiddenError, ValidationError } from "../errors";
 import { assertCan, can, type Actor } from "../permissions/authorize";
 import { CONTENT_ENTRIES, CONTENT_GROUPS, getEntry, type ContentEntry, type ContentGroupId } from "./registry";
@@ -19,13 +19,17 @@ export type SiteText = {
   text(key: string, extra?: Record<string, string>): string;
   /** A "lines" entry as a list, empty lines removed. */
   lines(key: string): string[];
+  /** The picture set for an image slot (a /media/ path), or "" when none: the page then shows its built-in illustration. */
+  image(key: string): string;
+  /** The library description of the picture in a slot, for screen readers. */
+  imageAlt(key: string): string;
   /** Business facts (name, email, phone, MoMo) after the admin's edits. */
   biz: Business;
   /** A wa.me link to the business WhatsApp number. */
   whatsapp(message: string): string;
 };
 
-export function buildSiteText(overrides: ReadonlyMap<string, string>): SiteText {
+export function buildSiteText(overrides: ReadonlyMap<string, string>, alts: ReadonlyMap<string, string> = new Map()): SiteText {
   const raw = (key: string) => {
     const o = overrides.get(key);
     if (o !== undefined) return o;
@@ -42,6 +46,8 @@ export function buildSiteText(overrides: ReadonlyMap<string, string>): SiteText 
         .split("\n")
         .map((l) => l.trim())
         .filter(Boolean),
+    image: (key) => raw(key),
+    imageAlt: (key) => alts.get(key) ?? "",
     biz,
     whatsapp: (message) => whatsappUrl(biz, message),
   };
@@ -50,8 +56,23 @@ export function buildSiteText(overrides: ReadonlyMap<string, string>): SiteText 
 /** Never throws: if the database is unavailable the site shows its default text. */
 export async function loadSiteText(db: DbOrTx | (() => DbOrTx)): Promise<SiteText> {
   try {
-    const rows = await (typeof db === "function" ? db() : db).select().from(siteContent);
-    return buildSiteText(new Map(rows.map((r) => [r.key, r.value])));
+    const conn = typeof db === "function" ? db() : db;
+    const rows = await conn.select().from(siteContent);
+    const overrides = new Map(rows.map((r) => [r.key, r.value]));
+    // Descriptions for the pictures in use, so images carry proper alt text.
+    const slotIds = new Map<string, string>();
+    for (const [key, value] of overrides) {
+      if (getEntry(key)?.kind !== "image") continue;
+      const m = /^\/media\/([0-9a-f-]{36})\./.exec(value);
+      if (m) slotIds.set(key, m[1]!);
+    }
+    const alts = new Map<string, string>();
+    if (slotIds.size > 0) {
+      const found = await conn.select({ id: mediaFiles.id, alt: mediaFiles.altText }).from(mediaFiles).where(inArray(mediaFiles.id, [...new Set(slotIds.values())]));
+      const byId = new Map(found.map((f) => [f.id, f.alt]));
+      for (const [key, id] of slotIds) alts.set(key, byId.get(id) ?? "");
+    }
+    return buildSiteText(overrides, alts);
   } catch {
     return buildSiteText(new Map());
   }
@@ -66,7 +87,7 @@ export async function listEditableContent(db: DbOrTx, actor: Actor | null) {
   const overrides = new Map(rows.map((r) => [r.key, r.value]));
   return CONTENT_GROUPS.map((g) => ({
     ...g,
-    entries: CONTENT_ENTRIES.filter((x) => x.group === g.id && can(actor, x.permission)).map(
+    entries: CONTENT_ENTRIES.filter((x) => x.group === g.id && x.kind !== "image" && can(actor, x.permission)).map(
       (x): EditableEntry => ({ ...x, value: overrides.get(x.key) ?? x.default, isCustom: overrides.has(x.key) }),
     ),
   })).filter((g) => g.entries.length > 0);
@@ -87,7 +108,8 @@ export async function saveContentGroup(
   assertCan(actor, "content.manage_site");
   const group = CONTENT_GROUPS.find((g) => g.id === groupId);
   if (!group) throw new ValidationError({ group: ["Unknown section."] });
-  const entries = CONTENT_ENTRIES.filter((x) => x.group === (group.id as ContentGroupId));
+  // Pictures are set on the Site images page, never through the text form.
+  const entries = CONTENT_ENTRIES.filter((x) => x.group === (group.id as ContentGroupId) && x.kind !== "image");
 
   const toSet: { key: string; value: string }[] = [];
   const toReset: string[] = [];

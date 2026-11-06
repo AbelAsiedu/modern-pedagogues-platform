@@ -26,24 +26,24 @@ export default async function TutorPage({ params }: Props) {
   if (!t) notFound();
   return (
     <div className="mx-auto max-w-3xl px-6 py-14">
-      <Link href="/tutors" className="text-sm underline">← All tutors</Link>
-      <div className="glass mt-6 flex items-center gap-5 rounded-3xl p-6">
+      <Link href="/tutors" className="text-sm font-semibold text-royal underline decoration-gold decoration-2 underline-offset-4">← All tutors</Link>
+      <div className="mt-6 flex items-center gap-5 rounded-3xl border border-navy/10 bg-white p-6 shadow-lg">
         <Avatar name={t.displayName} photoPath={t.photoPath} size="h-20 w-20 text-2xl" />
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{t.displayName}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{t.displayName}</h1>
           <p className="mt-1 text-navy/70">{t.headline}</p>
         </div>
       </div>
       <p className="mt-8 whitespace-pre-line leading-7">{t.bio}</p>
       <dl className="mt-8 grid gap-6 sm:grid-cols-2">
-        <div><dt className="text-sm font-semibold uppercase tracking-widest text-gold">Subjects</dt><dd className="mt-1">{t.subjects.join(", ")}</dd></div>
-        <div><dt className="text-sm font-semibold uppercase tracking-widest text-gold">Levels</dt><dd className="mt-1">{t.levels.join(", ")}</dd></div>
-        {t.curricula.length ? <div><dt className="text-sm font-semibold uppercase tracking-widest text-gold">Curricula</dt><dd className="mt-1">{t.curricula.join(", ")}</dd></div> : null}
-        <div><dt className="text-sm font-semibold uppercase tracking-widest text-gold">Lessons</dt><dd className="mt-1">{t.modes.join(" or ")}{t.areas ? ` · ${t.areas}` : ""}</dd></div>
-        {t.yearsExperience != null ? <div><dt className="text-sm font-semibold uppercase tracking-widest text-gold">Experience</dt><dd className="mt-1">{t.yearsExperience} {t.yearsExperience === 1 ? "year" : "years"}</dd></div> : null}
+        <div><dt className="text-sm font-semibold uppercase tracking-widest text-gold-ink">Subjects</dt><dd className="mt-1">{t.subjects.join(", ")}</dd></div>
+        <div><dt className="text-sm font-semibold uppercase tracking-widest text-gold-ink">Levels</dt><dd className="mt-1">{t.levels.join(", ")}</dd></div>
+        {t.curricula.length ? <div><dt className="text-sm font-semibold uppercase tracking-widest text-gold-ink">Curricula</dt><dd className="mt-1">{t.curricula.join(", ")}</dd></div> : null}
+        <div><dt className="text-sm font-semibold uppercase tracking-widest text-gold-ink">Lessons</dt><dd className="mt-1">{t.modes.join(" or ")}{t.areas ? ` · ${t.areas}` : ""}</dd></div>
+        {t.yearsExperience != null ? <div><dt className="text-sm font-semibold uppercase tracking-widest text-gold-ink">Experience</dt><dd className="mt-1">{t.yearsExperience} {t.yearsExperience === 1 ? "year" : "years"}</dd></div> : null}
       </dl>
       <p className="mt-10 text-sm text-navy/70">Rates are agreed with TMP per learner. Contact details are not shared; we arrange every introduction.</p>
-      <a href={site.whatsapp(`Hello ${site.biz.name}, I would like to ask about ${t.displayName} as a tutor for my ward.`)} className="mt-4 inline-block rounded-full bg-navy px-6 py-3 font-semibold text-cream">
+      <a href={site.whatsapp(`Hello ${site.biz.name}, I would like to ask about ${t.displayName} as a tutor for my ward.`)} className="mt-4 inline-block rounded-full bg-gold px-7 py-3.5 font-semibold text-navy shadow-lg transition-transform hover:scale-[1.03]">
         Ask TMP about this tutor
       </a>
     </div>

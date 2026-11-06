@@ -4,7 +4,7 @@ import sharp from "sharp";
 import { recordAudit } from "../audit";
 import { enforceRateLimit } from "../auth/rate-limit";
 import type { Db } from "../db";
-import { heroBanners, mediaFiles, products, tutorProfiles } from "../db/schema";
+import { heroBanners, mediaFiles, products, siteContent, tutorProfiles } from "../db/schema";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "../errors";
 import { can, type Actor } from "../permissions/authorize";
 
@@ -164,6 +164,7 @@ export async function mediaUsage(db: Db, path: string): Promise<string[]> {
   if (await count(db.select({ n: sql<number>`count(*)::int` }).from(heroBanners).where(eq(heroBanners.imagePath, path)))) used.push("a home banner");
   if (await count(db.select({ n: sql<number>`count(*)::int` }).from(tutorProfiles).where(eq(tutorProfiles.photoPath, path)))) used.push("a tutor profile");
   if (await count(db.select({ n: sql<number>`count(*)::int` }).from(products).where(eq(products.coverPath, path)))) used.push("a shop product");
+  if (await count(db.select({ n: sql<number>`count(*)::int` }).from(siteContent).where(eq(siteContent.value, path)))) used.push("a site picture");
   return used;
 }
 
@@ -215,6 +216,8 @@ export async function replaceMedia(
       banners: (await tx.update(heroBanners).set({ imagePath: newPath }).where(eq(heroBanners.imagePath, oldPath)).returning({ id: heroBanners.id })).length,
       tutors: (await tx.update(tutorProfiles).set({ photoPath: newPath }).where(eq(tutorProfiles.photoPath, oldPath)).returning({ id: tutorProfiles.id })).length,
       resources: (await tx.update(products).set({ coverPath: newPath }).where(eq(products.coverPath, oldPath)).returning({ id: products.id })).length,
+      // Pictures in the Site images slots (only rows whose value is exactly this picture's address).
+      slots: (await tx.update(siteContent).set({ value: newPath }).where(eq(siteContent.value, oldPath)).returning({ key: siteContent.key })).length,
     };
     await tx.delete(mediaFiles).where(eq(mediaFiles.id, id));
     await recordAudit(tx, { actorId: actor.id, action: "media.replaced", entityType: "media", entityId: row!.id, metadata: { replaced: id, ...moved }, ip });

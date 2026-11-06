@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return p ? { title: p.title, description: p.summary } : { title: "Resource not found" };
 }
 
-const btn = "inline-block rounded-full bg-navy px-6 py-3 font-semibold text-cream hover:bg-navy/90";
+const btn = "inline-block rounded-full bg-royal px-6 py-3 font-semibold text-cream shadow hover:bg-royal-deep";
 
 export default async function ResourcePage({ params }: Props) {
   const { slug } = await params;

@@ -47,8 +47,8 @@ export default async function CreatorDashboard() {
       <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-semibold">Your resources</h2>
         <div className="flex gap-3">
-          <Link href="/resources/standards" className="rounded-full border border-navy/30 px-5 py-2 text-sm font-semibold hover:border-navy">Quality standard</Link>
-          {!profile.isSuspended ? <Link href="/creator/new" className="rounded-full bg-navy px-5 py-2 text-sm font-semibold text-cream hover:bg-navy/90">New resource</Link> : null}
+          <Link href="/resources/standards" className="rounded-full border-2 border-royal px-5 py-2 text-sm font-semibold text-royal hover:bg-royal hover:text-cream">Quality standard</Link>
+          {!profile.isSuspended ? <Link href="/creator/new" className="rounded-full bg-royal px-5 py-2 text-sm font-semibold text-cream hover:bg-royal-deep">New resource</Link> : null}
         </div>
       </div>
       <ul className="mt-4 space-y-3">
@@ -56,7 +56,7 @@ export default async function CreatorDashboard() {
           <li key={l.id} className="rounded-2xl border border-navy/10 bg-white/70 p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="font-semibold">
-                <Link href={`/creator/${l.id}`} className="hover:text-gold">{l.title}</Link>
+                <Link href={`/creator/${l.id}`} className="hover:text-royal">{l.title}</Link>
                 <span className={`ml-2 rounded-full px-3 py-1 text-xs font-normal ${STATUS_BADGE[l.status]}`}>{STATUS_LABEL[l.status]}</span>
                 {l.status === "APPROVED" && !l.isPublished ? <span className="ml-2 rounded-full bg-navy/10 px-3 py-1 text-xs font-normal">Hidden</span> : null}
               </p>

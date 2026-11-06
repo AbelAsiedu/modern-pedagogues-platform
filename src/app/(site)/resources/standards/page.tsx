@@ -71,7 +71,7 @@ export default async function Standards() {
         </ul>
 
         <p className="mt-10">
-          <Link href="/creator/join" className="rounded-full bg-navy px-6 py-3 font-semibold text-cream hover:bg-navy/90">Become a creator</Link>{" "}
+          <Link href="/creator/join" className="rounded-full bg-royal px-6 py-3 font-semibold text-cream shadow hover:bg-royal-deep">Become a creator</Link>{" "}
           <Link href="/resources" className="ml-4 underline decoration-gold underline-offset-4">Browse resources</Link>
         </p>
       </div>

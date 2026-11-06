@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 
 /** Uploads one picture to the media library, then refreshes the page so it appears in the lists and pickers. */
-export function ImageUploader({ label = "Upload a picture", replaceId, submitLabel = "Upload" }: { label?: string; replaceId?: string; submitLabel?: string }) {
+export function ImageUploader({ label = "Upload a picture", replaceId, slot, submitLabel = "Upload" }: { label?: string; replaceId?: string; slot?: string; submitLabel?: string }) {
   const uid = useId();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -29,12 +29,12 @@ export function ImageUploader({ label = "Upload a picture", replaceId, submitLab
     setError(null);
     setDone(null);
     try {
-      const res = await fetch("/api/admin/media", { method: "POST", body: data });
+      const res = await fetch(slot ? `/api/admin/media?slot=${encodeURIComponent(slot)}` : "/api/admin/media", { method: "POST", body: data });
       const json = (await res.json().catch(() => null)) as { ok?: boolean; error?: string; path?: string } | null;
       if (!res.ok || !json?.ok) {
         setError(json?.error ?? "The upload failed. Please try again.");
       } else {
-        setDone(replaceId ? "Replaced everywhere it was used." : `Uploaded. Its address is ${json.path}`);
+        setDone(replaceId ? "Replaced everywhere it was used." : slot ? "Uploaded. It is now showing on the site." : `Uploaded. Its address is ${json.path}`);
         form.reset();
         router.refresh();
       }

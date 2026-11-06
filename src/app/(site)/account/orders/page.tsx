@@ -42,7 +42,7 @@ export default async function MyOrders() {
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-4">
               {o.status === "PAID" ? (
-                <a href={`/api/downloads/${o.id}`} className="rounded-full bg-navy px-5 py-2 text-sm font-semibold text-cream hover:bg-navy/90">Download PDF</a>
+                <a href={`/api/downloads/${o.id}`} className="rounded-full bg-royal px-5 py-2 text-sm font-semibold text-cream hover:bg-royal-deep">Download PDF</a>
               ) : null}
               {o.status === "PENDING_PAYMENT" ? (
                 <ActionForm className="inline" action={cancelMyOrderAction} hidden={{ orderId: o.id }} fields={[]} submitLabel="Cancel order" tone="quiet" />

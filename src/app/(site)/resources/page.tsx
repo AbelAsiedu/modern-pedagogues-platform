@@ -26,10 +26,10 @@ export default async function Resources({ searchParams }: { searchParams: Promis
     unavailable = true;
   }
   const filtered = Object.values(filter).some(Boolean);
-  const sel = "mt-1 w-full rounded-lg border border-navy/25 bg-white px-3 py-2 text-sm";
+  const sel = "mt-1 w-full rounded-xl border border-navy/25 bg-white px-3 py-2 text-sm";
   return (
     <>
-      <Hero kicker="Resources" title={t.text("shop.hero.title")}>
+      <Hero kicker="Resources" title={t.text("shop.hero.title")} imageKey="page.resources.image" icon="book">
         <p>{t.text("shop.hero.intro")}</p>
         <p className="mt-4 flex flex-wrap gap-4 text-base">
           <Link href="/creator/join" className="rounded-full bg-gold px-5 py-2 font-semibold text-navy hover:opacity-90">Share your own resource</Link>
@@ -37,7 +37,7 @@ export default async function Resources({ searchParams }: { searchParams: Promis
         </p>
       </Hero>
       <div className="mx-auto max-w-6xl px-6 py-12">
-        <form method="get" className="grid gap-4 rounded-2xl border border-navy/10 bg-white/60 p-5 sm:grid-cols-2 lg:grid-cols-5" aria-label="Filter resources">
+        <form method="get" className="grid gap-4 rounded-3xl border border-navy/10 bg-white p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-5" aria-label="Filter resources">
           <label className="text-sm font-medium">
             Search
             <input name="q" defaultValue={filter.q} placeholder="e.g. fractions" maxLength={80} className={sel} />
@@ -73,7 +73,7 @@ export default async function Resources({ searchParams }: { searchParams: Promis
         {unavailable ? (
           <p className="mt-10 rounded-lg bg-amber-100 p-4 text-amber-900" role="status">The resources are temporarily unavailable. Please try again shortly, or message us on WhatsApp.</p>
         ) : items.length === 0 ? (
-          <div className="mt-10 rounded-2xl border border-navy/10 bg-white/70 p-8" role="status">
+          <div className="mt-10 rounded-3xl border border-navy/10 bg-white p-8 shadow-sm" role="status">
             <p>{filtered ? "No resources match those choices. Try clearing the filters." : t.text("shop.empty")}</p>
             <a href={t.whatsapp(`Hello ${t.biz.name}, I am looking for a learning resource.`)} className="mt-4 inline-block font-semibold underline decoration-gold underline-offset-4">Ask on WhatsApp</a>
           </div>
