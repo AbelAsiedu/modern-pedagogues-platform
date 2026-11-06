@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { SITE, whatsappLink } from "@/lib/site";
-import { getSiteText } from "@/server/context";
+import { getSession, getSiteText } from "@/server/context";
 
 const NAV = [
   { href: "/services", label: "Services" },
   { href: "/tutors", label: "Tutors" },
+  { href: "/shop", label: "Shop" },
   { href: "/pricing", label: "Pricing" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ] as const;
 
-export function Header() {
+export async function Header() {
+  const session = await getSession().catch(() => null);
   return (
     <header className="border-b border-navy/10 bg-cream/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 py-4">
@@ -23,7 +25,11 @@ export function Header() {
               {n.label}
             </Link>
           ))}
-          <Link href="/login" className="hover:text-gold">Sign in</Link>
+          {session ? (
+            <Link href="/account" className="hover:text-gold">My account</Link>
+          ) : (
+            <Link href="/login" className="hover:text-gold">Sign in</Link>
+          )}
           <a
             href={whatsappLink("Hello TMP, I would like to request a tutor for my ward.")}
             className="rounded-full bg-navy px-4 py-2 text-cream hover:bg-navy/90"

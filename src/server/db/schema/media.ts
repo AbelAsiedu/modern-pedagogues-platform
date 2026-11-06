@@ -1,4 +1,4 @@
-import { bigint, customType, index, integer, pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { customType, index, integer, pgTable, text, uuid } from "drizzle-orm/pg-core";
 import { createdAt, id, users } from "./identity";
 
 /** Raw bytes. Heroku's disk is wiped on every restart, so uploads live in Postgres rather than on the filesystem. */
@@ -29,6 +29,3 @@ export const mediaFiles = pgTable(
   },
   (t) => [index("media_files_created_idx").on(t.createdAt)],
 );
-
-/** A bigint helper re-exported for sibling schema files. */
-export const pesewas = (name: string) => bigint(name, { mode: "bigint" });

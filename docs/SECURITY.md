@@ -44,5 +44,11 @@ This lists behaviour that exists in code and is covered by tests. Anything not l
 - Chats are logged without IP address or account, and deleted after 90 days by `npm run assistant:purge` (schedule it).
 - Limits: prompt injection cannot be fully prevented in any language model. The mitigations are the above (no private data reachable, no actions available, safe rendering), not a guarantee about what she will say.
 
+## Uploads and the shop
+- Image uploads are decoded and re-encoded with sharp: only real JPEG, PNG or WebP bytes pass (file name and browser-claimed type are ignored), EXIF/GPS metadata and anything appended to the file are dropped, and the size is capped. SVG, GIF and HTML are refused (tested). `/media/<id>.<ext>` is served with `nosniff` and `Content-Security-Policy: sandbox` so a stored file can never run as a page.
+- Both upload routes require a same-origin request and a signed-in user with the right permission BEFORE the body is read, and refuse oversized bodies by Content-Length.
+- Product PDFs are private: the public queries select an explicit column list without the file reference, and `/api/downloads/<order>` returns the file only to the buyer of a PAID order or to staff who manage orders (everyone else gets 401/404; tested). Downloads are `attachment`, `no-store`, `nosniff`, sandboxed. A PDF is checked only by its first bytes; it is not scanned for malware.
+- Orders copy the title and price when placed, one live order per buyer and product is enforced by the database, a double click returns the same order, and "mark paid" needs a transaction ID, is a conditional update (two staff cannot both win), and is audited. Audit entries hold the order reference, not the buyer's details.
+
 ## Not yet done (see KNOWN_ISSUES)
 Staff MFA, security headers beyond the static set in `next.config.ts` (CSP still allows `'unsafe-inline'`), malware scanning, backups, and an external security review.

@@ -5,11 +5,12 @@ import { redirect } from "next/navigation";
 import { runAction, type ActionState } from "@/server/action-result";
 import { assignRole, restoreUser, revokeRole, suspendUser } from "@/server/admin/users";
 import { createKnowledge, deleteKnowledge, updateKnowledge } from "@/server/assistant/knowledge";
-import { setAssistantEnabled } from "@/server/assistant/service";
+import { setAssistantEnabled, testProviders } from "@/server/assistant/service";
 import { saveContentGroup } from "@/server/content/site-content";
 import { createBanner, deleteBanner, setBannerActive, updateBanner } from "@/server/content/banners";
-import { emailDeps, requestContext, requireActor } from "@/server/context";
+import { assistantProviders, emailDeps, requestContext, requireActor } from "@/server/context";
 import { deleteMedia, updateMediaAlt } from "@/server/media/service";
+import { cancelOrderByStaff, createProduct, deleteProduct, markOrderPaid, updateProduct } from "@/server/shop/service";
 import { createTutorByAdmin, decideTutor, deleteTutor, setTutorPublished, updateTutorPrivateDetails, updateTutorProfile } from "@/server/tutors/service";
 import { db } from "@/server/db";
 
@@ -261,5 +262,76 @@ export async function deleteMediaAction(_: ActionState, form: FormData): Promise
     await deleteMedia(db(), actor, str(form, "mediaId"), (await requestContext()).ip);
     revalidatePath("/admin/media");
     return { ok: true, message: "Deleted." };
+  });
+}
+
+// ---------- shop ----------
+
+function productFromForm(form: FormData) {
+  return {
+    title: str(form, "title"),
+    summary: str(form, "summary"),
+    description: str(form, "description"),
+    price: str(form, "price"),
+    coverPath: str(form, "coverPath"),
+    sortOrder: str(form, "sortOrder") || "0",
+    isPublished: form.get("isPublished") === "on",
+  };
+}
+
+export async function createProductAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await createProduct(db(), actor, productFromForm(form), (await requestContext()).ip);
+    revalidatePath("/admin/shop");
+    return { ok: true, message: "Product added. Open it below to upload the PDF, then publish." };
+  });
+}
+
+export async function updateProductAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await updateProduct(db(), actor, str(form, "productId"), productFromForm(form), (await requestContext()).ip);
+    revalidatePath("/admin/shop");
+    revalidatePath("/shop", "layout");
+    return { ok: true, message: "Saved." };
+  });
+}
+
+export async function deleteProductAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await deleteProduct(db(), actor, str(form, "productId"), (await requestContext()).ip);
+    revalidatePath("/admin/shop");
+    return { ok: true, message: "Deleted." };
+  });
+}
+
+export async function markOrderPaidAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await markOrderPaid({ ...emailDeps(), notifyEmail: undefined }, actor, str(form, "orderId"), str(form, "note"), (await requestContext()).ip);
+    revalidatePath("/admin/orders");
+    return { ok: true, message: "Marked as paid. The buyer has been emailed." };
+  });
+}
+
+export async function cancelOrderAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await cancelOrderByStaff(db(), actor, str(form, "orderId"), (await requestContext()).ip);
+    revalidatePath("/admin/orders");
+    return { ok: true, message: "Cancelled." };
+  });
+}
+
+export async function testAssistantAction(): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    const providers = assistantProviders();
+    if (providers.length === 0) return { ok: false, error: "No AI key is set on the server yet, so there is nothing to test. See the steps above." };
+    const results = await testProviders(providers, actor);
+    const text = results.map((r) => `${r.provider}: ${r.detail}`).join(" ");
+    return results.every((r) => r.ok) ? { ok: true, message: text } : { ok: false, error: text };
   });
 }

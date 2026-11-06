@@ -9,7 +9,7 @@ import type { Logger } from "../logger";
 import { assertCan, type Actor } from "../permissions/authorize";
 import { checkPrompt, fallbackText, MAX_MESSAGE_CHARS, sanitizeHistory, SAFE_BLOCK_TEXT, SELF_HARM_TEXT, type ChatTurn } from "./guard";
 import { buildKnowledge, buildSystemPrompt } from "./knowledge";
-import type { LlmProvider } from "./providers";
+import { ProviderError, type LlmProvider } from "./providers";
 
 export type Outcome = "answered" | "fallback" | "blocked" | "unavailable";
 
@@ -139,4 +139,34 @@ export async function recentUnanswered(db: Db, actor: Actor | null, limit = 20) 
 export async function purgeOldChatLogs(db: Db, days = CHAT_LOG_RETENTION_DAYS): Promise<number> {
   const res = await db.execute(sql`DELETE FROM assistant_chat_logs WHERE created_at < now() - make_interval(days => ${days}::int)`);
   return res.rowCount ?? 0;
+}
+
+export type ProviderTest = { provider: string; ok: boolean; detail: string };
+
+function describeFailure(err: unknown): string {
+  if (err instanceof ProviderError) {
+    const st = err.status;
+    if (st === "timeout") return "No answer within the time limit. Try again in a moment.";
+    if (st === "network") return "Could not reach the provider from the server.";
+    if (st === 400 || st === 401 || st === 403) return `The provider refused the request (HTTP ${st}). The key is probably wrong, expired, or not enabled for this model.`;
+    if (st === 404) return "The provider does not know that model name (HTTP 404). Check the model setting.";
+    if (st === 429) return "The provider says the free quota is used up or too many requests were sent (HTTP 429). Wait a while, or add another provider.";
+    return `The provider returned an error (HTTP ${st}).`;
+  }
+  return "The provider replied with something unexpected.";
+}
+
+/** Send one tiny message to each configured provider so the administrator can see whether Kaitlyn can really answer. */
+export async function testProviders(providers: readonly LlmProvider[], actor: Actor | null): Promise<ProviderTest[]> {
+  assertCan(actor, "assistant.manage_knowledge");
+  const out: ProviderTest[] = [];
+  for (const p of providers) {
+    try {
+      const text = await p.complete({ system: "You are a connection test. Reply with the single word OK.", history: [], message: "Say OK." });
+      out.push(text ? { provider: p.name, ok: true, detail: "Working: the provider answered." } : { provider: p.name, ok: false, detail: "The provider answered with nothing." });
+    } catch (err) {
+      out.push({ provider: p.name, ok: false, detail: describeFailure(err) });
+    }
+  }
+  return out;
 }

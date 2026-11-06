@@ -10,7 +10,7 @@ import { SERVICES } from "@/lib/site";
  */
 
 export type ContentKind = "line" | "text" | "lines" | "rich";
-export type ContentGroupId = "home" | "services" | "tutors" | "assistant" | "about" | "pricing" | "contact" | "footer" | "policies";
+export type ContentGroupId = "home" | "services" | "tutors" | "assistant" | "shop" | "about" | "pricing" | "contact" | "footer" | "policies";
 
 export type ContentEntry = {
   key: string;
@@ -29,6 +29,7 @@ export const CONTENT_GROUPS: readonly { id: ContentGroupId; label: string; blurb
   { id: "services", label: "Services page", blurb: "The service descriptions here also appear on the home page." },
   { id: "tutors", label: "Tutors pages", blurb: "Wording around the tutor directory and the tutor application. Tutor profiles themselves are edited under Tutors." },
   { id: "assistant", label: "Kaitlyn (chat assistant)", blurb: "The words around the chat window. What Kaitlyn knows is edited under Kaitlyn in the admin menu." },
+  { id: "shop", label: "Shop", blurb: "Wording on the Shop page and the payment steps shown to buyers. Products themselves are edited under Shop in the admin menu." },
   { id: "about", label: "About page", blurb: "Who we are and what we stand for." },
   { id: "pricing", label: "Pricing page", blurb: "The rate itself comes from site settings, not from this text." },
   { id: "contact", label: "Contact page", blurb: "Phone, email and MoMo numbers are fixed business facts and are not edited here." },
@@ -99,7 +100,7 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
     "Coming-soon text",
     "text",
     400,
-    "Online learning courses, a marketplace of teacher-made resources, and parent and student portals are being built. They are not available yet.",
+    "Online learning courses and parent and student portals are being built. They are not available yet.",
     { help: "Update this as features go live so the page stays truthful." },
   ),
 
@@ -115,6 +116,21 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
     "text",
     500,
     "We work with qualified, committed tutors across Pre-school, Primary, JHS and SHS. Tell us about yourself. Our team reviews every application, and nothing is shown on the website until you have been approved.",
+  ),
+
+  // Shop
+  e("shop.hero.title", "shop", "Shop headline", "line", 100, "Learning resources"),
+  e("shop.hero.intro", "shop", "Shop introduction", "text", 300, "Worksheets, past questions and revision notes prepared by The Modern Pedagogues. Order, pay by Mobile Money, and download."),
+  e("shop.empty", "shop", "Message when the shop is empty", "text", 300, "New resources are on the way. Ask us on WhatsApp if there is something you need."),
+  e("shop.pay.heading", "shop", "Payment steps heading", "line", 80, "How to pay"),
+  e(
+    "shop.pay.steps",
+    "shop",
+    "Payment steps",
+    "lines",
+    600,
+    "Send the amount shown by {momo} to {phone}.\nUse your order reference as the payment reference.\nWe confirm payments personally, usually within a few hours. Your download then appears under My orders.",
+    { help: "One step per line. {momo} and {phone} are filled in automatically." },
   ),
 
   // Kaitlyn

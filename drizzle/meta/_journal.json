@@ -64,6 +64,13 @@
       "when": 1793975715246,
       "tag": "0008_tutor_photo",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793975825442,
+      "tag": "0009_shop",
+      "breakpoints": true
     }
   ]
 }

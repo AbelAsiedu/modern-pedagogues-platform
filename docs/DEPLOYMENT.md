@@ -56,6 +56,8 @@ heroku config:set -a YOUR-APP-NAME GEMINI_API_KEY=your-key
 # optional: ASSISTANT_DAILY_LIMIT=1000 (max replies per day, all visitors), GEMINI_MODEL=..., OPENROUTER_API_KEY=..., MISTRAL_API_KEY=...
 ```
 
+On Windows it is easier to add the key in the Heroku dashboard (your app, Settings, Reveal Config Vars, add `GEMINI_API_KEY`). The app restarts by itself. Then open **Admin > Kaitlyn** and press **Test the connection**: it sends one tiny message and reports in plain words whether the key works, the model name is wrong, or the free quota is used up.
+
 Providers are tried in the order Gemini, OpenRouter, Mistral. Check that provider's free-tier terms and data-use policy before enabling: visitors' questions are sent to it. In the admin, open **Kaitlyn** to see the status, add notes she should know, and switch her off instantly if needed. Update your live privacy policy (Admin > Site text > Policies) with the Kaitlyn paragraph from the default text. Schedule the daily clean-up so chats are deleted after 90 days:
 
 ```bash
@@ -91,3 +93,10 @@ Read every page once. These need **your** confirmation because they are business
 ## Paystack requirements (their Ghana page, checked 4 Nov 2026)
 
 Starter business: government ID, TIN, a personal bank account or Mobile Money number, and contact details, all in the same person's name. Registered business: certificate and forms depending on company type, plus TIN. Their page does not mention a website; you said the form asks for one, so use the Heroku URL.
+
+## Pictures, the shop and orders
+
+- **Media** (admin menu): upload JPEG, PNG or WebP pictures (up to 5 MB; they are shrunk to 2000 pixels and location data is removed). They are stored in your Postgres database, so they survive Heroku restarts. Pick them in **Home banners**, on a **tutor** (Photo) and on a **shop product** (Cover picture).
+- **Shop** (admin menu): add a product (title, summary, price in cedis), open **Edit**, upload its PDF (up to 15 MB), then tick **Published**.
+- **Orders** (admin menu): a buyer signs in, presses Order, and sees a reference like TMP-7K2Q9X and the MoMo steps (editable under Site text > Shop). When the MoMo payment arrives, find the order by that reference, type the MoMo transaction ID, and press **Mark as paid**. The buyer is emailed and the download unlocks under **My orders**. There is no automatic check yet, so look at the actual MoMo message before confirming.
+- Database size: pictures and PDFs live in the Essential-0 database (1 GB). Check `heroku pg:info` now and then.

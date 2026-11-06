@@ -9,7 +9,10 @@ export type TemplateName =
   | "password_changed"
   | "tutor_application_received"
   | "tutor_application_alert"
-  | "tutor_decision";
+  | "tutor_decision"
+  | "order_placed"
+  | "order_alert"
+  | "order_paid";
 
 export function verifyEmailMessage(to: string, name: string, link: string): EmailMessage & { template: TemplateName } {
   return {
@@ -78,4 +81,42 @@ export function tutorDecisionMessage(to: string, name: string, decision: TutorDe
   };
   const [subject, text] = body[decision];
   return { template: "tutor_decision", to, subject, text: `Hello ${name},\n\n${text}${extra}${SIGNOFF}` };
+}
+
+export function orderPlacedMessage(
+  to: string,
+  name: string,
+  o: { reference: string; productTitle: string; amount: string; momoNetwork: string; momoNumber: string; ordersLink: string },
+): EmailMessage & { template: TemplateName } {
+  return {
+    template: "order_placed",
+    to,
+    subject: `Your order ${o.reference}: ${o.productTitle}`,
+    text:
+      `Hello ${name},\n\nThank you for ordering "${o.productTitle}".\n\n` +
+      `To complete your order, send ${o.amount} by ${o.momoNetwork} to ${o.momoNumber} and use ${o.reference} as the payment reference.\n\n` +
+      `We confirm payments personally, usually within a few hours. When we do, your download appears here:\n\n${o.ordersLink}${SIGNOFF}`,
+  };
+}
+
+/** Sent to TMP's own inbox so an order is noticed and its payment can be matched. */
+export function orderAlertMessage(
+  to: string,
+  o: { buyer: string; productTitle: string; amount: string; reference: string; link: string },
+): EmailMessage & { template: TemplateName } {
+  return {
+    template: "order_alert",
+    to,
+    subject: `New order ${o.reference}: ${o.productTitle}`,
+    text: `${o.buyer} ordered "${o.productTitle}" (${o.amount}). Payment reference: ${o.reference}.\n\nWhen the MoMo payment arrives, confirm it here:\n\n${o.link}${SIGNOFF}`,
+  };
+}
+
+export function orderPaidMessage(to: string, name: string, o: { productTitle: string; reference: string; ordersLink: string }): EmailMessage & { template: TemplateName } {
+  return {
+    template: "order_paid",
+    to,
+    subject: `Payment received: ${o.productTitle}`,
+    text: `Hello ${name},\n\nWe have received your payment for "${o.productTitle}" (${o.reference}). You can download it now:\n\n${o.ordersLink}\n\nSign in if asked. The download stays available in your account.${SIGNOFF}`,
+  };
 }

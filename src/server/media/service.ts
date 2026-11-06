@@ -3,7 +3,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import sharp from "sharp";
 import { recordAudit } from "../audit";
 import type { Db } from "../db";
-import { heroBanners, mediaFiles, tutorProfiles } from "../db/schema";
+import { heroBanners, mediaFiles, products, tutorProfiles } from "../db/schema";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "../errors";
 import { can, type Actor } from "../permissions/authorize";
 
@@ -66,11 +66,7 @@ export function mediaPath(row: { id: string; contentType: string }): string {
 }
 
 const cleanName = (name: string) =>
-  name
-    .replace(/[\\/]/g, "_")
-    .replace(/[^\w .()-]/g, "")
-    .trim()
-    .slice(0, 120) || "image";
+  (name.split(/[\\/]/).pop() ?? "").replace(/[^\w .()-]/g, "").replace(/^\.+/, "").trim().slice(0, 120) || "image";
 
 export async function saveImage(
   db: Db,
@@ -146,6 +142,7 @@ export async function mediaUsage(db: Db, path: string): Promise<string[]> {
   const used: string[] = [];
   if (await count(db.select({ n: sql<number>`count(*)::int` }).from(heroBanners).where(eq(heroBanners.imagePath, path)))) used.push("a home banner");
   if (await count(db.select({ n: sql<number>`count(*)::int` }).from(tutorProfiles).where(eq(tutorProfiles.photoPath, path)))) used.push("a tutor profile");
+  if (await count(db.select({ n: sql<number>`count(*)::int` }).from(products).where(eq(products.coverPath, path)))) used.push("a shop product");
   return used;
 }
 

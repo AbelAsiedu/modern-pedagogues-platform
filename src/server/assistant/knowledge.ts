@@ -9,6 +9,7 @@ import { assistantKnowledge } from "../db/schema";
 import type { SiteText } from "../content/site-content";
 import { NotFoundError } from "../errors";
 import { assertCan, type Actor } from "../permissions/authorize";
+import { listPublicProducts, priceText } from "../shop/service";
 import { listPublicTutors } from "../tutors/service";
 
 export const KNOWLEDGE_BODY_MAX = 4000;
@@ -44,7 +45,7 @@ export async function buildKnowledge(db: DbOrTx, text: SiteText): Promise<string
       `Name: ${SITE.name} (TMP). Motto: ${SITE.motto}. Founded ${SITE.founded}. Country: ${SITE.country}.`,
       `Email: ${SITE.email}. Phone and WhatsApp: ${SITE.phoneDisplay}. ${SITE.momoNetwork} number: ${SITE.phoneDisplay}. Customers should confirm payment details with TMP on WhatsApp before sending money.`,
       `Tutoring fees are agreed per learner and start from ${format(INDICATIVE_TUTORING_RATE)} per session (negotiable). Fees are in Ghana cedis.`,
-      "Website pages: /services, /tutors (tutor directory), /tutors/apply (apply to tutor), /pricing, /about, /contact, /terms, /privacy, /refunds, /login, /register.",
+      "Website pages: /services, /tutors (tutor directory), /tutors/apply (apply to tutor), /shop (digital resources), /pricing, /about, /contact, /terms, /privacy, /refunds, /login, /register.",
     ].join("\n"),
   );
 
@@ -70,6 +71,18 @@ export async function buildKnowledge(db: DbOrTx, text: SiteText): Promise<string
     }
   } catch {
     /* tutors are optional context */
+  }
+
+  try {
+    const products = await listPublicProducts(db);
+    if (products.length) {
+      sections.push(
+        "SHOP (digital PDF resources; the buyer signs in, orders on the website, pays by Mobile Money, and downloads after TMP confirms payment, usually within a few hours)\n" +
+          products.map((p) => `- ${p.title} (${priceText(p)}): ${p.summary} Page: /shop/${p.slug}`).join("\n"),
+      );
+    }
+  } catch {
+    /* the shop is optional context */
   }
 
   try {

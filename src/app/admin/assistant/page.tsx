@@ -3,7 +3,7 @@ import { KNOWLEDGE_BODY_MAX, listKnowledge } from "@/server/assistant/knowledge"
 import { assistantStats, CHAT_LOG_RETENTION_DAYS, isAssistantEnabled, recentUnanswered } from "@/server/assistant/service";
 import { assistantProviders, requirePermission } from "@/server/context";
 import { db } from "@/server/db";
-import { createKnowledgeAction, deleteKnowledgeAction, toggleAssistantAction, updateKnowledgeAction } from "../actions";
+import { createKnowledgeAction, deleteKnowledgeAction, testAssistantAction, toggleAssistantAction, updateKnowledgeAction } from "../actions";
 
 export const metadata = { title: "Kaitlyn" };
 
@@ -43,6 +43,21 @@ export default async function AssistantAdmin() {
         <p className="mt-3 text-sm">
           Providers configured: {providers.length ? providers.join(", ") : "none"}. Keys are set on the server (see DEPLOYMENT.md) and are never shown here.
         </p>
+        {providers.length === 0 ? (
+          <div className="mt-4 rounded-lg bg-amber-50 p-4 text-sm leading-6">
+            <p className="font-semibold">To switch Kaitlyn on you need a free AI key (about 5 minutes):</p>
+            <ol className="mt-2 list-decimal space-y-1 pl-5">
+              <li>Open <a className="underline" href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">aistudio.google.com/apikey</a> and sign in with a Google account.</li>
+              <li>Choose Create API key, then copy the key.</li>
+              <li>In the Heroku dashboard open your app, then Settings, then Reveal Config Vars, and add one named <strong>GEMINI_API_KEY</strong> with the key as its value. Never paste the key into chat or email.</li>
+              <li>Come back here, reload, and press Test the connection.</li>
+            </ol>
+          </div>
+        ) : (
+          <div className="mt-4">
+            <ActionForm action={testAssistantAction} fields={[]} submitLabel="Test the connection" tone="quiet" />
+          </div>
+        )}
         <div className="mt-4">
           <ActionForm
             action={toggleAssistantAction}

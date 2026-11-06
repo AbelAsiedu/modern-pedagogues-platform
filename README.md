@@ -8,7 +8,7 @@ This is a new, independent codebase. The legacy site (`AbelAsiedu/home-tutoring-
 
 ## Status
 
-**Foundation, public site, sign-in, admin tools, editable site text, tutor profiles and the Kaitlyn assistant are built. The marketplace, learning portals, e-store, booking and payments are not built yet.**
+**Foundation, public site, sign-in, admin tools, editable site text, tutor profiles, the Kaitlyn assistant, image uploads and a digital-resources shop are built. The creator marketplace, learning portals, booking and online (Paystack) payments are not built yet.**
 
 | Area | State |
 |---|---|
@@ -24,9 +24,11 @@ This is a new, independent codebase. The legacy site (`AbelAsiedu/home-tutoring-
 | Admin area: dashboard, users (search, suspend, restore, roles), audit log, home banners, site text, tutors, Kaitlyn | Done, checked in a real browser |
 | Home-page hero slideshow (admin-managed banners, accessible, 3 default slides) | Done |
 | Admin-editable site text: home, services, tutors, about, pricing, contact, footer, Kaitlyn's wording, and the terms/privacy/refunds policies (defaults in code, audited, reset-to-default) | Done, checked in a real browser |
-| Tutors: public directory with filters and profile pages, rate-limited application form, admin review queue (approve / request changes / reject), profile editing, publish/hide, staff-added tutors | Done, checked in a real browser. Photos not yet (needs the storage module); initials are shown |
+| Tutors: public directory with filters and profile pages, rate-limited application form, admin review queue (approve / request changes / reject), profile editing, publish/hide, staff-added tutors, staff-chosen photos | Done, checked in a real browser (photos: tests only); initials are shown when there is no photo |
 | Kaitlyn AI assistant: ported gateway (Gemini Interactions, then OpenRouter, then Mistral), admin-managed knowledge, chat widget, chat log and unanswered-question list, kill switch | Done and checked end to end **with a local stand-in for the AI provider**. **No real provider has been called**: it stays off until you set a key |
-| Marketplace, portals, booking, courses, shop, payments | **Not built yet** (next stages) |
+| Media library: staff upload JPEG/PNG/WebP pictures (re-encoded, location data removed, stored in Postgres), used for home banners, tutor photos and shop covers | Done, checked in a real browser (tutor photos covered by integration tests only) |
+| Shop for digital resources: staff add products with a PDF and cover, visitors order after signing in, pay by MoMo, staff confirm payment with the MoMo transaction ID, buyer downloads from "My orders" | Done, checked in a real browser. **Payment is confirmed by hand**; no Paystack yet, and no real email has been sent |
+| Creator marketplace (other people selling), portals, booking, courses, Paystack payments | **Not built yet** (next stages) |
 | Email | SMTP mailer built (Gmail App Password), unit-tested with a fake transport; **never sent a real email** |
 | Remote GitHub repository | Created: AbelAsiedu/modern-pedagogues-platform (**make it private**) |
 
