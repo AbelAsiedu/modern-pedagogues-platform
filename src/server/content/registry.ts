@@ -103,7 +103,7 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
   e("site.tiktok", "business", "TikTok link", "line", 200, "", { optional: true, help: "Optional. Leave empty to hide the icon.", validate: httpsUrl }),
 
   // Site images (edited on the Site images page; empty means the built-in illustration is shown)
-  e("site.logo", "images", "Logo", "image", 200, "", { optional: true, help: "Replaces the built-in TMP wordmark in the header and footer. Use a transparent PNG or WebP that looks good on dark blue, about 400 × 120." }),
+  e("site.logo", "images", "Logo", "image", 200, "", { optional: true, help: "Replaces the built-in TMP logo (the tmp lettering and name) in the header and footer. Use a transparent PNG or WebP that looks good on dark blue, about 400 × 120." }),
   e("home.about.image", "images", "Home: Building a Brighter Future picture", "image", 200, "", { optional: true, help: "Learners or a classroom. Landscape, about 1200 × 900." }),
   e("home.impact.image", "images", "Home: Our Impact picture", "image", 200, "", { optional: true, help: "A campus, school or group photo. Landscape, about 1200 × 800." }),
   e("home.testimonials.image", "images", "Home: testimonials picture", "image", 200, "", { optional: true, help: "Shown beside the quotes, for example graduates or a class. Landscape, about 1000 × 800." }),

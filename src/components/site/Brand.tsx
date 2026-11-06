@@ -26,8 +26,10 @@ function twoLines(name: string): [string, string] {
 }
 
 /**
- * The wordmark: a bold yellow monogram with the business name stacked beside it. If the administrator uploads a logo
- * (Site images), that picture is used instead. Built for dark blue backgrounds.
+ * The wordmark, laid out like the TMP lockup: the interlocking "tmp" lettering (public/images/tmp-mark.svg, traced from
+ * the supplied logo), a thin divider, then the business name on two lines. If the administrator uploads a logo
+ * (Site images), that picture is used instead. For any other business name the lettering is plain bold initials.
+ * Built for dark blue backgrounds.
  */
 export function Logo({ name, imagePath, className = "" }: { name: string; imagePath?: string; className?: string }) {
   if (imagePath) {
@@ -35,10 +37,17 @@ export function Logo({ name, imagePath, className = "" }: { name: string; imageP
     return <img src={imagePath} alt={name} className={`h-10 w-auto max-w-[14rem] object-contain ${className}`} />;
   }
   const [a, b] = twoLines(name);
+  const isTmp = acronym(name) === "TMP";
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`} aria-label={name}>
-      <span aria-hidden="true" className="text-[1.9rem] font-black leading-none tracking-tighter text-gold">{acronym(name)}</span>
-      <span aria-hidden="true" className="text-[0.62rem] font-bold leading-[1.15] tracking-[0.14em] text-cream">
+    <span className={`inline-flex items-center gap-3 ${className}`} aria-label={name}>
+      {isTmp ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src="/images/tmp-mark.svg" alt="" aria-hidden="true" width={86} height={50} className="h-[2.55rem] w-auto shrink-0" />
+      ) : (
+        <span aria-hidden="true" className="text-[1.9rem] font-black leading-none tracking-tighter text-gold">{acronym(name)}</span>
+      )}
+      <span aria-hidden="true" className="h-9 w-px shrink-0 bg-gold/80" />
+      <span aria-hidden="true" className="text-[0.7rem] font-extrabold leading-[1.15] tracking-[0.06em] text-cream">
         {a}
         {b ? <><br />{b}</> : null}
       </span>
