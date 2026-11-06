@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSession, getSiteText } from "@/server/context";
 import { Logo, SocialIcon, SiteIcon, Wave, type SiteIconName } from "./Brand";
 import { MobileMenu } from "./MobileMenu";
+import { PRICING_PAGE_ENABLED } from "@/lib/site";
 
 const NAV = [
   { href: "/", key: "nav.home" },
@@ -9,7 +10,7 @@ const NAV = [
   { href: "/services", key: "nav.services" },
   { href: "/tutors", key: "nav.tutors" },
   { href: "/resources", key: "nav.resources" },
-  { href: "/pricing", key: "nav.pricing" },
+  ...(PRICING_PAGE_ENABLED ? ([{ href: "/pricing", key: "nav.pricing" }] as const) : []),
   { href: "/contact", key: "nav.contact" },
 ] as const;
 

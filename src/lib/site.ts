@@ -20,6 +20,12 @@ export const whatsappLink = (message: string) =>
   `https://wa.me/${SITE.whatsappNumber}?text=${encodeURIComponent(message)}`;
 
 /** Owner decision (2026-11-04): negotiable per learner, from GHS 100 per session. */
+/**
+ * The Pricing page is switched off for now: the page returns "not found" and no menu, footer, sitemap, home-page or
+ * chat link points to it. Set to true (and redeploy) to bring it back; nothing else needs to change.
+ */
+export const PRICING_PAGE_ENABLED = false;
+
 export const INDICATIVE_TUTORING_RATE: Money = money(10_000n, "GHS");
 
 export const CURRICULA_NAMES = ["Ghana Education Service", "Cambridge / British", "Pearson Edexcel", "IB", "Canadian"] as const;

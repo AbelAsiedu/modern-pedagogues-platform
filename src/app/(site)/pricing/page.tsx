@@ -1,12 +1,14 @@
+import { notFound } from "next/navigation";
 import { seoMetadata } from "@/server/seo";
 import { Hero } from "@/components/site/Chrome";
 import { format } from "@/lib/money";
-import { INDICATIVE_TUTORING_RATE } from "@/lib/site";
+import { INDICATIVE_TUTORING_RATE, PRICING_PAGE_ENABLED } from "@/lib/site";
 import { getSiteText } from "@/server/context";
 
 export const generateMetadata = () => seoMetadata("pricing");
 
 export default async function Pricing() {
+  if (!PRICING_PAGE_ENABLED) notFound();
   const t = await getSiteText();
   return (
     <>

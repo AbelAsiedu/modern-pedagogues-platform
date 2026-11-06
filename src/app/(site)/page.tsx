@@ -8,6 +8,7 @@ import { ServiceCard } from "@/components/site/ServiceCard";
 import { SiteImage } from "@/components/site/SiteImage";
 import { Testimonials } from "@/components/site/Testimonials";
 import { TutorCard } from "@/components/site/TutorCard";
+import { PRICING_PAGE_ENABLED } from "@/lib/site";
 import { parseTestimonials } from "@/lib/testimonials";
 import { getPublicBannersOrDefaults } from "@/server/content/banners";
 import { getSiteText } from "@/server/context";
@@ -192,9 +193,11 @@ export default async function Home() {
             <h2 className="text-3xl font-semibold tracking-tight">{t.text("home.fees.heading")}</h2>
             <span className="mt-4 block h-1 w-14 rounded-full bg-gold" aria-hidden="true" />
             <p className="mt-4 leading-7 text-navy/80">{t.text("home.fees.body")}</p>
-            <Link href="/pricing" className="mt-5 inline-block font-semibold text-royal underline decoration-gold decoration-2 underline-offset-4">
-              How pricing works
-            </Link>
+            {PRICING_PAGE_ENABLED ? (
+              <Link href="/pricing" className="mt-5 inline-block font-semibold text-royal underline decoration-gold decoration-2 underline-offset-4">
+                How pricing works
+              </Link>
+            ) : null}
           </Reveal>
           <Reveal delay={120} className="mesh relative overflow-hidden rounded-3xl p-8 text-cream shadow-2xl shadow-navy/25">
             <div className="blob -right-10 -top-10 h-40 w-40 bg-gold/40" aria-hidden="true" />

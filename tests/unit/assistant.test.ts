@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { formatAnswer } from "@/lib/chat-format";
 import { parseRichText } from "@/lib/richtext";
+import { PRICING_PAGE_ENABLED } from "@/lib/site";
 import { checkPrompt, sanitizeHistory, MAX_HISTORY_TURNS } from "@/server/assistant/guard";
 import { createProviders, interactionText, ProviderError, type FetchLike, type ProviderConfig } from "@/server/assistant/providers";
 
@@ -51,8 +52,12 @@ describe("history sanitising", () => {
 
 describe("answer formatting", () => {
   it("normalises model markdown and links bare site paths, but not arbitrary text", () => {
-    const out = formatAnswer("### Steps\n* Visit /pricing\n1. Email us\nSee [fees](/pricing) and /tutors/apply or /admin");
-    expect(out).toBe("## Steps\n- Visit [/pricing](/pricing)\n- Email us\nSee [fees](/pricing) and [/tutors/apply](/tutors/apply) or /admin");
+    const out = formatAnswer("### Steps\n* Visit /services\n1. Email us\nSee [fees](/pricing) and /tutors/apply or /admin");
+    expect(out).toBe("## Steps\n- Visit [/services](/services)\n- Email us\nSee [fees](/pricing) and [/tutors/apply](/tutors/apply) or /admin");
+  });
+  it("links the Pricing page only while that page is switched on", () => {
+    const out = formatAnswer("Visit /pricing");
+    expect(out).toBe(PRICING_PAGE_ENABLED ? "Visit [/pricing](/pricing)" : "Visit /pricing");
   });
   it("renders only same-site, mailto and tel links from the model", () => {
     const [p] = parseRichText("[a](https://evil.example) [b](/pricing) [c](mailto:x@y.co) [d](tel:+233593660708)", { links: "local" });

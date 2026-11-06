@@ -1,5 +1,7 @@
 // Pure helper (no React, no server imports) so it can be unit-tested and used by the chat widget.
-const SITE_PATHS = "services|tutors/apply|tutors|pricing|about|contact|terms|privacy|refunds|login|register";
+import { PRICING_PAGE_ENABLED } from "./site";
+
+const SITE_PATHS = ["services", "tutors/apply", "tutors", ...(PRICING_PAGE_ENABLED ? ["pricing"] : []), "about", "contact", "terms", "privacy", "refunds", "login", "register"].join("|");
 
 /**
  * Turn the model's loose markdown into the small safe format RichText understands. Bullets and numbered

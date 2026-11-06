@@ -1,7 +1,7 @@
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { format } from "../../lib/money";
-import { INDICATIVE_TUTORING_RATE, SITE, SERVICES } from "../../lib/site";
+import { INDICATIVE_TUTORING_RATE, PRICING_PAGE_ENABLED, SITE, SERVICES } from "../../lib/site";
 import { DEFAULT_BUSINESS, type Business } from "../../lib/business";
 import { recordAudit } from "../audit";
 import { parseOrThrow } from "../auth/validation";
@@ -47,7 +47,7 @@ export async function buildKnowledge(db: DbOrTx, text: SiteText): Promise<string
       `Name: ${text.biz.name} (TMP). Motto: ${text.biz.motto}. Founded ${SITE.founded}. Country: ${SITE.country}.`,
       `Email: ${text.biz.email}. Phone and WhatsApp: ${text.biz.phoneDisplay}. ${text.biz.momoNetwork} number: ${text.biz.momoNumber}. Customers should confirm payment details with TMP on WhatsApp before sending money.`,
       `Tutoring fees are agreed per learner and start from ${format(INDICATIVE_TUTORING_RATE)} per session (negotiable). Fees are in Ghana cedis.`,
-      "Website pages: /services, /tutors (tutor directory), /tutors/apply (apply to tutor), /resources (digital resources: free and paid books, courses, worksheets; anyone can apply to share their own at /creator/join, and each resource is reviewed against the standard at /resources/standards), /pricing, /about, /contact, /terms, /privacy, /refunds, /login, /register.",
+      `Website pages: /services, /tutors (tutor directory), /tutors/apply (apply to tutor), /resources (digital resources: free and paid books, courses, worksheets; anyone can apply to share their own at /creator/join, and each resource is reviewed against the standard at /resources/standards), ${PRICING_PAGE_ENABLED ? "/pricing, " : ""}/about, /contact, /terms, /privacy, /refunds, /login, /register.`,
     ].join("\n"),
   );
 
