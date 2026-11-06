@@ -29,13 +29,15 @@ heroku ps:type web=basic -a YOUR-APP-NAME
 heroku config:set -a YOUR-APP-NAME \
   APP_URL=https://YOUR-APP-NAME.herokuapp.com \
   DATABASE_SSL=true DATABASE_SSL_REJECT_UNAUTHORIZED=false \
-  EMAIL_PROVIDER=smtp EMAIL_FROM="The Modern Pedagogues <themodernpedagogues@gmail.com>" \
+  EMAIL_PROVIDER=smtp EMAIL_FROM="The Modern Pedagogues <abelasiedu@gmail.com>" \
   SMTP_HOST=smtp.gmail.com SMTP_PORT=465 SMTP_SECURE=true \
-  SMTP_USER=themodernpedagogues@gmail.com SMTP_PASSWORD="your-16-char-app-password"
+  SMTP_USER=abelasiedu@gmail.com SMTP_PASSWORD="your-16-char-app-password"
 
 git push heroku main        # builds, then the release phase runs migrations + seed
 heroku open -a YOUR-APP-NAME
 ```
+
+Email is sent through the Gmail account abelasiedu@gmail.com (its App Password goes in `SMTP_PASSWORD`; the account needs 2-Step Verification on). Gmail shows that address as the sender unless you add themodernpedagogues@gmail.com as a "Send mail as" alias in Gmail settings, so `EMAIL_FROM` uses the same address. The public contact address on the website is still themodernpedagogues@gmail.com, and new tutor applications are announced to that inbox.
 
 **Set `APP_URL` before the first push.** Page metadata (canonical and social URLs) is fixed at build time. If you change `APP_URL` later, redeploy.
 

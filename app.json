@@ -33,7 +33,7 @@
       "value": "smtp"
     },
     "EMAIL_FROM": {
-      "value": "The Modern Pedagogues <themodernpedagogues@gmail.com>"
+      "value": "The Modern Pedagogues <abelasiedu@gmail.com>"
     },
     "SMTP_HOST": {
       "value": "smtp.gmail.com"
@@ -45,7 +45,7 @@
       "value": "true"
     },
     "SMTP_USER": {
-      "value": "themodernpedagogues@gmail.com"
+      "value": "abelasiedu@gmail.com"
     },
     "SMTP_PASSWORD": {
       "description": "A Google App Password (16 characters), never the account password"
