@@ -82,8 +82,17 @@ export const applicationInput = z.object({
 });
 export type ApplicationInput = z.input<typeof applicationInput>;
 
+/** Empty, or a picture from this site's media library. */
+const photoPathInput = z
+  .string()
+  .trim()
+  .optional()
+  .transform((v) => v || null)
+  .pipe(z.string().regex(/^\/media\/[0-9a-f-]{36}\.(jpg|png|webp)$/, "Choose a picture from the list.").nullable());
+
 export const profileEditInput = z.object({
   ...publicProfileFields,
+  photoPath: photoPathInput,
   sortOrder: z.coerce.number().int().min(0).max(1000).default(0),
   adminNotes: z.string().trim().max(4000).optional().transform((v) => v || null),
 });
@@ -169,6 +178,7 @@ export type PublicTutor = {
   modes: string[];
   areas: string | null;
   yearsExperience: number | null;
+  photoPath: string | null;
 };
 
 export type TutorFilter = { level?: string; curriculum?: string; subject?: string; mode?: string };
@@ -185,6 +195,7 @@ const publicColumns = {
   modes: tutorProfiles.modes,
   areas: tutorProfiles.areas,
   yearsExperience: tutorProfiles.yearsExperience,
+  photoPath: tutorProfiles.photoPath,
 };
 
 const visible = and(eq(tutorProfiles.status, "APPROVED"), eq(tutorProfiles.isPublished, true));
@@ -197,7 +208,7 @@ async function nameMaps(db: DbOrTx) {
   return { level: new Map(lv.map((x) => [x.key, x.name])), curriculum: new Map(cu.map((x) => [x.key, x.name])) };
 }
 
-type PublicRow = { id: string; displayName: string | null; headline: string | null; bio: string | null; subjects: string[]; levelKeys: string[]; curriculumKeys: string[]; modes: string[]; areas: string | null; yearsExperience: number | null };
+type PublicRow = { id: string; displayName: string | null; headline: string | null; bio: string | null; subjects: string[]; levelKeys: string[]; curriculumKeys: string[]; modes: string[]; areas: string | null; yearsExperience: number | null; photoPath: string | null };
 
 function toPublic(r: PublicRow, names: Awaited<ReturnType<typeof nameMaps>>): PublicTutor {
   return {
@@ -211,6 +222,7 @@ function toPublic(r: PublicRow, names: Awaited<ReturnType<typeof nameMaps>>): Pu
     modes: r.modes.map((m) => MODE_LABELS[m as keyof typeof MODE_LABELS] ?? m),
     areas: r.areas,
     yearsExperience: r.yearsExperience,
+    photoPath: r.photoPath,
   };
 }
 

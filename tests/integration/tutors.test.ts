@@ -145,7 +145,7 @@ describe("review workflow", () => {
     // The public shape must not carry private data, by construction.
     const json = JSON.stringify(t);
     for (const secret of ["ama.tutor@example.com", "+233", "BEd Mathematics", "Strong references", "Ama Serwaa Mensah", "Weekday evenings"]) expect(json).not.toContain(secret);
-    expect(Object.keys(t!).sort()).toEqual(["areas", "bio", "curricula", "displayName", "headline", "id", "levels", "modes", "subjects", "yearsExperience"]);
+    expect(Object.keys(t!).sort()).toEqual(["areas", "bio", "curricula", "displayName", "headline", "id", "levels", "modes", "photoPath", "subjects", "yearsExperience"]);
     expect(await getPublicTutor(db, row.id)).not.toBeNull();
 
     const last = d.mailer.last()!;

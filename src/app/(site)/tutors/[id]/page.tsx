@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Initials } from "@/components/site/TutorCard";
+import { Avatar } from "@/components/site/TutorCard";
 import { whatsappLink } from "@/lib/site";
 import { db } from "@/server/db";
 import { getPublicTutor } from "@/server/tutors/service";
@@ -28,7 +28,7 @@ export default async function TutorPage({ params }: Props) {
     <div className="mx-auto max-w-3xl px-6 py-14">
       <Link href="/tutors" className="text-sm underline">← All tutors</Link>
       <div className="mt-6 flex items-center gap-5">
-        <Initials name={t.displayName} size="h-20 w-20 text-2xl" />
+        <Avatar name={t.displayName} photoPath={t.photoPath} size="h-20 w-20 text-2xl" />
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">{t.displayName}</h1>
           <p className="mt-1 text-navy/70">{t.headline}</p>

@@ -2,7 +2,13 @@ import Link from "next/link";
 import { whatsappLink } from "@/lib/site";
 import type { PublicTutor } from "@/server/tutors/service";
 
-/** Initials in a circle: tutor photos arrive with the storage module and need the tutor's consent. */
+/** The tutor's photo when staff have added one (with the tutor's consent), otherwise their initials in a circle. */
+export function Avatar({ name, photoPath, size = "h-14 w-14 text-lg" }: { name: string; photoPath: string | null; size?: string }) {
+  if (!photoPath) return <Initials name={name} size={size} />;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={photoPath} alt="" className={`shrink-0 rounded-full object-cover ${size.split(" ").filter((c) => c.startsWith("h-") || c.startsWith("w-")).join(" ")}`} />;
+}
+
 export function Initials({ name, size = "h-14 w-14 text-lg" }: { name: string; size?: string }) {
   const initials = name.replace(/[^\p{L}\s]/gu, "").split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join("");
   return (
@@ -16,7 +22,7 @@ export function TutorCard({ tutor }: { tutor: PublicTutor }) {
   return (
     <article className="flex h-full flex-col rounded-2xl border border-navy/10 bg-white/70 p-6">
       <div className="flex items-center gap-4">
-        <Initials name={tutor.displayName} />
+        <Avatar name={tutor.displayName} photoPath={tutor.photoPath} />
         <div>
           <h2 className="text-lg font-semibold leading-tight">
             <Link href={`/tutors/${tutor.id}`} className="hover:text-gold">{tutor.displayName}</Link>

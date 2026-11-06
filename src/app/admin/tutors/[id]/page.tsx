@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ActionForm, type FieldSpec } from "@/components/forms/ActionForm";
 import { requirePermission } from "@/server/context";
 import { db } from "@/server/db";
+import { mediaOptions } from "@/server/media/service";
 import { NotFoundError } from "@/server/errors";
 import { can } from "@/server/permissions/authorize";
 import { getTutorProfile, MODE_LABELS, TEACHING_MODES, tutorFilterOptions } from "@/server/tutors/service";
@@ -22,9 +23,11 @@ export default async function AdminTutor({ params }: { params: Promise<{ id: str
   if (!tutor) notFound();
   const options = await tutorFilterOptions(db());
   const canDecide = can(s.actor, "tutors.approve");
+  const pictures = await mediaOptions(db(), s.actor);
 
   const fields: FieldSpec[] = [
     { name: "displayName", label: "Public name", required: true, defaultValue: tutor.displayName ?? "", hint: "First name and last initial, e.g. Ama M. No contact details." },
+    { name: "photoPath", label: "Photo", type: "select", options: [{ value: "", label: "No photo (show initials)" }, ...pictures], defaultValue: tutor.photoPath ?? "", hint: "Upload pictures under Media. Only use a photo with the tutor's consent." },
     { name: "headline", label: "Headline", required: true, defaultValue: tutor.headline ?? "", hint: "One line, e.g. Mathematics and Science specialist, SHS and BECE." },
     { name: "bio", label: "Biography", type: "textarea", required: true, rows: 6, defaultValue: tutor.bio ?? "" },
     { name: "subjects", label: "Subjects", required: true, defaultValue: tutor.subjects.join(", "), hint: "Separate with commas." },

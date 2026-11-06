@@ -9,6 +9,7 @@ import { setAssistantEnabled } from "@/server/assistant/service";
 import { saveContentGroup } from "@/server/content/site-content";
 import { createBanner, deleteBanner, setBannerActive, updateBanner } from "@/server/content/banners";
 import { emailDeps, requestContext, requireActor } from "@/server/context";
+import { deleteMedia, updateMediaAlt } from "@/server/media/service";
 import { createTutorByAdmin, decideTutor, deleteTutor, setTutorPublished, updateTutorPrivateDetails, updateTutorProfile } from "@/server/tutors/service";
 import { db } from "@/server/db";
 
@@ -141,6 +142,7 @@ export async function updateTutorAction(_: ActionState, form: FormData): Promise
         curriculumKeys: form.getAll("curriculumKeys").map(String),
         modes: form.getAll("modes").map(String),
         areas: str(form, "areas"),
+        photoPath: str(form, "photoPath"),
         yearsExperience: str(form, "yearsExperience"),
         sortOrder: str(form, "sortOrder") || "0",
         adminNotes: str(form, "adminNotes"),
@@ -241,5 +243,23 @@ export async function deleteTutorAction(_: ActionState, form: FormData): Promise
     revalidatePath("/admin/tutors", "layout");
     revalidatePath("/tutors", "layout");
     redirect("/admin/tutors");
+  });
+}
+
+export async function updateMediaAltAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await updateMediaAlt(db(), actor, str(form, "mediaId"), str(form, "altText"), (await requestContext()).ip);
+    revalidatePath("/admin/media");
+    return { ok: true, message: "Saved." };
+  });
+}
+
+export async function deleteMediaAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await deleteMedia(db(), actor, str(form, "mediaId"), (await requestContext()).ip);
+    revalidatePath("/admin/media");
+    return { ok: true, message: "Deleted." };
   });
 }

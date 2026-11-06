@@ -4,3 +4,4 @@ export * from "./reference";
 export * from "./content";
 export * from "./tutors";
 export * from "./assistant";
+export * from "./media";

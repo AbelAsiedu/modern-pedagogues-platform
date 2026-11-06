@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { logoutAction } from "@/app/(site)/auth-actions";
 import { requireSession } from "@/server/context";
+import { canUploadMedia } from "@/server/media/service";
 import { can } from "@/server/permissions/authorize";
 import { notFound } from "next/navigation";
 
@@ -16,6 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/users", label: "Users", show: can(a, "users.view") },
     { href: "/admin/tutors", label: "Tutors", show: can(a, "tutors.review_applications") },
     { href: "/admin/banners", label: "Home banners", show: can(a, "content.manage_site") },
+    { href: "/admin/media", label: "Media", show: canUploadMedia(a) },
     { href: "/admin/content", label: "Site text", show: can(a, "content.manage_site") },
     { href: "/admin/assistant", label: "Kaitlyn", show: can(a, "assistant.manage_knowledge") },
     { href: "/admin/audit", label: "Audit log", show: can(a, "audit.view") },

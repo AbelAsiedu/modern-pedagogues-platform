@@ -41,6 +41,8 @@ export const tutorProfiles = pgTable(
     curriculumKeys: text("curriculum_keys").array().notNull().default(sql`'{}'::text[]`),
     modes: text("modes").array().notNull().default(sql`'{}'::text[]`),
     areas: text("areas"),
+    /** A picture from the media library (/media/<id>.jpg). Set by staff only, with the tutor's consent. */
+    photoPath: text("photo_path"),
     yearsExperience: integer("years_experience"),
     sortOrder: integer("sort_order").notNull().default(0),
 

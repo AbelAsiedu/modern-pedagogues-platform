@@ -50,6 +50,20 @@
       "when": 1793966932589,
       "tag": "0006_assistant",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793975576489,
+      "tag": "0007_media_files",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793975715246,
+      "tag": "0008_tutor_photo",
+      "breakpoints": true
     }
   ]
 }
