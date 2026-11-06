@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { seoMetadata } from "@/server/seo";
 import { Hero } from "@/components/site/Chrome";
+import { COMMON_SUBJECTS } from "@/lib/listing-form";
 import { ProductCard } from "@/components/site/ProductCard";
 import { getSiteText } from "@/server/context";
 import { db } from "@/server/db";
@@ -26,6 +27,8 @@ export default async function Resources({ searchParams }: { searchParams: Promis
   } catch {
     unavailable = true;
   }
+  const have = new Set(subjects.map((x) => x.toLowerCase()));
+  const otherSubjects = COMMON_SUBJECTS.filter((x) => !have.has(x.toLowerCase())).slice().sort((a, b) => a.localeCompare(b));
   const filtered = Object.values(filter).some(Boolean);
   const sel = "mt-1 w-full rounded-xl border border-navy/25 bg-white px-3 py-2 text-sm";
   return (
@@ -47,8 +50,15 @@ export default async function Resources({ searchParams }: { searchParams: Promis
             Subject
             <select name="subject" defaultValue={filter.subject} className={sel}>
               <option value="">All subjects</option>
-              {filter.subject && !subjects.some((x) => x.toLowerCase() === filter.subject!.trim().toLowerCase()) ? <option value={filter.subject}>{filter.subject}</option> : null}
-              {subjects.map((x) => <option key={x} value={x}>{x}</option>)}
+              {filter.subject && ![...subjects, ...otherSubjects].some((x) => x.toLowerCase() === filter.subject!.trim().toLowerCase()) ? <option value={filter.subject}>{filter.subject}</option> : null}
+              {subjects.length > 0 ? (
+                <optgroup label="Subjects with resources">
+                  {subjects.map((x) => <option key={x} value={x}>{x}</option>)}
+                </optgroup>
+              ) : null}
+              <optgroup label={subjects.length > 0 ? "Other subjects" : "Subjects"}>
+                {otherSubjects.map((x) => <option key={x} value={x}>{x}</option>)}
+              </optgroup>
             </select>
           </label>
           <label className="text-sm font-medium">
