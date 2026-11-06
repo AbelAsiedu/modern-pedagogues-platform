@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { parseRichText, type Inline } from "@/lib/richtext";
+import { parseRichText, type Inline, type ParseOptions } from "@/lib/richtext";
 
 function Inlines({ items }: { items: Inline[] }) {
   return (
@@ -20,10 +20,10 @@ function Inlines({ items }: { items: Inline[] }) {
 }
 
 /** Renders admin-written text (see lib/richtext.ts). Output is built from React elements, never raw HTML. */
-export function RichText({ text }: { text: string }) {
+export function RichText({ text, links }: { text: string; links?: ParseOptions["links"] }) {
   return (
     <>
-      {parseRichText(text).map((b, i) => {
+      {parseRichText(text, { links }).map((b, i) => {
         if (b.t === "h") return <h2 key={i}><Inlines items={b.c} /></h2>;
         if (b.t === "ul") {
           return (

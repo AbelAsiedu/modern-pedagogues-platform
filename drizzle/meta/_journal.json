@@ -43,6 +43,13 @@
       "when": 1793966345312,
       "tag": "0005_tutor_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793966932589,
+      "tag": "0006_assistant",
+      "breakpoints": true
     }
   ]
 }

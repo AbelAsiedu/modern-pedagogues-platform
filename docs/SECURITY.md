@@ -31,5 +31,18 @@ This lists behaviour that exists in code and is covered by tests. Anything not l
 - Banner images must be paths on this site and banner links must be same-site, https, mailto or tel (no javascript: or data: URLs); tested.
 - Staff safeguards (tested): no suspending yourself; only a super administrator may suspend or change privileged staff; the last super administrator cannot be removed; suspension ends sessions immediately; every admin action is written to the audit log.
 
+## Editable text and tutors
+- Admin-written text is parsed into a small typed tree and rendered by React; it can never inject HTML or script. Links are limited to site paths, https, mailto and tel (tested with `javascript:`, `data:`, `//host`, and raw `<script>`).
+- Every field is checked against a registry of known keys and its own length limit, by the permission for that field (policies need `content.manage_legal`). A form cannot write a key outside its section. Saves are atomic and audited (which keys, not the text).
+- Tutor profiles keep private data (name, email, phone, qualifications, notes) and public data in one row, but the public queries select an explicit column list and a test asserts the public shape has exactly the safe keys. A profile is public only when approved AND published; a database CHECK refuses a published row that is not approved. Email, links and phone-like numbers are rejected in public fields.
+- Applications are rate-limited per IP and per email, and a repeat application from the same email is accepted silently, so the form does not reveal who has applied.
+
+## Kaitlyn (AI assistant)
+- Provider keys are read from the server environment only, sent only in a request header to the provider, never to browsers, logs or error messages (tested). Provider errors keep the provider name and status only.
+- She answers from public site text, published tutor profiles and admin-written notes. She has no access to accounts, payments, bookings, learner data, or private tutor fields (tested: private strings are absent from the prompt). Her instructions tell her not to invent facts, not to ask for passwords/PINs, and to treat visitor text as data.
+- `/api/chat` checks the Origin header (browser requests from other sites are refused), content type and body size, and is rate-limited per visitor (20 per 10 minutes) and per day across all visitors (cost cap). Her replies are rendered through the safe renderer with same-site, mailto and tel links only.
+- Chats are logged without IP address or account, and deleted after 90 days by `npm run assistant:purge` (schedule it).
+- Limits: prompt injection cannot be fully prevented in any language model. The mitigations are the above (no private data reachable, no actions available, safe rendering), not a guarantee about what she will say.
+
 ## Not yet done (see KNOWN_ISSUES)
 Staff MFA, security headers beyond the static set in `next.config.ts` (CSP still allows `'unsafe-inline'`), malware scanning, backups, and an external security review.

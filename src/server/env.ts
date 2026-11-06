@@ -25,6 +25,16 @@ const schema = z
     SMTP_USER: z.string().min(1).optional(),
     SMTP_PASSWORD: z.string().min(1).optional(),
     EMAIL_FROM: z.string().min(3).default("The Modern Pedagogues <no-reply@localhost>"),
+    /** Kaitlyn AI assistant. Optional: with no key set the assistant is switched off and the site works without it. */
+    GEMINI_API_KEY: z.string().min(1).optional(),
+    GOOGLE_API_KEY: z.string().min(1).optional(),
+    GEMINI_MODEL: z.string().min(1).default("gemini-3.6-flash"),
+    OPENROUTER_API_KEY: z.string().min(1).optional(),
+    OPENROUTER_MODEL: z.string().min(1).default("openrouter/free"),
+    MISTRAL_API_KEY: z.string().min(1).optional(),
+    MISTRAL_MODEL: z.string().min(1).default("mistral-small-latest"),
+    /** Hard ceiling on Kaitlyn replies per day across all visitors (cost control). */
+    ASSISTANT_DAILY_LIMIT: z.coerce.number().int().min(1).max(100_000).default(1000),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   })
   .superRefine((v, ctx) => {

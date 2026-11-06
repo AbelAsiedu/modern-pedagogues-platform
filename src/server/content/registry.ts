@@ -10,7 +10,7 @@ import { SERVICES } from "@/lib/site";
  */
 
 export type ContentKind = "line" | "text" | "lines" | "rich";
-export type ContentGroupId = "home" | "services" | "tutors" | "about" | "pricing" | "contact" | "footer" | "policies";
+export type ContentGroupId = "home" | "services" | "tutors" | "assistant" | "about" | "pricing" | "contact" | "footer" | "policies";
 
 export type ContentEntry = {
   key: string;
@@ -28,6 +28,7 @@ export const CONTENT_GROUPS: readonly { id: ContentGroupId; label: string; blurb
   { id: "home", label: "Home page", blurb: "Text under the slideshow. Edit the slides themselves under Home banners." },
   { id: "services", label: "Services page", blurb: "The service descriptions here also appear on the home page." },
   { id: "tutors", label: "Tutors pages", blurb: "Wording around the tutor directory and the tutor application. Tutor profiles themselves are edited under Tutors." },
+  { id: "assistant", label: "Kaitlyn (chat assistant)", blurb: "The words around the chat window. What Kaitlyn knows is edited under Kaitlyn in the admin menu." },
   { id: "about", label: "About page", blurb: "Who we are and what we stand for." },
   { id: "pricing", label: "Pricing page", blurb: "The rate itself comes from site settings, not from this text." },
   { id: "contact", label: "Contact page", blurb: "Phone, email and MoMo numbers are fixed business facts and are not edited here." },
@@ -114,6 +115,24 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
     "text",
     500,
     "We work with qualified, committed tutors across Pre-school, Primary, JHS and SHS. Tell us about yourself. Our team reviews every application, and nothing is shown on the website until you have been approved.",
+  ),
+
+  // Kaitlyn
+  e(
+    "assistant.greeting",
+    "assistant",
+    "Greeting",
+    "text",
+    300,
+    "Hi, I'm Kaitlyn, TMP's AI assistant. I can help with tutors, lessons, fees, payments and finding your way around the website. What can I help you with?",
+  ),
+  e(
+    "assistant.disclaimer",
+    "assistant",
+    "Notice under the chat box",
+    "text",
+    300,
+    "Kaitlyn is an AI and can make mistakes. Don't share passwords, card numbers or Mobile Money PINs here. Chats are saved for 90 days to improve our service.",
   ),
 
   // About
@@ -263,6 +282,10 @@ This website does not currently use advertising or analytics cookies.
 - To reply to you, arrange and deliver tutoring, and report on progress.
 - To take payment, keep financial records and meet legal obligations.
 - To keep our services safe and to improve them.
+
+## Kaitlyn, our AI assistant
+
+If you use the Kaitlyn chat on this website, the questions you type are sent to a third-party AI provider so it can write a reply, and are saved by us for 90 days so we can improve our answers. Please do not type passwords, card numbers, Mobile Money PINs or other sensitive details into the chat. Kaitlyn cannot see your account, payments or learner records.
 
 ## Who we share it with
 

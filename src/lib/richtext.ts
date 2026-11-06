@@ -25,7 +25,12 @@ export function fillTemplate(text: string, vars: Readonly<Record<string, string>
 
 const INLINE = /\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
 
-export function parseInline(src: string): Inline[] {
+export type ParseOptions = {
+  /** "local" (for Kaitlyn's replies) keeps only same-site, mailto: and tel: links; other URLs become plain text. */
+  links?: "all" | "local";
+};
+
+export function parseInline(src: string, opts: ParseOptions = {}): Inline[] {
   const out: Inline[] = [];
   let last = 0;
   for (const m of src.matchAll(INLINE)) {
@@ -33,7 +38,8 @@ export function parseInline(src: string): Inline[] {
     if (at > last) out.push({ t: "text", v: src.slice(last, at) });
     if (m[1] !== undefined) out.push({ t: "bold", v: m[1] });
     else if (m[2] !== undefined && m[3] !== undefined) {
-      out.push(isSafeHref(m[3]) ? { t: "link", v: m[2], href: m[3] } : { t: "text", v: m[2] });
+      const allowed = isSafeHref(m[3]) && (opts.links !== "local" || /^(\/|mailto:|tel:)/.test(m[3]));
+      out.push(allowed ? { t: "link", v: m[2], href: m[3] } : { t: "text", v: m[2] });
     }
     last = at + m[0].length;
   }
@@ -41,12 +47,12 @@ export function parseInline(src: string): Inline[] {
   return out;
 }
 
-export function parseRichText(src: string): Block[] {
+export function parseRichText(src: string, opts: ParseOptions = {}): Block[] {
   const blocks: Block[] = [];
   let para: string[] = [];
   let list: Inline[][] | null = null;
   const flushPara = () => {
-    if (para.length) blocks.push({ t: "p", c: parseInline(para.join(" ")) });
+    if (para.length) blocks.push({ t: "p", c: parseInline(para.join(" "), opts) });
     para = [];
   };
   const flushList = () => {
@@ -61,10 +67,10 @@ export function parseRichText(src: string): Block[] {
     } else if (line.startsWith("## ")) {
       flushPara();
       flushList();
-      blocks.push({ t: "h", c: parseInline(line.slice(3)) });
+      blocks.push({ t: "h", c: parseInline(line.slice(3), opts) });
     } else if (line.startsWith("- ")) {
       flushPara();
-      (list ??= []).push(parseInline(line.slice(2)));
+      (list ??= []).push(parseInline(line.slice(2), opts));
     } else {
       flushList();
       para.push(line);

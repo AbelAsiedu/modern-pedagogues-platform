@@ -45,6 +45,22 @@ Create the first administrator (prints a one-hour link to set the password):
 heroku run -a YOUR-APP-NAME npm run admin:create -- themodernpedagogues@gmail.com "Your Name"
 ```
 
+## Turn on Kaitlyn (optional)
+
+Kaitlyn is off until a key is set: the chat button does not appear and nothing is sent anywhere. To enable her, create a Gemini API key in Google AI Studio (or an OpenRouter or Mistral key), then:
+
+```bash
+heroku config:set -a YOUR-APP-NAME GEMINI_API_KEY=your-key
+# optional: ASSISTANT_DAILY_LIMIT=1000 (max replies per day, all visitors), GEMINI_MODEL=..., OPENROUTER_API_KEY=..., MISTRAL_API_KEY=...
+```
+
+Providers are tried in the order Gemini, OpenRouter, Mistral. Check that provider's free-tier terms and data-use policy before enabling: visitors' questions are sent to it. In the admin, open **Kaitlyn** to see the status, add notes she should know, and switch her off instantly if needed. Update your live privacy policy (Admin > Site text > Policies) with the Kaitlyn paragraph from the default text. Schedule the daily clean-up so chats are deleted after 90 days:
+
+```bash
+heroku addons:create scheduler:standard -a YOUR-APP-NAME
+# in the Scheduler dashboard add a daily job:  npm run assistant:purge
+```
+
 ## What the platform does for you
 
 - `Procfile`: `web: npm start`; `release: npm run db:migrate && npm run db:seed`. Migrations are forward-only and seed is idempotent, so every deploy is safe to repeat. A failing migration aborts the release and the previous version keeps running.

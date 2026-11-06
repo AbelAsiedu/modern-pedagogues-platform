@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { runAction, type ActionState } from "@/server/action-result";
 import { assignRole, restoreUser, revokeRole, suspendUser } from "@/server/admin/users";
+import { createKnowledge, deleteKnowledge, updateKnowledge } from "@/server/assistant/knowledge";
+import { setAssistantEnabled } from "@/server/assistant/service";
 import { saveContentGroup } from "@/server/content/site-content";
 import { createBanner, deleteBanner, setBannerActive, updateBanner } from "@/server/content/banners";
 import { emailDeps, requestContext, requireActor } from "@/server/context";
@@ -166,6 +168,51 @@ export async function publishTutorAction(_: ActionState, form: FormData): Promis
     await setTutorPublished(db(), actor, str(form, "tutorId"), str(form, "publish") === "true", (await requestContext()).ip);
     revalidatePath("/admin/tutors", "layout");
     revalidatePath("/tutors", "layout");
+    return { ok: true, message: "Updated." };
+  });
+}
+
+function knowledgeFromForm(form: FormData) {
+  return {
+    title: str(form, "title"),
+    body: str(form, "body"),
+    isActive: form.get("isActive") === "on",
+    sortOrder: str(form, "sortOrder") || "0",
+  };
+}
+
+export async function createKnowledgeAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await createKnowledge(db(), actor, knowledgeFromForm(form), (await requestContext()).ip);
+    revalidatePath("/admin/assistant");
+    return { ok: true, message: "Added. Kaitlyn will use it from her next answer." };
+  });
+}
+
+export async function updateKnowledgeAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await updateKnowledge(db(), actor, str(form, "entryId"), knowledgeFromForm(form), (await requestContext()).ip);
+    revalidatePath("/admin/assistant");
+    return { ok: true, message: "Saved." };
+  });
+}
+
+export async function deleteKnowledgeAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await deleteKnowledge(db(), actor, str(form, "entryId"), (await requestContext()).ip);
+    revalidatePath("/admin/assistant");
+    return { ok: true, message: "Deleted." };
+  });
+}
+
+export async function toggleAssistantAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await setAssistantEnabled(db(), actor, str(form, "enabled") === "true", (await requestContext()).ip);
+    revalidatePath("/", "layout");
     return { ok: true, message: "Updated." };
   });
 }

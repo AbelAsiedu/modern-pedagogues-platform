@@ -49,6 +49,14 @@
     },
     "SMTP_PASSWORD": {
       "description": "A Google App Password (16 characters), never the account password"
+    },
+    "GEMINI_API_KEY": {
+      "description": "Optional. Enables the Kaitlyn assistant (Google AI Studio key). Leave blank to keep Kaitlyn off.",
+      "required": false
+    },
+    "ASSISTANT_DAILY_LIMIT": {
+      "value": "1000",
+      "description": "Maximum Kaitlyn replies per day across all visitors"
     }
   }
 }

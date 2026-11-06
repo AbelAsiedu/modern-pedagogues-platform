@@ -8,7 +8,7 @@ This is a new, independent codebase. The legacy site (`AbelAsiedu/home-tutoring-
 
 ## Status
 
-**Foundation, public site, sign-in and the first admin tools are built. Tutors, marketplace, Kaitlyn and the rest of the old site's features are not built yet.**
+**Foundation, public site, sign-in, admin tools, editable site text, tutor profiles and the Kaitlyn assistant are built. The marketplace, learning portals, e-store, booking and payments are not built yet.**
 
 | Area | State |
 |---|---|
@@ -21,11 +21,14 @@ This is a new, independent codebase. The legacy site (`AbelAsiedu/home-tutoring-
 | Money library (integer pesewas, `bigint`) and marketplace split | Done |
 | Seed data and first-super-admin script | Done |
 | Sign-in, sign-up, email confirmation, password reset, change password, account page | Done, checked in a real browser |
-| Admin area: dashboard, users (search, suspend, restore, roles), audit log, home banners | Done, checked in a real browser |
+| Admin area: dashboard, users (search, suspend, restore, roles), audit log, home banners, site text, tutors, Kaitlyn | Done, checked in a real browser |
 | Home-page hero slideshow (admin-managed banners, accessible, 3 default slides) | Done |
-| Tutors page and applications, marketplace, Kaitlyn, portals, booking, courses, shop, payments | **Not built yet** (next stages) |
+| Admin-editable site text: home, services, tutors, about, pricing, contact, footer, Kaitlyn's wording, and the terms/privacy/refunds policies (defaults in code, audited, reset-to-default) | Done, checked in a real browser |
+| Tutors: public directory with filters and profile pages, rate-limited application form, admin review queue (approve / request changes / reject), profile editing, publish/hide, staff-added tutors | Done, checked in a real browser. Photos not yet (needs the storage module); initials are shown |
+| Kaitlyn AI assistant: ported gateway (Gemini Interactions, then OpenRouter, then Mistral), admin-managed knowledge, chat widget, chat log and unanswered-question list, kill switch | Done and checked end to end **with a local stand-in for the AI provider**. **No real provider has been called**: it stays off until you set a key |
+| Marketplace, portals, booking, courses, shop, payments | **Not built yet** (next stages) |
 | Email | SMTP mailer built (Gmail App Password), unit-tested with a fake transport; **never sent a real email** |
-| Remote GitHub repository | **Not created** (see below) |
+| Remote GitHub repository | Created: AbelAsiedu/modern-pedagogues-platform (**make it private**) |
 
 Deploying: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). See [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) for everything unresolved, [docs/SECURITY.md](docs/SECURITY.md) for what is actually enforced, and [docs/TESTING.md](docs/TESTING.md) for how verification works.
 
@@ -44,17 +47,6 @@ npm run dev
 
 Quality gates (all must pass): `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`. `npm test` needs a disposable PostgreSQL database named `*_test` in `TEST_DATABASE_URL`; it is **wiped on every run** and the suite fails loudly if it is not configured.
 
-## Create the remote (run on a machine with `gh` authenticated as `AbelAsiedu`)
-
-The session that built this could not reach GitHub (invalid token), so the remote was neither checked nor created. Check first; if it already exists, stop and do not push.
-
-```bash
-gh repo view AbelAsiedu/modern-pedagogues-platform && echo "ALREADY EXISTS - stop" || echo "free to create"
-gh repo create AbelAsiedu/modern-pedagogues-platform --private --source=. --remote=origin --push
-```
-
-Without `gh`: create an empty private repo in the GitHub UI (no README/.gitignore/licence), then `git remote add origin https://github.com/AbelAsiedu/modern-pedagogues-platform.git && git push -u origin main`. Nothing here pushes to, or depends on, `home-tutoring-site`.
-
 ## Decisions recorded
 
-Paystack is the first payment provider (MTN Mobile Money is the first network; account registration in progress, so test mode only). Hosting is Heroku (Basic dyno + Postgres Essential-0, about US$12/month). Email is Gmail SMTP for now. Marketplace commission default is 30% (creators keep 70%), editable in settings. Tutoring rates are negotiable per learner, starting from GHS 100 per session (stored as 10000 pesewas in the `tutoring.indicative_rate` setting). The Kaitlyn AI assistant is kept as an optional later module. Details in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Paystack is the first payment provider (MTN Mobile Money is the first network; account registration in progress, so test mode only). Hosting is Heroku (Basic dyno + Postgres Essential-0, about US$12/month). Email is Gmail SMTP for now. Marketplace commission default is 30% (creators keep 70%), editable in settings. Tutoring rates are negotiable per learner, starting from GHS 100 per session (stored as 10000 pesewas in the `tutoring.indicative_rate` setting). The Kaitlyn AI assistant is kept; it is optional and switched off until an AI provider key is configured. Details in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

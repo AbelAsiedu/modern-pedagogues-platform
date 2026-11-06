@@ -71,13 +71,15 @@ Each phase ends with passing lint, type-check, tests and a build before its comm
    - It must not quote prices other than the admin-published indicative rate, and must say rates are negotiable; it hands off to staff for anything it does not know or any account-specific action.
    - It has no access to student, parent, payment or tutor records. Conversation logs are retention-limited and exclude personal data where practical, given minors are users.
    - It is disabled by default until a provider key is configured, and fails closed (a "contact us" message) when the provider is unavailable.
+   - **Built (2026-11-06):** `src/server/assistant/` (guard, providers, knowledge, service), `/api/chat`, the chat widget and `/admin/assistant`. Provider order is Gemini Interactions, OpenRouter, Mistral. Knowledge is the public page text, published tutor profiles and admin notes (`assistant_knowledge`), not a dump of every content key as in the legacy site. Chat logs hold no IP or account and are purged after 90 days.
+   - **Site text and tutors (2026-11-06):** admin-editable text lives in `site_content` as overrides of code-level defaults (`server/content/registry.ts`). Tutor applications and public profiles share the `tutor_profiles` table with explicit public/private columns.
 
 ## Open decisions for the owner
 
 1. Is the Paystack account business-verified with live keys? Which MoMo networks are enabled? (Required before any live payment.)
 2. Hosting platform, region and monthly budget; whether to stay on Fly.io.
 3. Email provider and sending domain.
-4. LLM provider and key for Kaitlyn (legacy `.env.example` lists Gemini, OpenRouter, Mistral and Hugging Face options).
+4. LLM provider and key for Kaitlyn: the code supports Gemini, OpenRouter and Mistral; the owner must choose one and supply a key (legacy `.env.example` lists Gemini, OpenRouter, Mistral and Hugging Face options).
 5. Platform commission, payout schedule and minimum payout for marketplace creators (rates for tutoring are settled above; creator terms are not).
 6. Real legal text for the seven policy pages, and business contact details to seed.
 

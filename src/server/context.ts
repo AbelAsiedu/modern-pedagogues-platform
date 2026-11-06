@@ -13,6 +13,8 @@ import {
 import { db } from "./db";
 import { loadSiteText } from "./content/site-content";
 import { createMailer } from "./email/factory";
+import { createProviders, type LlmProvider } from "./assistant/providers";
+import type { AssistantDeps } from "./assistant/service";
 import type { DeliverDeps } from "./email/deliver";
 import type { Mailer } from "./email/mailer";
 import { env } from "./env";
@@ -29,6 +31,17 @@ export function mailer(): Mailer {
 /** Everything a service needs to record and send an email. */
 export function emailDeps(): DeliverDeps & { appUrl: string } {
   return { db: db(), mailer: mailer(), log: logger, appUrl: env().APP_URL };
+}
+
+let providersSingleton: LlmProvider[] | undefined;
+/** Kaitlyn's language-model providers (those with a key). Empty when the assistant is not configured. */
+export function assistantProviders(): LlmProvider[] {
+  providersSingleton ??= createProviders(env());
+  return providersSingleton;
+}
+
+export function assistantDeps(): AssistantDeps {
+  return { db: db(), providers: assistantProviders(), log: logger, siteText: getSiteText, dailyLimit: env().ASSISTANT_DAILY_LIMIT };
 }
 
 let authSingleton: AuthService | undefined;
