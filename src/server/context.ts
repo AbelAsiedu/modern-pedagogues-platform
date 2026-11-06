@@ -11,6 +11,7 @@ import {
   type SessionUser,
 } from "./auth/sessions";
 import { db } from "./db";
+import { loadSiteText } from "./content/site-content";
 import { createMailer } from "./email/factory";
 import { env } from "./env";
 import { logger } from "./logger";
@@ -56,6 +57,9 @@ export async function clearSessionCookie(): Promise<void> {
 }
 
 /** Current signed-in user for this request (memoised), or null. */
+/** Admin-editable site text, loaded once per request. Falls back to the built-in text if the database is down. */
+export const getSiteText = cache(() => loadSiteText(() => db()));
+
 export const getSession = cache(async (): Promise<SessionUser | null> => {
   const token = (await cookies()).get(cookieName())?.value;
   return validateSession(db(), token);

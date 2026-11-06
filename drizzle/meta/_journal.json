@@ -29,6 +29,13 @@
       "when": 1793850769836,
       "tag": "0003_hero_banners",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793966116666,
+      "tag": "0004_site_content",
+      "breakpoints": true
     }
   ]
 }

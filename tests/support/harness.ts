@@ -1,8 +1,11 @@
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "@/server/db/schema";
 import type { Db } from "@/server/db";
+import { roles, userRoles, users } from "@/server/db/schema";
+import type { Actor } from "@/server/permissions/authorize";
+import type { RoleKey } from "@/server/permissions/catalog";
 import { createAuthService } from "@/server/auth/service";
 import { MemoryMailer, extractLink } from "@/server/email/mailer";
 import { createLogger } from "@/server/logger";
@@ -24,7 +27,7 @@ export async function resetData(db: Db) {
   await db.transaction(async (tx) => {
     await tx.execute(sql`ALTER TABLE audit_logs DISABLE TRIGGER USER`);
     await tx.execute(sql`TRUNCATE users, roles, user_roles, sessions, email_verification_tokens, password_reset_tokens,
-      rate_limits, email_deliveries, site_settings, curricula, academic_levels, subjects, hero_banners, audit_logs`);
+      rate_limits, email_deliveries, site_settings, curricula, academic_levels, subjects, hero_banners, site_content, audit_logs`);
     await tx.execute(sql`ALTER TABLE audit_logs ENABLE TRIGGER USER`);
   });
   await seedReferenceData(db);
@@ -54,3 +57,22 @@ export const newUser = (email = "ama@example.com", role: "student" | "parent" = 
   password: GOOD_PASSWORD,
   role,
 });
+
+/** Insert a user with the given roles and return the Actor the services expect. */
+export async function makeActor(
+  db: Db,
+  email: string,
+  roleKeys: RoleKey[],
+  status: "ACTIVE" | "PENDING_VERIFICATION" | "SUSPENDED" = "ACTIVE",
+  fullName = email.split("@")[0]!,
+): Promise<Actor> {
+  const [u] = await db
+    .insert(users)
+    .values({ email, fullName, status, emailVerifiedAt: status === "PENDING_VERIFICATION" ? null : new Date() })
+    .returning({ id: users.id });
+  for (const key of roleKeys) {
+    const [r] = await db.select({ id: roles.id }).from(roles).where(eq(roles.key, key));
+    await db.insert(userRoles).values({ userId: u!.id, roleId: r!.id });
+  }
+  return { id: u!.id, status, roles: roleKeys };
+}

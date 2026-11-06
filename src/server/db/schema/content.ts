@@ -25,3 +25,17 @@ export const heroBanners = pgTable(
   },
   (t) => [index("hero_banners_active_order_idx").on(t.isActive, t.sortOrder)],
 );
+
+/**
+ * Admin-edited site text. A row exists only while an editor has changed the text from its default
+ * (see server/content/registry.ts); deleting the row restores the default.
+ */
+export const siteContent = pgTable("site_content", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedById: uuid("updated_by_id").references(() => users.id, { onDelete: "set null" }),
+  updatedAt: ts("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});

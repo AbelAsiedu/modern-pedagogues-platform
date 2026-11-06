@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE, whatsappLink } from "@/lib/site";
+import { getSiteText } from "@/server/context";
 
 const NAV = [
   { href: "/services", label: "Services" },
@@ -34,14 +35,15 @@ export function Header() {
   );
 }
 
-export function Footer() {
+export async function Footer() {
+  const t = await getSiteText();
   return (
     <footer className="mt-24 border-t border-navy/10 bg-cream-deep">
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-12 md:grid-cols-3">
         <div>
           <p className="font-semibold">{SITE.name}</p>
           <p className="mt-2 text-sm">{SITE.motto}</p>
-          <p className="mt-2 text-sm">Educational services in {SITE.country} since {SITE.founded}.</p>
+          <p className="mt-2 text-sm">{t.text("footer.blurb")}</p>
         </div>
         <div className="text-sm">
           <p className="font-semibold">Contact</p>

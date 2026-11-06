@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/site/Chrome";
 import { SITE, whatsappLink } from "@/lib/site";
+import { getSiteText } from "@/server/context";
 
 export const metadata: Metadata = {
   title: "Contact",
   description: "Contact The Modern Pedagogues by email, phone or WhatsApp.",
 };
 
-export default function Contact() {
+export default async function Contact() {
+  const t = await getSiteText();
   return (
     <>
-      <Hero kicker="Contact" title="Let's make the next stage clearer">
-        <p>Tell us about your ward, school and goals.</p>
+      <Hero kicker="Contact" title={t.text("contact.hero.title")}>
+        <p>{t.text("contact.hero.intro")}</p>
       </Hero>
       <div className="mx-auto max-w-3xl px-6 py-16">
         <dl className="space-y-6">
@@ -26,11 +28,11 @@ export default function Contact() {
           <div>
             <dt className="text-sm font-semibold uppercase tracking-widest text-gold">{SITE.momoNetwork} (MoMo) number</dt>
             <dd className="mt-1 text-xl">{SITE.phoneDisplay}</dd>
-            <dd className="mt-1 text-sm">For fees you have agreed with us. Please confirm payment details with us on WhatsApp before sending money.</dd>
+            <dd className="mt-1 text-sm">{t.text("contact.momo.note")}</dd>
           </div>
           <div>
             <dt className="text-sm font-semibold uppercase tracking-widest text-gold">Where we work</dt>
-            <dd className="mt-1">Ghana (home tuition) and online for learners anywhere.</dd>
+            <dd className="mt-1">{t.text("contact.where")}</dd>
           </div>
         </dl>
         <a
