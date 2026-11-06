@@ -80,7 +80,7 @@ Each phase ends with passing lint, type-check, tests and a build before its comm
 2. Hosting platform, region and monthly budget; whether to stay on Fly.io.
 3. Email provider and sending domain.
 4. LLM provider and key for Kaitlyn: the code supports Gemini, OpenRouter and Mistral; the owner must choose one and supply a key (legacy `.env.example` lists Gemini, OpenRouter, Mistral and Hugging Face options).
-5. Platform commission, payout schedule and minimum payout for marketplace creators (rates for tutoring are settled above; creator terms are not).
+5. Marketplace payout schedule and minimum payout (a draft of GH₵ 50 and 14 days is in the Creator terms; the commission itself is settled at 30%).
 6. Real legal text for the seven policy pages, and business contact details to seed.
 
 ## Owner decisions recorded (2026-11-04, second round)
@@ -89,3 +89,11 @@ Each phase ends with passing lint, type-check, tests and a build before its comm
 - Business email and mail sender: `themodernpedagogues@gmail.com` through Google SMTP (App Password) for now.
 - Hosting: **Heroku**, base paid plan: Basic dyno + Heroku Postgres Essential-0 (about US$12/month). See DEPLOYMENT.md.
 - Marketplace commission: "the average" interpreted as **30%** to TMP (creators keep 70%), payment-provider fee paid from TMP's share. Stored as the `marketplace.commission` setting, applied from Phase 8. Evidence: Gumroad 10% direct and 30% via Discover; Udemy keeps 63% of organic sales (the Udemy figure comes from an instructor-review article and Gumroad's from a competitor's blog; verify against each platform's own pages before relying on them).
+
+## Resources marketplace (built 2026-11-06)
+
+- Tables: `products` (now every resource; `owner_id` null means TMP's own; `status` DRAFT, IN_REVIEW, CHANGES_REQUESTED, APPROVED, REJECTED, SUSPENDED; `pending_file_id` holds a creator's unreviewed replacement), `product_files` (bytea, page count, inspection notes), `resource_reviews` (every decision with rubric version and scores), `creator_profiles`, `creator_payouts`, and the split columns on `orders`. Migration `0010` marks existing products APPROVED.
+- Code: `src/server/resources/` (`quality.ts` the rules and rubric as data and pure functions; `pdf.ts` the file inspection; `creators.ts` profile, listings, readiness, submission, earnings; `review.ts` queue, decision, take-down; `payouts.ts`; `taxonomy.ts`), `src/server/shop/service.ts` (catalogue, orders, downloads, uploads). Pages: `/resources`, `/resources/[slug]`, `/resources/standards`, `/creator/*`, `/admin/review`, `/admin/creators`.
+- Publication rule enforced twice (service and a database CHECK): visible only when `status = APPROVED`, `is_published` and a file exists.
+- Not built: buyer reviews/ratings, versioned updates for buyers, bundles, Paystack (all payments still confirmed by hand).
+

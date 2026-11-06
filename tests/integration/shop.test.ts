@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import sharp from "sharp";
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { listAuditLogs } from "@/server/admin/audit";
 import { orders, productFiles, products } from "@/server/db/schema";
 import { MemoryMailer } from "@/server/email/mailer";
@@ -25,6 +25,7 @@ import {
   type ShopDeps,
 } from "@/server/shop/service";
 import { makeActor, openTestDb, resetData } from "../support/harness";
+import { makePdf } from "../support/pdf";
 
 const { pool, db } = openTestDb();
 afterAll(() => pool.end());
@@ -34,7 +35,10 @@ function deps(): ShopDeps & { mailer: MemoryMailer } {
   const mailer = new MemoryMailer();
   return { db, mailer, log: createLogger("silent"), appUrl: "https://tmp.example", notifyEmail: "inbox@tmp.example" };
 }
-const PDF = Buffer.from("%PDF-1.7\n1 0 obj\n<<>>\nendobj\ntrailer\n%%EOF\n");
+let PDF: Buffer;
+beforeAll(async () => {
+  PDF = await makePdf(5);
+});
 const form = { title: "BECE Maths Past Questions", summary: "Ten years of BECE Mathematics papers with worked answers.", description: "Inside: papers.", price: "25", coverPath: "", sortOrder: "0" };
 
 /** A published product with a PDF, created by `admin`. */
@@ -107,7 +111,9 @@ describe("products", () => {
     await createProduct(db, admin, { ...form, title: "Hidden draft one" });
     const id = await publishedProduct(admin);
     const [p] = await listPublicProducts(db);
-    expect(Object.keys(p!).sort()).toEqual(["coverPath", "description", "id", "priceMinor", "slug", "summary", "title"]);
+    expect(Object.keys(p!).sort()).toEqual([
+      "audience", "authorName", "coverPath", "curriculumKeys", "description", "id", "kind", "language", "levelKeys", "outcomes", "pageCount", "priceMinor", "slug", "subject", "summary", "tableOfContents", "title",
+    ]);
     expect(await getPublicProduct(db, p!.slug)).not.toBeNull();
     expect(await getPublicProduct(db, "hidden-draft-one")).toBeNull();
     expect(await getPublicProduct(db, "../etc/passwd")).toBeNull();

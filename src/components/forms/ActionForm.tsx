@@ -54,6 +54,8 @@ export function ActionForm({
   // React clears uncontrolled inputs after every server action. Remember what was typed (never passwords)
   // so a failed attempt does not wipe the form, and clear it again after a success.
   const uid = useId();
+  // Selects are remounted (key) when the remembered value changes: React ignores a changed defaultValue on a mounted <select>,
+  // and its post-submit form reset would otherwise put the first choice back.
   const [typed, setTyped] = useState<Record<string, string>>({});
   const [state, formAction] = useActionState(async (prev: ActionState, form: FormData): Promise<ActionState> => {
     const snapshot: Record<string, string> = {};
@@ -113,7 +115,7 @@ export function ActionForm({
                   {f.required ? <span aria-hidden> *</span> : null}
                 </label>
                 {f.type === "select" ? (
-                  <select id={id} name={f.name} required={f.required} defaultValue={typed[f.name] ?? String(f.defaultValue ?? "")} className={inputCls}>
+                  <select key={typed[f.name] ?? ""} id={id} name={f.name} required={f.required} defaultValue={typed[f.name] ?? String(f.defaultValue ?? "")} className={inputCls}>
                     {f.options?.map((o) => (
                       <option key={o.value} value={o.value}>{o.label}</option>
                     ))}

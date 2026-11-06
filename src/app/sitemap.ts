@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import type { MetadataRoute } from "next";
 
-const PAGES = ["", "/services", "/tutors", "/tutors/apply", "/shop", "/pricing", "/about", "/contact", "/terms", "/privacy", "/refunds"];
+const PAGES = ["", "/services", "/tutors", "/tutors/apply", "/resources", "/resources/standards", "/pricing", "/about", "/contact", "/terms", "/privacy", "/refunds"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");

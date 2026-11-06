@@ -5,7 +5,7 @@ import { getSession, getSiteText } from "@/server/context";
 const NAV = [
   { href: "/services", label: "Services" },
   { href: "/tutors", label: "Tutors" },
-  { href: "/shop", label: "Shop" },
+  { href: "/resources", label: "Resources" },
   { href: "/pricing", label: "Pricing" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },

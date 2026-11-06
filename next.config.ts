@@ -31,6 +31,13 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   serverExternalPackages: ["@node-rs/argon2", "pg", "pino"],
+  async redirects() {
+    // The shop became the Resources marketplace; keep old links working.
+    return [
+      { source: "/shop", destination: "/resources", permanent: true },
+      { source: "/shop/:slug", destination: "/resources/:slug", permanent: true },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

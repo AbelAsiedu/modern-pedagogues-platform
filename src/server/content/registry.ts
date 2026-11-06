@@ -29,7 +29,7 @@ export const CONTENT_GROUPS: readonly { id: ContentGroupId; label: string; blurb
   { id: "services", label: "Services page", blurb: "The service descriptions here also appear on the home page." },
   { id: "tutors", label: "Tutors pages", blurb: "Wording around the tutor directory and the tutor application. Tutor profiles themselves are edited under Tutors." },
   { id: "assistant", label: "Kaitlyn (chat assistant)", blurb: "The words around the chat window. What Kaitlyn knows is edited under Kaitlyn in the admin menu." },
-  { id: "shop", label: "Shop", blurb: "Wording on the Shop page and the payment steps shown to buyers. Products themselves are edited under Shop in the admin menu." },
+  { id: "shop", label: "Resources", blurb: "Wording on the Resources pages (browse, quality standards, becoming a creator) and the payment steps shown to buyers. The resources themselves are edited under Resources in the admin menu." },
   { id: "about", label: "About page", blurb: "Who we are and what we stand for." },
   { id: "pricing", label: "Pricing page", blurb: "The rate itself comes from site settings, not from this text." },
   { id: "contact", label: "Contact page", blurb: "Phone, email and MoMo numbers are fixed business facts and are not edited here." },
@@ -119,9 +119,9 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
   ),
 
   // Shop
-  e("shop.hero.title", "shop", "Shop headline", "line", 100, "Learning resources"),
-  e("shop.hero.intro", "shop", "Shop introduction", "text", 300, "Worksheets, past questions and revision notes prepared by The Modern Pedagogues. Order, pay by Mobile Money, and download."),
-  e("shop.empty", "shop", "Message when the shop is empty", "text", 300, "New resources are on the way. Ask us on WhatsApp if there is something you need."),
+  e("shop.hero.title", "shop", "Resources headline", "line", 100, "Learning resources"),
+  e("shop.hero.intro", "shop", "Resources introduction", "text", 300, "Books, courses, worksheets and past questions from The Modern Pedagogues and from teachers across Ghana. Every resource is reviewed against our quality standard. Free ones download at once; paid ones unlock after Mobile Money payment."),
+  e("shop.empty", "shop", "Message when there are no resources", "text", 300, "New resources are on the way. Ask us on WhatsApp if there is something you need."),
   e("shop.pay.heading", "shop", "Payment steps heading", "line", 80, "How to pay"),
   e(
     "shop.pay.steps",
@@ -131,6 +131,64 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
     600,
     "Send the amount shown by {momo} to {phone}.\nUse your order reference as the payment reference.\nWe confirm payments personally, usually within a few hours. Your download then appears under My orders.",
     { help: "One step per line. {momo} and {phone} are filled in automatically." },
+  ),
+
+  e(
+    "resources.standards.intro",
+    "shop",
+    "Quality standard: introduction",
+    "rich",
+    2000,
+    "Every resource sold or shared on this site is read by a TMP reviewer before it goes live. We hold teachers and publishers to the same bar we hold our own work to. The criteria below are exactly what reviewers score, so you can check your work against them before you submit.",
+    { help: "Shown above the criteria on the Quality standard page. The criteria themselves are fixed in the system so that every review uses the same rubric." },
+  ),
+  e(
+    "creator.join.intro",
+    "shop",
+    "Become a creator: introduction",
+    "text",
+    600,
+    "Share your teaching with learners across Ghana. Upload a book, course, worksheet or past-question pack as a PDF. If it meets our quality standard, we list it for free download or for sale. You keep 70% of every sale and are paid by Mobile Money.",
+    { help: "Keep the percentage in line with the marketplace commission setting (currently 30% to TMP)." },
+  ),
+  e(
+    "legal.creator_terms",
+    "policies",
+    "Creator terms",
+    "rich",
+    12000,
+    `Last updated 6 November 2026. **Draft for legal review.**
+
+## Your work and your rights
+
+- You may upload only work you wrote, or work you hold the written right to sell and share. This includes every image, diagram, font and extract inside it.
+- You keep the copyright in your work. You give TMP a non-exclusive licence to display, store and deliver it to buyers on this website for as long as it is listed, and to keep copies that buyers have already downloaded.
+- Do not upload past examination papers or textbooks that belong to someone else without written permission. Material from WAEC, GES, Cambridge, Pearson and other bodies is theirs.
+- Do not include personal information about children or other people, or contact details and links that take buyers away from this website.
+
+## Review
+
+- Every resource is reviewed by TMP against the published quality standard before it appears. We may approve it, ask you for changes, or decline it, and we will tell you why.
+- If you change an approved resource in a way that affects what a reviewer judged (for example the text, subject or cover), it is taken off the website until it is approved again. Changing only the price does not need a new review.
+- We may suspend or remove a resource at any time if there is a rights complaint, a safety problem, or it no longer meets the standard.
+
+## Prices, commission and payment
+
+- You set the price of a paid resource (from GH₵ 5 to GH₵ 5,000), or you may offer it free.
+- TMP keeps 30% of each paid sale as its commission, and you receive 70%. The percentage that applied on the day a sale was confirmed is the one used for that sale.
+- Buyers pay TMP by Mobile Money. We confirm each payment by hand, so your earnings appear once we have confirmed it.
+- We pay your earnings to the Mobile Money number on your profile once your balance reaches GH₵ 50, normally within 14 days of your request. Each payout is recorded with its transaction ID.
+- If a sale is refunded, the refund comes out of your share for that sale.
+
+## Your account
+
+- You may stop selling at any time by hiding or deleting a resource. Buyers who already paid keep their download.
+- We may suspend your creator account if you break these terms.
+
+## Changes
+
+We will update this page and its date if the terms change.`,
+    { permission: LEGAL_PERM, help: "The payout minimum (GH₵ 50) and timing (14 days) are draft figures for the owner to confirm. Headings start with ##." },
   ),
 
   // Kaitlyn

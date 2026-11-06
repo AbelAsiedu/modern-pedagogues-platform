@@ -6,7 +6,7 @@ import { format, money } from "@/lib/money";
 import { getSiteText, requireSession } from "@/server/context";
 import { db } from "@/server/db";
 import { listMyOrders } from "@/server/shop/service";
-import { cancelMyOrderAction } from "../../shop/actions";
+import { cancelMyOrderAction } from "../../resources/actions";
 
 export const metadata: Metadata = { title: "My orders", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -52,7 +52,7 @@ export default async function MyOrders() {
         ))}
         {orders.length === 0 ? (
           <li className="text-navy/70">
-            You have no orders yet. <Link href="/shop" className="font-semibold underline decoration-gold underline-offset-4">Browse the shop</Link>.
+            You have no orders yet. <Link href="/resources" className="font-semibold underline decoration-gold underline-offset-4">Browse the resources</Link>.
           </li>
         ) : null}
       </ul>

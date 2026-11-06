@@ -11,6 +11,10 @@ import { createBanner, deleteBanner, setBannerActive, updateBanner } from "@/ser
 import { assistantProviders, emailDeps, requestContext, requireActor } from "@/server/context";
 import { deleteMedia, updateMediaAlt } from "@/server/media/service";
 import { cancelOrderByStaff, createProduct, deleteProduct, markOrderPaid, updateProduct } from "@/server/shop/service";
+import { listingFromForm } from "@/lib/listing-form";
+import { decideResource, restoreResource, suspendResource } from "@/server/resources/review";
+import { recordPayout, setCreatorSuspended } from "@/server/resources/payouts";
+import { CRITERIA } from "@/server/resources/quality";
 import { createTutorByAdmin, decideTutor, deleteTutor, setTutorPublished, updateTutorPrivateDetails, updateTutorProfile } from "@/server/tutors/service";
 import { db } from "@/server/db";
 
@@ -267,24 +271,14 @@ export async function deleteMediaAction(_: ActionState, form: FormData): Promise
 
 // ---------- shop ----------
 
-function productFromForm(form: FormData) {
-  return {
-    title: str(form, "title"),
-    summary: str(form, "summary"),
-    description: str(form, "description"),
-    price: str(form, "price"),
-    coverPath: str(form, "coverPath"),
-    sortOrder: str(form, "sortOrder") || "0",
-    isPublished: form.get("isPublished") === "on",
-  };
-}
+const productFromForm = (form: FormData) => listingFromForm(form, true);
 
 export async function createProductAction(_: ActionState, form: FormData): Promise<ActionState> {
   return runAction(async () => {
     const actor = await requireActor();
     await createProduct(db(), actor, productFromForm(form), (await requestContext()).ip);
     revalidatePath("/admin/shop");
-    return { ok: true, message: "Product added. Open it below to upload the PDF, then publish." };
+    return { ok: true, message: "Resource added. Open it below to upload the PDF, then publish." };
   });
 }
 
@@ -293,7 +287,7 @@ export async function updateProductAction(_: ActionState, form: FormData): Promi
     const actor = await requireActor();
     await updateProduct(db(), actor, str(form, "productId"), productFromForm(form), (await requestContext()).ip);
     revalidatePath("/admin/shop");
-    revalidatePath("/shop", "layout");
+    revalidatePath("/resources", "layout");
     return { ok: true, message: "Saved." };
   });
 }
@@ -333,5 +327,73 @@ export async function testAssistantAction(): Promise<ActionState> {
     const results = await testProviders(providers, actor);
     const text = results.map((r) => `${r.provider}: ${r.detail}`).join(" ");
     return results.every((r) => r.ok) ? { ok: true, message: text } : { ok: false, error: text };
+  });
+}
+
+// ---------- resource review (creator marketplace) ----------
+
+export async function decideResourceAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    const scores: Record<string, number> = {};
+    for (const c of CRITERIA) {
+      const v = str(form, `score_${c.key}`);
+      if (v !== "") scores[c.key] = Number(v);
+    }
+    const id = str(form, "productId");
+    await decideResource(
+      { ...emailDeps(), notifyEmail: undefined },
+      actor,
+      id,
+      { decision: str(form, "decision"), submission: str(form, "submission"), note: str(form, "note"), scores },
+      (await requestContext()).ip,
+    );
+    revalidatePath("/admin/review");
+    revalidatePath(`/admin/review/${id}`);
+    revalidatePath("/resources", "layout");
+    return { ok: true, message: "Decision recorded. The creator has been emailed." };
+  });
+}
+
+export async function suspendResourceAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    const id = str(form, "productId");
+    await suspendResource({ ...emailDeps(), notifyEmail: undefined }, actor, id, str(form, "reason"), (await requestContext()).ip);
+    revalidatePath("/admin/review");
+    revalidatePath(`/admin/review/${id}`);
+    revalidatePath("/resources", "layout");
+    return { ok: true, message: "Taken down. The creator has been emailed the reason." };
+  });
+}
+
+export async function restoreResourceAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    const id = str(form, "productId");
+    await restoreResource(db(), actor, id, (await requestContext()).ip);
+    revalidatePath("/admin/review");
+    revalidatePath(`/admin/review/${id}`);
+    revalidatePath("/resources", "layout");
+    return { ok: true, message: "Restored to the Resources page." };
+  });
+}
+
+export async function recordPayoutAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    await recordPayout(emailDeps(), actor, str(form, "creatorId"), { amount: str(form, "amount"), reference: str(form, "reference") }, (await requestContext()).ip);
+    revalidatePath("/admin/creators");
+    return { ok: true, message: "Payout recorded. The creator has been emailed." };
+  });
+}
+
+export async function setCreatorSuspendedAction(_: ActionState, form: FormData): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    const suspend = str(form, "suspend") === "1";
+    await setCreatorSuspended(db(), actor, str(form, "creatorId"), suspend, (await requestContext()).ip);
+    revalidatePath("/admin/creators");
+    return { ok: true, message: suspend ? "Creator suspended." : "Creator restored." };
   });
 }

@@ -2,7 +2,7 @@ import { ActionForm } from "@/components/forms/ActionForm";
 import { ImageUploader } from "@/components/forms/ImageUploader";
 import { requireSession } from "@/server/context";
 import { db } from "@/server/db";
-import { canUploadMedia, listMedia, mediaUsage } from "@/server/media/service";
+import { isMediaStaff, listMedia, mediaUsage } from "@/server/media/service";
 import { notFound } from "next/navigation";
 import { deleteMediaAction, updateMediaAltAction } from "../actions";
 
@@ -12,7 +12,7 @@ const kb = (n: number) => (n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} M
 
 export default async function MediaPage() {
   const s = await requireSession("/admin/media");
-  if (!canUploadMedia(s.actor)) notFound();
+  if (!isMediaStaff(s.actor)) notFound();
   const items = await listMedia(db(), s.actor);
   const usage = new Map(await Promise.all(items.map(async (m) => [m.id, await mediaUsage(db(), m.path)] as const)));
   return (

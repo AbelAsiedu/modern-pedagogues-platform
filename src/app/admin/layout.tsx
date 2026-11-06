@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { logoutAction } from "@/app/(site)/auth-actions";
 import { requireSession } from "@/server/context";
-import { canUploadMedia } from "@/server/media/service";
+import { isMediaStaff } from "@/server/media/service";
 import { can } from "@/server/permissions/authorize";
 import { notFound } from "next/navigation";
 
@@ -17,9 +17,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/users", label: "Users", show: can(a, "users.view") },
     { href: "/admin/tutors", label: "Tutors", show: can(a, "tutors.review_applications") },
     { href: "/admin/banners", label: "Home banners", show: can(a, "content.manage_site") },
-    { href: "/admin/shop", label: "Shop", show: can(a, "commerce.manage_products") },
+    { href: "/admin/shop", label: "Resources", show: can(a, "commerce.manage_products") },
+    { href: "/admin/review", label: "Review", show: can(a, "marketplace.moderate") },
+    { href: "/admin/creators", label: "Creators", show: can(a, "finance.manage_payouts") || can(a, "marketplace.manage_creators") },
     { href: "/admin/orders", label: "Orders", show: can(a, "commerce.manage_orders") },
-    { href: "/admin/media", label: "Media", show: canUploadMedia(a) },
+    { href: "/admin/media", label: "Media", show: isMediaStaff(a) },
     { href: "/admin/content", label: "Site text", show: can(a, "content.manage_site") },
     { href: "/admin/assistant", label: "Kaitlyn", show: can(a, "assistant.manage_knowledge") },
     { href: "/admin/audit", label: "Audit log", show: can(a, "audit.view") },

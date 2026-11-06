@@ -42,7 +42,7 @@ export function ProductFileUploader({ productId, hasFile }: { productId: string;
       <div>
         <label htmlFor={`${uid}-f`} className="font-medium">{hasFile ? "Replace the PDF" : "Upload the PDF"}</label>
         <input id={`${uid}-f`} name="file" type="file" accept="application/pdf,.pdf" required className="mt-1 w-full rounded-lg border border-navy/25 bg-white px-3 py-2 text-base" />
-        <p className="mt-1 text-xs text-navy/70">PDF only, up to 15 MB. Buyers can download it only after their payment is confirmed.</p>
+        <p className="mt-1 text-xs text-navy/70">PDF only, up to 15 MB. Paid resources are locked until the buyer’s payment is confirmed.</p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={busy} className="rounded-full bg-navy px-5 py-2 text-sm font-semibold text-cream hover:bg-navy/90 disabled:opacity-60">{busy ? "Uploading…" : "Upload PDF"}</button>

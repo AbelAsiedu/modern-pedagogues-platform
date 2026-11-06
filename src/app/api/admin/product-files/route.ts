@@ -26,7 +26,7 @@ const fail = (status: number, message: string) => NextResponse.json({ ok: false,
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return fail(403, "Request not allowed.");
   const actor = await getActor();
-  if (!can(actor, "commerce.manage_products")) return fail(actor ? 403 : 401, actor ? "You do not have permission to upload resources." : "Please sign in again.");
+  if (!can(actor, "commerce.manage_products") && !can(actor, "portal.creator")) return fail(actor ? 403 : 401, actor ? "You do not have permission to upload resources." : "Please sign in again.");
   const length = Number(req.headers.get("content-length") ?? "0");
   if (!Number.isFinite(length) || length <= 0 || length > MAX_FILE_BYTES + 100_000) return fail(413, "That file is too large (15 MB maximum).");
   if (!req.headers.get("content-type")?.toLowerCase().startsWith("multipart/form-data")) return fail(415, "Send the file as a form upload.");

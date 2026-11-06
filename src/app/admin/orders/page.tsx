@@ -38,6 +38,9 @@ export default async function OrdersAdmin({ searchParams }: { searchParams: Prom
             <p className="font-semibold">{o.productTitle} <span className="font-normal text-navy/70">· {format(money(o.amountMinor, "GHS"))}</span></p>
             <p className="mt-1 text-sm">Reference <strong>{o.reference}</strong> · {o.buyerName} ({o.buyerEmail}) · {o.createdAt.toLocaleString("en-GB")}</p>
             {o.status === "PAID" ? <p className="mt-1 text-sm text-green-800">Paid {o.paidAt?.toLocaleString("en-GB")} · transaction: {o.paymentNote}</p> : null}
+            {o.status === "PAID" && o.creatorShareMinor !== null && o.platformShareMinor !== null ? (
+              <p className="mt-1 text-sm text-navy/80">Split: creator {format(money(o.creatorShareMinor, "GHS"))} · TMP {format(money(o.platformShareMinor, "GHS"))}</p>
+            ) : null}
             {o.status === "PENDING_PAYMENT" ? (
               <div className="mt-4 flex flex-wrap items-end gap-6">
                 <ActionForm

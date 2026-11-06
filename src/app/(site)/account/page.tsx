@@ -32,6 +32,13 @@ export default async function AccountPage() {
       <p className="mt-6">
         <Link href="/account/orders" className="font-semibold underline decoration-gold underline-offset-4">My orders and downloads</Link>
       </p>
+      <p className="mt-3">
+        {can(s.actor, "portal.creator") ? (
+          <Link href="/creator" className="font-semibold underline decoration-gold underline-offset-4">My creator dashboard</Link>
+        ) : (
+          <Link href="/creator/join" className="font-semibold underline decoration-gold underline-offset-4">Sell or share your own resources</Link>
+        )}
+      </p>
 
       <h2 className="mt-12 text-xl font-semibold">Change password</h2>
       <div className="mt-4 rounded-2xl border border-navy/10 bg-white/70 p-6">

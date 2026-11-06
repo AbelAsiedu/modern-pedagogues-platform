@@ -12,7 +12,11 @@ export type TemplateName =
   | "tutor_decision"
   | "order_placed"
   | "order_alert"
-  | "order_paid";
+  | "order_paid"
+  | "resource_submitted"
+  | "resource_alert"
+  | "resource_decision"
+  | "payout_recorded";
 
 export function verifyEmailMessage(to: string, name: string, link: string): EmailMessage & { template: TemplateName } {
   return {
@@ -119,4 +123,35 @@ export function orderPaidMessage(to: string, name: string, o: { productTitle: st
     subject: `Payment received: ${o.productTitle}`,
     text: `Hello ${name},\n\nWe have received your payment for "${o.productTitle}" (${o.reference}). You can download it now:\n\n${o.ordersLink}\n\nSign in if asked. The download stays available in your account.${SIGNOFF}`,
   };
+}
+
+export function resourceSubmittedMessage(to: string, name: string, title: string, link: string): EmailMessage & { template: TemplateName } {
+  return {
+    template: "resource_submitted",
+    to,
+    subject: `We received "${title}" for review`,
+    text: `Hello ${name},\n\nThank you for submitting "${title}". Our team reviews every resource against the TMP quality standard. We will email you with the outcome, with specific feedback if changes are needed. You can follow its status here:\n\n${link}${SIGNOFF}`,
+  };
+}
+
+export function resourceAlertMessage(to: string, creator: string, title: string, link: string): EmailMessage & { template: TemplateName } {
+  return { template: "resource_alert", to, subject: `Resource awaiting review: ${title}`, text: `${creator} submitted "${title}" for review:\n\n${link}${SIGNOFF}` };
+}
+
+export type ResourceDecisionKind = "APPROVED" | "CHANGES_REQUESTED" | "REJECTED" | "SUSPENDED";
+
+export function resourceDecisionMessage(to: string, name: string, title: string, decision: ResourceDecisionKind, note: string, link: string): EmailMessage & { template: TemplateName } {
+  const body: Record<ResourceDecisionKind, [string, string]> = {
+    APPROVED: [`"${title}" is approved`, "Good news: it met the TMP quality standard and is now live in the Resources section."],
+    CHANGES_REQUESTED: [`Changes needed for "${title}"`, "Thank you for submitting it. It is close, but it does not yet meet the TMP quality standard. Please read the feedback below, make the changes, and submit it again."],
+    REJECTED: [`About "${title}"`, "Thank you for submitting it. After review we are not able to publish it, for the reasons below. You are welcome to submit a different resource."],
+    SUSPENDED: [`"${title}" has been taken down`, "We have removed it from the Resources section for the reason below. People who already bought it are not affected unless we tell you otherwise. Please reply to this email or contact TMP to resolve it."],
+  };
+  const [subject, text] = body[decision];
+  const feedback = note ? `\n\nFeedback from our reviewer:\n${note}` : "";
+  return { template: "resource_decision", to, subject, text: `Hello ${name},\n\n${text}${feedback}\n\nYour dashboard:\n${link}${SIGNOFF}` };
+}
+
+export function payoutRecordedMessage(to: string, name: string, amount: string, reference: string): EmailMessage & { template: TemplateName } {
+  return { template: "payout_recorded", to, subject: `Payout of ${amount} sent`, text: `Hello ${name},\n\nWe have sent you ${amount} for your resource sales (MoMo reference ${reference}). Thank you for selling with The Modern Pedagogues.${SIGNOFF}` };
 }

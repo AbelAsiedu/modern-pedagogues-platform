@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 import sharp from "sharp";
 import { recordAudit } from "../audit";
+import { enforceRateLimit } from "../auth/rate-limit";
 import type { Db } from "../db";
 import { heroBanners, mediaFiles, products, tutorProfiles } from "../db/schema";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "../errors";
@@ -20,13 +21,19 @@ const FORMATS = {
 } as const;
 type FormatName = keyof typeof FORMATS;
 
-/** Staff who manage a page, the shop or tutors may upload pictures for it. */
-export function canUploadMedia(actor: Actor | null): actor is Actor {
+/** Staff who manage a page, the shop or tutors may upload and see every picture. */
+export function isMediaStaff(actor: Actor | null): boolean {
   return can(actor, "content.manage_site") || can(actor, "commerce.manage_products") || can(actor, "tutors.review_applications");
 }
-function assertCanUpload(actor: Actor | null): asserts actor is Actor {
-  if (!canUploadMedia(actor)) throw new ForbiddenError("missing permission: upload media");
+/** Staff, or a marketplace creator (who can only upload and see their own pictures, for their covers). */
+export function canUploadMedia(actor: Actor | null): boolean {
+  return isMediaStaff(actor) || can(actor, "portal.creator");
 }
+function assertCanUpload(actor: Actor | null): asserts actor is Actor {
+  if (!actor || !canUploadMedia(actor)) throw new ForbiddenError("missing permission: upload media");
+}
+const CREATOR_IMAGE_LIMIT = 40;
+const ownOnly = (actor: Actor) => (isMediaStaff(actor) ? undefined : eq(mediaFiles.uploadedById, actor.id));
 
 export type ProcessedImage = { data: Buffer; contentType: string; ext: string; width: number; height: number };
 
@@ -75,6 +82,11 @@ export async function saveImage(
   ip?: string | null,
 ) {
   assertCanUpload(actor);
+  if (!isMediaStaff(actor)) {
+    await enforceRateLimit(db, { key: `upload:image:${actor.id}`, limit: 20, windowSeconds: 3600 });
+    const [{ n } = { n: 0 }] = await db.select({ n: count() }).from(mediaFiles).where(eq(mediaFiles.uploadedById, actor.id));
+    if (n >= CREATOR_IMAGE_LIMIT) throw new ConflictError(`You can keep up to ${CREATOR_IMAGE_LIMIT} pictures. Delete ones you no longer use.`);
+  }
   const img = await processImage(input.bytes);
   const [row] = await db
     .insert(mediaFiles)
@@ -109,6 +121,7 @@ export async function listMedia(db: Db, actor: Actor | null) {
       createdAt: mediaFiles.createdAt,
     })
     .from(mediaFiles)
+    .where(ownOnly(actor))
     .orderBy(desc(mediaFiles.createdAt));
   return rows.map((r) => ({ ...r, path: mediaPath(r) }));
 }
@@ -116,6 +129,14 @@ export async function listMedia(db: Db, actor: Actor | null) {
 /** Options for an "Image" drop-down on any admin form. */
 export async function mediaOptions(db: Db, actor: Actor | null): Promise<{ value: string; label: string }[]> {
   return (await listMedia(db, actor)).map((m) => ({ value: m.path, label: `${m.filename} (${m.width}×${m.height})` }));
+}
+
+/** Width and height of a library picture, found from its public path (/media/<id>.jpg). Null if there is no such picture. */
+export async function mediaInfoByPath(db: Db, path: string): Promise<{ id: string; width: number; height: number; uploadedById: string | null } | null> {
+  const m = /^\/media\/([0-9a-f-]{36})\.(jpg|png|webp)$/.exec(path);
+  if (!m) return null;
+  const [row] = await db.select({ id: mediaFiles.id, width: mediaFiles.width, height: mediaFiles.height, uploadedById: mediaFiles.uploadedById }).from(mediaFiles).where(eq(mediaFiles.id, m[1]!)).limit(1);
+  return row ?? null;
 }
 
 /** The bytes for the public /media route. No permission check: these pictures are public. */
@@ -131,7 +152,7 @@ export async function getMediaFile(db: Db, id: string) {
 
 export async function updateMediaAlt(db: Db, actor: Actor | null, id: string, altText: string, ip?: string | null) {
   assertCanUpload(actor);
-  const res = await db.update(mediaFiles).set({ altText: altText.trim().slice(0, 200) }).where(eq(mediaFiles.id, id)).returning({ id: mediaFiles.id });
+  const res = await db.update(mediaFiles).set({ altText: altText.trim().slice(0, 200) }).where(and(eq(mediaFiles.id, id), ownOnly(actor))).returning({ id: mediaFiles.id });
   if (res.length === 0) throw new NotFoundError("Image not found.");
   await recordAudit(db, { actorId: actor.id, action: "media.updated", entityType: "media", entityId: id, ip });
 }
@@ -148,7 +169,7 @@ export async function mediaUsage(db: Db, path: string): Promise<string[]> {
 
 export async function deleteMedia(db: Db, actor: Actor | null, id: string, ip?: string | null) {
   assertCanUpload(actor);
-  const [row] = await db.select({ id: mediaFiles.id, contentType: mediaFiles.contentType }).from(mediaFiles).where(eq(mediaFiles.id, id)).limit(1);
+  const [row] = await db.select({ id: mediaFiles.id, contentType: mediaFiles.contentType }).from(mediaFiles).where(and(eq(mediaFiles.id, id), ownOnly(actor))).limit(1);
   if (!row) throw new NotFoundError("Image not found.");
   const used = await mediaUsage(db, mediaPath(row));
   if (used.length > 0) throw new ConflictError(`This image is still used by ${used.join(", ")}. Change that first.`);

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { priceText, type PublicProduct } from "@/server/shop/service";
+import { KIND_LABELS } from "@/server/resources/quality";
+import { isFree, priceText, type PublicProduct } from "@/server/shop/service";
 
 export function ProductCover({ path, alt = "", className = "h-44" }: { path: string | null; alt?: string; className?: string }) {
   if (!path) {
@@ -14,18 +15,23 @@ export function ProductCover({ path, alt = "", className = "h-44" }: { path: str
 }
 
 export function ProductCard({ product }: { product: PublicProduct }) {
+  const href = `/resources/${product.slug}`;
   return (
     <article className="flex h-full flex-col rounded-2xl border border-navy/10 bg-white/70 p-5">
-      <Link href={`/shop/${product.slug}`} aria-label={product.title}>
+      <Link href={href} aria-label={product.title}>
         <ProductCover path={product.coverPath} />
       </Link>
-      <h2 className="mt-4 text-lg font-semibold leading-tight">
-        <Link href={`/shop/${product.slug}`} className="hover:text-gold">{product.title}</Link>
+      <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-navy/70">
+        {KIND_LABELS[product.kind]}{product.subject ? ` · ${product.subject}` : ""}
+      </p>
+      <h2 className="mt-1 text-lg font-semibold leading-tight">
+        <Link href={href} className="hover:text-gold">{product.title}</Link>
       </h2>
+      <p className="mt-1 text-sm text-navy/70">by {product.authorName}{product.pageCount ? ` · ${product.pageCount} pages` : ""}</p>
       <p className="mt-2 flex-1 text-sm leading-6 text-navy/80">{product.summary}</p>
       <div className="mt-4 flex items-center justify-between">
-        <p className="text-lg font-semibold">{priceText(product)}</p>
-        <Link href={`/shop/${product.slug}`} className="text-sm font-semibold underline decoration-gold underline-offset-4">View</Link>
+        <p className={`text-lg font-semibold ${isFree(product) ? "text-green-800" : ""}`}>{priceText(product)}</p>
+        <Link href={href} className="text-sm font-semibold underline decoration-gold underline-offset-4">View</Link>
       </div>
     </article>
   );
