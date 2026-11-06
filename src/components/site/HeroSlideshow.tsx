@@ -28,7 +28,7 @@ function SlideLink({ href, children }: { href: string; children: React.ReactNode
 }
 
 /**
- * The home page's looping slideshow: blue banner, headline on the left, photo on the right fading into the blue, a curved
+ * The home page's looping slideshow: slide photo across the whole banner under a translucent blue layer, headline on the left, a curved
  * edge into the page. It starts by itself, advances every `seconds` and starts over after the last slide. A mouse resting
  * on it pauses it; there is always a visible Pause button, arrow keys work, and touch devices can swipe. Visitors who
  * prefer reduced motion get the same slides without the movement. Only the current slide is exposed to screen readers.
@@ -60,11 +60,10 @@ export function HeroSlideshow({ slides, seconds = 6, kicker, searchHint }: { sli
         startX.current = null;
       }}
     >
-      <div className="blob -left-24 top-10 h-72 w-72 bg-gold/40" aria-hidden="true" />
       <div className="grid-fade absolute inset-0 -z-10" aria-hidden="true" />
 
-      {/* Picture: on large screens it fills the right half edge to edge and fades into the blue. */}
-      <div className="relative mx-6 mt-8 aspect-[4/3] overflow-hidden rounded-[1.75rem] ring-1 ring-cream/20 md:absolute md:inset-y-0 md:right-0 md:mx-0 md:mt-0 md:aspect-auto md:w-[52%] md:rounded-none md:ring-0 md:[mask-image:linear-gradient(to_right,transparent_0%,#000_38%)]">
+      {/* Pictures fill the whole banner; a translucent blue layer keeps the text readable. */}
+      <div className="absolute inset-0 -z-20 overflow-hidden">
         {slides.map((s, i) => (
           <Image
             key={s.id}
@@ -74,14 +73,15 @@ export function HeroSlideshow({ slides, seconds = 6, kicker, searchHint }: { sli
             fill
             unoptimized
             priority={i === 0}
-            sizes="(min-width: 768px) 52vw, 100vw"
+            sizes="100vw"
             className={`kb-img object-cover ${i === index ? "is-active" : ""}`}
           />
         ))}
       </div>
+      <div className="hero-overlay absolute inset-0 -z-10" aria-hidden="true" />
 
       <div className="mx-auto max-w-6xl px-6 pb-24 pt-10 md:pb-28 md:pt-16">
-        <div className="md:w-[52%]">
+        <div className="md:w-[62%]">
           <div className="grid md:min-h-[21rem]" aria-live={playing ? "off" : "polite"}>
             {slides.map((s, i) => {
               const active = i === index;

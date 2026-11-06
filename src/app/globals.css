@@ -39,6 +39,9 @@ html { scroll-behavior: smooth; }
   radial-gradient(50rem 28rem at 88% -8%, rgb(255 194 14 / 0.16), transparent 60%),
   radial-gradient(44rem 30rem at -8% 108%, rgb(60 120 255 / 0.38), transparent 62%),
   linear-gradient(135deg, #0a1a55 0%, #12308a 55%, #1c45c9 100%); }
+.hero-overlay { background:
+  radial-gradient(40rem 22rem at 90% -10%, rgb(255 194 14 / 0.14), transparent 60%),
+  linear-gradient(105deg, rgb(10 26 85 / 0.74) 0%, rgb(18 48 138 / 0.52) 55%, rgb(28 69 201 / 0.34) 100%); }
 .blob { position: absolute; border-radius: 9999px; filter: blur(64px); opacity: 0.5; animation: tmp-float 16s ease-in-out infinite; pointer-events: none; }
 .grid-fade { background-image: linear-gradient(rgb(251 246 234 / 0.06) 1px, transparent 1px), linear-gradient(90deg, rgb(251 246 234 / 0.06) 1px, transparent 1px); background-size: 44px 44px; mask-image: radial-gradient(ellipse at 70% 30%, #000 20%, transparent 70%); }
 .gradient-text { background: linear-gradient(90deg, #fff0b3, #ffc20e 45%, #fff0b3 90%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: tmp-shimmer 7s linear infinite; }

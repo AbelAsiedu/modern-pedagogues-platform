@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getSession, getSiteText } from "@/server/context";
 import { Logo, SocialIcon, SiteIcon, Wave, type SiteIconName } from "./Brand";
 import { MobileMenu } from "./MobileMenu";
-import { SiteImage } from "./SiteImage";
 
 const NAV = [
   { href: "/", key: "nav.home" },
@@ -128,37 +127,39 @@ export async function Hero({
   kicker,
   title,
   imageKey,
-  icon = "cap",
   children,
 }: {
   kicker: string;
   title: string;
-  /** Site images slot to show on the right (for example "page.services.image"). */
+  /** Site images slot used as the background of the whole banner (for example "page.services.image"). */
   imageKey?: string;
+  /** Kept so existing pages still compile; the banner no longer shows an illustration beside the text. */
   icon?: SiteIconName;
   children?: React.ReactNode;
 }) {
   const t = imageKey ? await getSiteText() : null;
-  const withImage = Boolean(imageKey);
+  const bg = t && imageKey ? t.image(imageKey) : "";
   return (
     <section className="mesh relative isolate overflow-hidden text-cream">
-      <div className="blob -right-16 -top-16 h-64 w-64 bg-gold/40" aria-hidden="true" />
-      <div className="blob -bottom-20 left-1/4 h-72 w-72 bg-sky-400/30 [animation-delay:-7s]" aria-hidden="true" />
-      <div className="grid-fade absolute inset-0 -z-10" aria-hidden="true" />
-      <div className={`mx-auto max-w-6xl px-6 pb-24 pt-14 md:pb-28 md:pt-20 ${withImage ? "grid items-center gap-10 md:grid-cols-[1.15fr_1fr]" : ""}`}>
+      {bg ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={bg} alt="" loading="eager" className="absolute inset-0 -z-20 h-full w-full object-cover" />
+          <div className="hero-overlay absolute inset-0 -z-10" aria-hidden="true" />
+        </>
+      ) : (
+        <>
+          <div className="blob -right-16 -top-16 h-64 w-64 bg-gold/40" aria-hidden="true" />
+          <div className="blob -bottom-20 left-1/4 h-72 w-72 bg-sky-400/30 [animation-delay:-7s]" aria-hidden="true" />
+          <div className="grid-fade absolute inset-0 -z-10" aria-hidden="true" />
+        </>
+      )}
+      <div className="mx-auto max-w-6xl px-6 pb-24 pt-14 md:pb-28 md:pt-20">
         <div>
           <p className="rise text-xs font-bold uppercase tracking-[0.26em] text-gold">{kicker}</p>
           <h1 style={{ "--d": "100ms" } as React.CSSProperties} className="rise mt-4 max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight md:text-6xl">{title}</h1>
-          {children ? <div style={{ "--d": "220ms" } as React.CSSProperties} className="rise mt-6 max-w-2xl text-lg leading-8 text-cream/85">{children}</div> : null}
+          {children ? <div style={{ "--d": "220ms" } as React.CSSProperties} className="rise mt-6 max-w-2xl text-lg leading-8 text-cream/90">{children}</div> : null}
         </div>
-        {withImage && t ? (
-          <div style={{ "--d": "300ms" } as React.CSSProperties} className="rise relative hidden aspect-[5/4] md:block">
-            <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-br from-gold/40 via-transparent to-sky-300/30 blur-xl" aria-hidden="true" />
-            <div className="absolute inset-0 overflow-hidden rounded-[1.75rem] ring-1 ring-cream/25 shadow-2xl shadow-black/40">
-              <SiteImage path={t.image(imageKey!) || undefined} alt={t.imageAlt(imageKey!)} icon={icon} rounded="rounded-[1.75rem]" priority />
-            </div>
-          </div>
-        ) : null}
       </div>
       <Wave />
     </section>

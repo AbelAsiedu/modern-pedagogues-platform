@@ -108,12 +108,12 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
   e("home.impact.image", "images", "Home: Our Impact picture", "image", 200, "", { optional: true, help: "A campus, school or group photo. Landscape, about 1200 × 800." }),
   e("home.testimonials.image", "images", "Home: testimonials picture", "image", 200, "", { optional: true, help: "Shown beside the quotes, for example graduates or a class. Landscape, about 1000 × 800." }),
   e("home.cta.image", "images", "Home: closing banner picture", "image", 200, "", { optional: true, help: "A smiling learner works well. Portrait or square, about 900 × 900." }),
-  e("page.services.image", "images", "Services page: banner picture", "image", 200, "", { optional: true, help: "Shown on the right of the blue banner. About 1000 × 800." }),
-  e("page.tutors.image", "images", "Tutors page: banner picture", "image", 200, "", { optional: true, help: "About 1000 × 800." }),
-  e("page.resources.image", "images", "Resources page: banner picture", "image", 200, "", { optional: true, help: "About 1000 × 800." }),
-  e("page.pricing.image", "images", "Pricing page: banner picture", "image", 200, "", { optional: true, help: "About 1000 × 800." }),
-  e("page.about.image", "images", "About page: banner picture", "image", 200, "", { optional: true, help: "About 1000 × 800." }),
-  e("page.contact.image", "images", "Contact page: banner picture", "image", 200, "", { optional: true, help: "About 1000 × 800." }),
+  e("page.services.image", "images", "Services page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer, so use a wide landscape picture, about 1600 × 700, with the subject away from the left side where the text sits." }),
+  e("page.tutors.image", "images", "Tutors page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
+  e("page.resources.image", "images", "Resources page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
+  e("page.pricing.image", "images", "Pricing page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
+  e("page.about.image", "images", "About page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
+  e("page.contact.image", "images", "Contact page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
 
   // Menu and buttons
   e("nav.home", "navigation", "Menu: Home", "line", 24, "Home"),
