@@ -103,7 +103,18 @@ export function createAuthService(deps: AuthDeps) {
       const existing = await findUserByEmail(data.email);
 
       if (existing) {
-        await enforceRateLimit(db, { key: `register:email:${data.email}`, limit: 3, windowSeconds: 3600 }).catch(() => undefined);
+        const limited = await enforceRateLimit(db, { key: `register:email:${data.email}`, limit: 3, windowSeconds: 3600 })
+          .then(() => false)
+          .catch(() => true);
+        if (limited) return { ok: true };
+        // Signing up again before confirming (often because the first email was lost or its link was wrong)
+        // gets a fresh confirmation link, not a password reset. The password typed now is NOT applied: if it were,
+        // anyone could register a stranger's address with a password of their own and wait for the owner to confirm.
+        if (existing.status === "PENDING_VERIFICATION") {
+          const token = await issueVerificationToken(db, existing.id);
+          await deliver(verifyEmailMessage(existing.email, existing.fullName, link("/verify-email", token), { repeat: true }));
+          return { ok: true };
+        }
         const token = await issueResetToken(db, existing.id);
         await deliver(accountExistsMessage(existing.email, existing.fullName, link("/reset-password", token)));
         return { ok: true };

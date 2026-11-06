@@ -45,14 +45,30 @@ describe("registration", () => {
     expect(rows.rows[0]!.token_hash).not.toBe(raw);
   });
 
-  it("looks identical for an email that is already registered, and does not send a second verification", async () => {
+  it("looks identical for an email that is already registered, and does not create a second account", async () => {
     const h = makeAuth(db);
-    await h.auth.register(newUser());
+    await registerAndVerify(h);
     const first = await h.auth.register(newUser("new@example.com"));
     const dup = await h.auth.register({ ...newUser(), fullName: "Someone Else" });
     expect(dup).toEqual(first);
     expect(await db.select().from(users).where(eq(users.email, "ama@example.com"))).toHaveLength(1);
     expect(h.mailer.last()?.subject).toMatch(/already have an account/);
+  });
+
+  it("sends a fresh confirmation link, not a password reset, when an unconfirmed address signs up again", async () => {
+    const h = makeAuth(db);
+    await h.auth.register(newUser());
+    const [before] = await db.select().from(users);
+    await h.auth.register({ ...newUser(), password: "A different passphrase 456" });
+    expect(h.mailer.last()?.subject).toMatch(/Confirm/);
+    expect(h.mailer.last()?.text).toContain("/verify-email?token=");
+    expect(h.mailer.last()?.text).not.toContain("reset-password");
+    // The second password is not applied (otherwise a stranger could pre-set the password on someone else's address).
+    const [after] = await db.select().from(users);
+    expect(after!.passwordHash).toBe(before!.passwordHash);
+    // Confirming from the new email activates the account and the ORIGINAL password signs in.
+    await h.auth.verifyEmail(h.tokenFromLast());
+    await expect(h.auth.login({ email: "ama@example.com", password: GOOD_PASSWORD })).resolves.toMatchObject({ userId: before!.id });
   });
 
   it("normalises email case so duplicates cannot slip through", async () => {

@@ -18,12 +18,20 @@ export type TemplateName =
   | "resource_decision"
   | "payout_recorded";
 
-export function verifyEmailMessage(to: string, name: string, link: string): EmailMessage & { template: TemplateName } {
+export function verifyEmailMessage(
+  to: string,
+  name: string,
+  link: string,
+  opts: { repeat?: boolean } = {},
+): EmailMessage & { template: TemplateName } {
+  const intro = opts.repeat
+    ? "You signed up again before confirming your email address, so here is a fresh confirmation link. Your account already exists and keeps the password you chose the first time you signed up."
+    : "Welcome to The Modern Pedagogues. Please confirm your email address to activate your account:";
   return {
     template: "verify_email",
     to,
     subject: "Confirm your email address",
-    text: `Hello ${name},\n\nWelcome to The Modern Pedagogues. Please confirm your email address to activate your account:\n\n${link}\n\nThis link expires in 24 hours.${SIGNOFF}`,
+    text: `Hello ${name},\n\n${intro}\n\n${link}\n\nThis link expires in 24 hours. After confirming, you can sign in straight away.${SIGNOFF}`,
   };
 }
 
