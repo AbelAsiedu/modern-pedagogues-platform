@@ -1,7 +1,7 @@
 import { seoMetadata } from "@/server/seo";
 import { SiteIcon, type SiteIconName } from "@/components/site/Brand";
 import { Hero } from "@/components/site/Chrome";
-import { Reveal } from "@/components/site/Reveal";
+import { ServiceCard } from "@/components/site/ServiceCard";
 import { getSiteText } from "@/server/context";
 
 export const generateMetadata = () => seoMetadata("services");
@@ -18,14 +18,16 @@ export default async function Services() {
       <div className="mx-auto max-w-6xl px-6 pb-20 pt-6">
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((n) => (
-            <Reveal as="article" key={n} delay={(n % 3) * 90} className="lift group rounded-3xl border border-navy/10 bg-white p-7 shadow-sm">
-              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-cream-deep text-royal transition-colors group-hover:bg-royal group-hover:text-gold">
-                <SiteIcon name={ICONS[n - 1]!} className="h-7 w-7" />
-              </span>
-              <p className="mt-5 text-xs font-bold tracking-widest text-gold-ink">0{n}</p>
-              <h2 className="mt-1 font-sans text-xl font-semibold">{t.text(`services.${n}.title`)}</h2>
-              <p className="mt-2 text-sm leading-6 text-navy/75">{t.text(`services.${n}.body`)}</p>
-            </Reveal>
+            <ServiceCard
+              key={n}
+              n={n}
+              icon={ICONS[n - 1]!}
+              title={t.text(`services.${n}.title`)}
+              body={t.text(`services.${n}.body`)}
+              image={t.image(`service.${n}.image`) || undefined}
+              imageAlt={t.imageAlt(`service.${n}.image`)}
+              heading="h2"
+            />
           ))}
         </div>
 

@@ -11,16 +11,20 @@ export const metadata = { title: "Site images" };
 export default async function SiteImagesPage() {
   const s = await requirePermission("content.manage_site", "/admin/images");
   const [slots, pictures] = await Promise.all([listImageSlots(db(), s.actor), mediaOptions(db(), s.actor)]);
+  const place = (keys: (k: string) => boolean) => slots.filter((x) => keys(x.key));
   const groups = [
-    { title: "Logo", slots: slots.filter((x) => x.key === "site.logo") },
-    { title: "Home page", slots: slots.filter((x) => x.key.startsWith("home.")) },
-    { title: "Page banners", slots: slots.filter((x) => x.key.startsWith("page.")) },
+    { title: "Logo, icon and sharing", slots: place((k) => k === "site.logo" || k === "site.favicon" || k === "site.share_image" || k === "assistant.avatar") },
+    { title: "Home page", slots: place((k) => k.startsWith("home.")) },
+    { title: "Service cards", slots: place((k) => k.startsWith("service.")) },
+    { title: "About page", slots: place((k) => k.startsWith("about.")) },
+    { title: "Page banners", slots: place((k) => k.startsWith("page.")) },
   ];
+
   return (
     <>
       <h1>Site images</h1>
       <p className="mt-2 max-w-2xl text-sm text-navy/70">
-        Every picture on the public pages comes from here. Upload straight into a place, or choose a picture you already uploaded to the Media library.
+        Every picture on the public pages comes from here, including the logo, the browser-tab icon, the picture shown when the site is shared, Kaitlyn&apos;s picture and the service cards. Upload straight into a place, or choose a picture you already uploaded to the Media library.
         Until you add one, a tidy built-in illustration is shown. The slideshow pictures are under Home slideshow, tutor photos are on each tutor, and
         resource covers are on each resource.
       </p>

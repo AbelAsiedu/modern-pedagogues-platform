@@ -4,6 +4,7 @@ import { FeaturedResources } from "@/components/site/FeaturedResources";
 import { HeroSlideshow } from "@/components/site/HeroSlideshow";
 import { Marquee } from "@/components/site/Marquee";
 import { Reveal } from "@/components/site/Reveal";
+import { ServiceCard } from "@/components/site/ServiceCard";
 import { SiteImage } from "@/components/site/SiteImage";
 import { Testimonials } from "@/components/site/Testimonials";
 import { TutorCard } from "@/components/site/TutorCard";
@@ -64,13 +65,16 @@ export default async function Home() {
         <Reveal><SectionHeading id="services-h" title={t.text("home.services.heading")} sub={t.text("home.services.sub")} /></Reveal>
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((n) => (
-            <Reveal as="article" key={n} delay={(n % 3) * 90} className="lift group rounded-3xl border border-navy/10 bg-white p-7 shadow-sm">
-              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-cream-deep text-royal transition-colors group-hover:bg-royal group-hover:text-gold">
-                <SiteIcon name={SERVICE_ICONS[n - 1]!} className="h-7 w-7" />
-              </span>
-              <h3 className="mt-5 text-lg font-semibold">{t.text(`services.${n}.title`)}</h3>
-              <p className="mt-2 text-sm leading-6 text-navy/70">{t.text(`services.${n}.body`)}</p>
-            </Reveal>
+            <ServiceCard
+              key={n}
+              n={n}
+              icon={SERVICE_ICONS[n - 1]!}
+              title={t.text(`services.${n}.title`)}
+              body={t.text(`services.${n}.body`)}
+              image={t.image(`service.${n}.image`) || undefined}
+              imageAlt={t.imageAlt(`service.${n}.image`)}
+              heading="h3"
+            />
           ))}
         </div>
       </section>

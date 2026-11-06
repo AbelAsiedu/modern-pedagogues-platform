@@ -114,6 +114,13 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
   e("page.pricing.image", "images", "Pricing page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
   e("page.about.image", "images", "About page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
   e("page.contact.image", "images", "Contact page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
+  e("site.favicon", "images", "Browser tab icon", "image", 200, "", { optional: true, help: "The small icon in the browser tab. A square PNG, about 256 × 256, with a simple shape." }),
+  e("site.share_image", "images", "Picture shown when the site is shared", "image", 200, "", { optional: true, help: "Shown when a link to the site is shared on WhatsApp, Facebook and similar. Landscape, 1200 × 630, with the text and logo near the middle." }),
+  e("assistant.avatar", "images", "Kaitlyn's picture", "image", 200, "", { optional: true, help: "Shown in the chat window and on the chat button. A square picture of a face or a mascot, about 300 × 300." }),
+  e("about.story.image", "images", "About page: story picture", "image", 200, "", { optional: true, help: "Shown beside \"Built around the student\". Landscape, about 1200 × 900." }),
+  ...[1, 2, 3, 4, 5, 6].map((n) =>
+    e(`service.${n}.image`, "images", `Service ${n}: card picture`, "image", 200, "", { optional: true, help: "Shown at the top of this service's card (Home and Services pages) instead of its icon. Landscape, about 800 × 500. The card text is under Site text > Services." }),
+  ),
 
   // Menu and buttons
   e("nav.home", "navigation", "Menu: Home", "line", 24, "Home"),

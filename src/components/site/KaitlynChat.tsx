@@ -6,7 +6,7 @@ import { RichText } from "./RichText";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-export function KaitlynChat({ greeting, disclaimer, whatsappHref }: { greeting: string; disclaimer: string; whatsappHref: string }) {
+export function KaitlynChat({ greeting, disclaimer, whatsappHref, avatar, avatarAlt = "" }: { greeting: string; disclaimer: string; whatsappHref: string; avatar?: string; avatarAlt?: string }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [input, setInput] = useState("");
@@ -58,9 +58,15 @@ export function KaitlynChat({ greeting, disclaimer, whatsappHref }: { greeting: 
           className="flex h-[min(34rem,calc(100vh-6rem))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border border-navy/15 bg-cream shadow-2xl"
         >
           <header className="flex items-center justify-between bg-navy px-4 py-3 text-cream">
-            <div>
-              <p className="font-semibold leading-tight">Kaitlyn</p>
-              <p className="text-xs text-cream/75">AI assistant for The Modern Pedagogues</p>
+            <div className="flex items-center gap-3">
+              {avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatar} alt={avatarAlt} className="h-10 w-10 rounded-full border-2 border-gold object-cover" />
+              ) : null}
+              <div>
+                <p className="font-semibold leading-tight">Kaitlyn</p>
+                <p className="text-xs text-cream/75">AI assistant for The Modern Pedagogues</p>
+              </div>
             </div>
             <button type="button" onClick={close} aria-label="Close chat" className="rounded p-1 text-xl leading-none hover:text-gold">×</button>
           </header>
@@ -104,8 +110,14 @@ export function KaitlynChat({ greeting, disclaimer, whatsappHref }: { greeting: 
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="rounded-full bg-gold px-5 py-3 font-semibold text-navy shadow-lg hover:brightness-95"
+        className="inline-flex items-center gap-2 rounded-full bg-gold py-3 pl-3 pr-5 font-semibold text-navy shadow-lg hover:brightness-95"
       >
+        {avatar ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={avatar} alt="" className="h-8 w-8 rounded-full border border-navy/20 object-cover" />
+        ) : (
+          <span className="w-2" aria-hidden="true" />
+        )}
         {open ? "Close Kaitlyn" : "Ask Kaitlyn"}
       </button>
     </div>

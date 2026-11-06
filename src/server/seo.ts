@@ -11,6 +11,12 @@ export async function seoMetadata(page: SeoPage): Promise<Metadata> {
   return {
     title: page === "home" ? { absolute: title } : title,
     description,
-    openGraph: { title, description, siteName: t.biz.name, type: "website" },
+    openGraph: {
+      title,
+      description,
+      siteName: t.biz.name,
+      type: "website",
+      ...(t.image("site.share_image") ? { images: [{ url: t.image("site.share_image"), alt: t.imageAlt("site.share_image") || t.biz.name }] } : {}),
+    },
   };
 }

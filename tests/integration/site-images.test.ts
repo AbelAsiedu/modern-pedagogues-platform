@@ -23,6 +23,19 @@ describe("site picture slots", () => {
     expect((await loadSiteText(db)).image("home.about.image")).toBe("");
   });
 
+  it("covers the favicon, share picture, Kaitlyn, About story and all six service cards", async () => {
+    const admin = await makeActor(db, "a@example.com", ["admin"]);
+    const keys = (await listImageSlots(db, admin)).map((x) => x.key);
+    expect(keys).toEqual(expect.arrayContaining(["site.favicon", "site.share_image", "assistant.avatar", "about.story.image", "service.1.image", "service.6.image"]));
+    const pic = await saveImage(db, admin, { filename: "k.png", bytes: await png(), altText: "Kaitlyn smiling" });
+    await setImageSlot(db, admin, "assistant.avatar", pic.path);
+    await setImageSlot(db, admin, "service.3.image", pic.path);
+    const t = await loadSiteText(db);
+    expect(t.image("assistant.avatar")).toBe(pic.path);
+    expect(t.imageAlt("service.3.image")).toBe("Kaitlyn smiling");
+    expect(t.image("service.4.image")).toBe("");
+  });
+
   it("puts a library picture into a slot, serves it with its description, and empties it again", async () => {
     const admin = await makeActor(db, "a@example.com", ["admin"]);
     const pic = await saveImage(db, admin, { filename: "team.png", bytes: await png(), altText: "Our tutors at work" });

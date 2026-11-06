@@ -32,7 +32,7 @@ export default async function Tutors({ searchParams }: { searchParams: Search })
         <p>{t.text("tutors.hero.intro")}</p>
       </Hero>
       <div className="mx-auto max-w-6xl px-6 py-12">
-        <form method="get" className="grid gap-4 rounded-3xl border border-navy/10 bg-white p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-5" aria-label="Filter tutors">
+        <form key={JSON.stringify(filter)} method="get" className="grid gap-4 rounded-3xl border border-navy/10 bg-white p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-5" aria-label="Filter tutors">
           <label className="text-sm font-medium">
             Level
             <select name="level" defaultValue={filter.level} className={sel}>

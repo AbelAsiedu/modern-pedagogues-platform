@@ -6,7 +6,7 @@ import { getSiteText } from "@/server/context";
 import { db } from "@/server/db";
 import { KIND_LABELS, RESOURCE_KINDS } from "@/server/resources/quality";
 import { resourceTaxonomy } from "@/server/resources/taxonomy";
-import { listPublicProducts, type PublicProduct, type ResourceFilter } from "@/server/shop/service";
+import { listPublicProducts, listPublicSubjects, type PublicProduct, type ResourceFilter } from "@/server/shop/service";
 
 export const generateMetadata = () => seoMetadata("resources");
 export const dynamic = "force-dynamic";
@@ -15,13 +15,14 @@ const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 export default async function Resources({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const filter: ResourceFilter = { q: one(sp.q), kind: one(sp.kind), level: one(sp.level), price: one(sp.price) };
+  const filter: ResourceFilter = { q: one(sp.q), subject: one(sp.subject), kind: one(sp.kind), level: one(sp.level), price: one(sp.price) };
   const t = await getSiteText();
   let items: PublicProduct[] = [];
   let levels: { key: string; name: string }[] = [];
+  let subjects: string[] = [];
   let unavailable = false;
   try {
-    [items, { levels }] = await Promise.all([listPublicProducts(db(), filter), resourceTaxonomy(db())]);
+    [items, { levels }, subjects] = await Promise.all([listPublicProducts(db(), filter), resourceTaxonomy(db()), listPublicSubjects(db())]);
   } catch {
     unavailable = true;
   }
@@ -37,10 +38,18 @@ export default async function Resources({ searchParams }: { searchParams: Promis
         </p>
       </Hero>
       <div className="mx-auto max-w-6xl px-6 py-12">
-        <form method="get" className="grid gap-4 rounded-3xl border border-navy/10 bg-white p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-5" aria-label="Filter resources">
+        <form key={JSON.stringify(filter)} method="get" className="grid gap-4 rounded-3xl border border-navy/10 bg-white p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-6" aria-label="Filter resources">
           <label className="text-sm font-medium">
             Search
             <input name="q" defaultValue={filter.q} placeholder="e.g. fractions" maxLength={80} className={sel} />
+          </label>
+          <label className="text-sm font-medium">
+            Subject
+            <select name="subject" defaultValue={filter.subject} className={sel}>
+              <option value="">All subjects</option>
+              {filter.subject && !subjects.some((x) => x.toLowerCase() === filter.subject!.trim().toLowerCase()) ? <option value={filter.subject}>{filter.subject}</option> : null}
+              {subjects.map((x) => <option key={x} value={x}>{x}</option>)}
+            </select>
           </label>
           <label className="text-sm font-medium">
             Type
@@ -69,6 +78,27 @@ export default async function Resources({ searchParams }: { searchParams: Promis
             {filtered ? <Link href="/resources" className="text-sm underline">Clear</Link> : null}
           </div>
         </form>
+
+        {subjects.length > 0 ? (
+          <nav aria-label="Browse by subject" className="mt-6 flex flex-wrap gap-2">
+            {subjects.map((x) => {
+              const on = filter.subject?.trim().toLowerCase() === x.toLowerCase();
+              const params = new URLSearchParams();
+              for (const [k, v] of Object.entries(filter)) if (v && k !== "subject") params.set(k, v);
+              if (!on) params.set("subject", x);
+              return (
+                <Link
+                  key={x}
+                  href={`/resources${params.size ? `?${params}` : ""}`}
+                  aria-current={on ? "true" : undefined}
+                  className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${on ? "border-royal bg-royal text-cream" : "border-royal/25 bg-cream-deep text-royal-deep hover:border-royal"}`}
+                >
+                  {x}
+                </Link>
+              );
+            })}
+          </nav>
+        ) : null}
 
         {unavailable ? (
           <p className="mt-10 rounded-lg bg-amber-100 p-4 text-amber-900" role="status">The resources are temporarily unavailable. Please try again shortly, or message us on WhatsApp.</p>

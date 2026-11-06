@@ -2,22 +2,33 @@ import { seoMetadata } from "@/server/seo";
 import { Hero } from "@/components/site/Chrome";
 import { Reveal } from "@/components/site/Reveal";
 import { RichText } from "@/components/site/RichText";
+import { SiteImage } from "@/components/site/SiteImage";
 import { getSiteText } from "@/server/context";
 
 export const generateMetadata = () => seoMetadata("about");
 
 export default async function About() {
   const t = await getSiteText();
+  const story = t.image("about.story.image") || undefined;
   return (
     <>
       <Hero kicker="About TMP" title={t.text("about.hero.title")} imageKey="page.about.image" icon="school">
         <p>{t.text("about.hero.intro")}</p>
       </Hero>
       <div className="mx-auto max-w-5xl px-6 pb-20 pt-6 leading-7">
-        <h2 className="text-3xl font-semibold">{t.text("about.story.heading")}</h2>
-        <span className="mt-3 block h-1 w-14 rounded-full bg-gold" aria-hidden="true" />
-        <div className="mt-6 max-w-3xl text-navy/85 [&_p]:mt-4">
-          <RichText text={t.text("about.story.body")} />
+        <div className={story ? "grid items-center gap-10 md:grid-cols-[1.2fr_1fr]" : ""}>
+          <div>
+            <h2 className="text-3xl font-semibold">{t.text("about.story.heading")}</h2>
+            <span className="mt-3 block h-1 w-14 rounded-full bg-gold" aria-hidden="true" />
+            <div className="mt-6 max-w-3xl text-navy/85 [&_p]:mt-4">
+              <RichText text={t.text("about.story.body")} />
+            </div>
+          </div>
+          {story ? (
+            <Reveal delay={120} className="aspect-[4/3] overflow-hidden rounded-3xl shadow-2xl shadow-navy/20">
+              <SiteImage path={story} alt={t.imageAlt("about.story.image")} icon="school" />
+            </Reveal>
+          ) : null}
         </div>
         <h2 className="mt-16 text-3xl font-semibold">{t.text("about.principles.heading")}</h2>
         <span className="mt-3 block h-1 w-14 rounded-full bg-gold" aria-hidden="true" />

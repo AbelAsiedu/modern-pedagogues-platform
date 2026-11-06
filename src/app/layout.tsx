@@ -12,6 +12,10 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
     title: { default: t.biz.name, template: `%s | ${t.biz.name}` },
     description: t.text("seo.home.description"),
+    ...(t.image("site.favicon") ? { icons: { icon: t.image("site.favicon"), apple: t.image("site.favicon") } } : {}),
+    ...(t.image("site.share_image")
+      ? { openGraph: { images: [{ url: t.image("site.share_image"), alt: t.imageAlt("site.share_image") || t.biz.name }] }, twitter: { card: "summary_large_image" as const, images: [t.image("site.share_image")] } }
+      : {}),
   };
 }
 

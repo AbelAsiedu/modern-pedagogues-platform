@@ -109,7 +109,7 @@ const visible = and(eq(products.status, "APPROVED"), eq(products.isPublished, tr
 export const isFree = (p: { priceMinor: bigint }) => p.priceMinor === 0n;
 export const priceText = (p: { priceMinor: bigint }) => (p.priceMinor === 0n ? "Free" : format(money(p.priceMinor, "GHS")));
 
-export type ResourceFilter = { q?: string; kind?: string; level?: string; price?: string };
+export type ResourceFilter = { q?: string; kind?: string; subject?: string; level?: string; price?: string };
 
 const likeSafe = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
 
@@ -120,6 +120,8 @@ export async function listPublicProducts(db: DbOrTx, filter: ResourceFilter = {}
     const pat = `%${likeSafe(q)}%`;
     conds.push(or(ilike(products.title, pat), ilike(products.summary, pat), ilike(products.subject, pat), ilike(products.authorName, pat)));
   }
+  const subject = filter.subject?.trim().slice(0, 80);
+  if (subject) conds.push(sql`lower(btrim(${products.subject})) = ${subject.toLowerCase()}`);
   if (filter.kind && (RESOURCE_KINDS as readonly string[]).includes(filter.kind)) conds.push(eq(products.kind, filter.kind as ResourceKind));
   if (filter.level && /^[a-z0-9_-]{1,40}$/.test(filter.level)) conds.push(sql`${filter.level} = ANY(${products.levelKeys})`);
   if (filter.price === "free") conds.push(eq(products.priceMinor, 0n));
@@ -129,6 +131,22 @@ export async function listPublicProducts(db: DbOrTx, filter: ResourceFilter = {}
     .from(products)
     .where(and(...conds))
     .orderBy(asc(products.sortOrder), desc(products.approvedAt), desc(products.createdAt));
+}
+
+/** The subjects that have at least one visible resource, spelled as most listings spell them, A to Z (so the filter never leads to an empty page). */
+export async function listPublicSubjects(db: DbOrTx): Promise<string[]> {
+  const rows = await db.select({ subject: products.subject }).from(products).where(visible);
+  const seen = new Map<string, Map<string, number>>();
+  for (const { subject } of rows) {
+    const clean = subject.trim().replace(/\s+/g, " ");
+    if (!clean) continue;
+    const spellings = seen.get(clean.toLowerCase()) ?? new Map<string, number>();
+    spellings.set(clean, (spellings.get(clean) ?? 0) + 1);
+    seen.set(clean.toLowerCase(), spellings);
+  }
+  return [...seen.values()]
+    .map((sp) => [...sp.entries()].sort((a, b) => b[1] - a[1] || Number(/^\p{Lu}/u.test(b[0])) - Number(/^\p{Lu}/u.test(a[0])) || a[0].localeCompare(b[0]))[0]![0])
+    .sort((a, b) => a.localeCompare(b));
 }
 
 export async function getPublicProduct(db: DbOrTx, slug: string): Promise<PublicProduct | null> {

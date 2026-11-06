@@ -1,6 +1,13 @@
 import type { FieldSpec } from "@/components/forms/ActionForm";
 import { KIND_LABELS, RESOURCE_KINDS } from "@/server/resources/quality";
 
+/** Offered as suggestions so listings use the same spelling and the Subject filter stays tidy. Anything else can still be typed. */
+export const COMMON_SUBJECTS = [
+  "Mathematics", "English Language", "Integrated Science", "Social Studies", "Science", "Physics", "Chemistry", "Biology",
+  "Computing (ICT)", "Religious and Moral Education", "French", "Ghanaian Language", "Career Technology", "Creative Arts", "Economics",
+  "Geography", "History", "Government", "Literature in English", "Accounting", "Business Management", "General Knowledge", "Exam Preparation",
+] as const;
+
 export type ListingDefaults = {
   title: string;
   summary: string;
@@ -36,7 +43,7 @@ export function listingFields(opts: {
   const fields: FieldSpec[] = [
     { name: "title", label: "Title", required: true, defaultValue: p?.title ?? "", hint: "Clear and specific, for example “JHS Integrated Science: Complete Course”." },
     { name: "kind", label: "What is it?", type: "select", required: true, options: RESOURCE_KINDS.map((k) => ({ value: k, label: KIND_LABELS[k] })), defaultValue: p?.kind ?? "STUDY_GUIDE" },
-    { name: "subject", label: "Subject", required: true, defaultValue: p?.subject ?? "", hint: "For example Mathematics or English Language." },
+    { name: "subject", label: "Subject", required: true, defaultValue: p?.subject ?? "", list: COMMON_SUBJECTS, hint: "Pick one from the list or type your own. Buyers can filter by subject, so use the usual name." },
     { name: "levelKeys", label: "Levels", type: "checkboxes", required: true, options: opts.levels.map((l) => ({ value: l.key, label: l.name })), defaultValue: (p?.levelKeys ?? []).join(",") },
     { name: "curriculumKeys", label: "Curricula", type: "checkboxes", options: opts.curricula.map((c) => ({ value: c.key, label: c.name })), defaultValue: (p?.curriculumKeys ?? []).join(",") },
     { name: "language", label: "Language", defaultValue: p?.language ?? "English" },

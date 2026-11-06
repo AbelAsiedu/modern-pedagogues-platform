@@ -19,6 +19,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           greeting={t.text("assistant.greeting")}
           disclaimer={t.text("assistant.disclaimer")}
           whatsappHref={t.whatsapp(`Hello ${t.biz.name}, I have a question.`)}
+          avatar={t.image("assistant.avatar") || undefined}
+          avatarAlt={t.imageAlt("assistant.avatar")}
         />
       ) : null}
     </PageShell>

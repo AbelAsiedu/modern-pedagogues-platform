@@ -19,6 +19,7 @@ import {
   listOrders,
   listProducts,
   listPublicProducts,
+  listPublicSubjects,
   markOrderPaid,
   placeOrder,
   updateProduct,
@@ -78,6 +79,25 @@ describe("products", () => {
     await attachProductFile(db, admin, id, { filename: "maths.pdf", bytes: PDF });
     await updateProduct(db, admin, id, { ...form, isPublished: true });
     expect(await listPublicProducts(db)).toHaveLength(1);
+  });
+
+  it("filters by subject, ignoring case and spacing, and lists only subjects that have a visible resource", async () => {
+    const admin = await makeActor(db, "a@example.com", ["admin"]);
+    const withSubject = (title: string, subject: string) => publishedProduct(admin, { title, subject } as Partial<typeof form>);
+    await withSubject("Maths Pack One", "Mathematics");
+    await withSubject("Maths Pack Two", " mathematics ");
+    await withSubject("Science Pack", "Integrated Science");
+    const hidden = await createProduct(db, admin, { ...form, title: "Draft History Pack", subject: "History" } as typeof form);
+    expect(hidden).toBeTruthy();
+
+    expect(await listPublicSubjects(db)).toEqual(["Integrated Science", "Mathematics"]);
+    expect(await listPublicProducts(db, { subject: "MATHEMATICS" })).toHaveLength(2);
+    expect(await listPublicProducts(db, { subject: "integrated science" })).toHaveLength(1);
+    expect(await listPublicProducts(db, { subject: "History" })).toHaveLength(0);
+    // A subject filter never matches part of a name, and symbols are not treated as patterns.
+    expect(await listPublicProducts(db, { subject: "Math" })).toHaveLength(0);
+    expect(await listPublicProducts(db, { subject: "%" })).toHaveLength(0);
+    expect(await listPublicProducts(db, { subject: "Mathematics", price: "free" })).toHaveLength(0);
   });
 
   it("stores prices exactly in pesewas and generates unique slugs", async () => {
