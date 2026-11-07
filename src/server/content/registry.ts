@@ -10,7 +10,7 @@ import { CURRICULA_NAMES, SERVICES, SITE } from "@/lib/site";
  */
 
 export type ContentKind = "line" | "text" | "lines" | "rich" | "image";
-export type ContentGroupId = "business" | "navigation" | "seo" | "images" | "home" | "services" | "tutors" | "assistant" | "shop" | "about" | "pricing" | "contact" | "footer" | "policies";
+export type ContentGroupId = "business" | "navigation" | "seo" | "images" | "home" | "services" | "tutors" | "assistant" | "shop" | "about" | "pricing" | "graphing" | "contact" | "footer" | "policies";
 
 export type ContentEntry = {
   key: string;
@@ -40,6 +40,7 @@ export const CONTENT_GROUPS: readonly { id: ContentGroupId; label: string; blurb
   { id: "shop", label: "Resources", blurb: "Wording on the Resources pages (browse, quality standards, becoming a creator) and the payment steps shown to buyers. The resources themselves are edited under Resources in the admin menu." },
   { id: "about", label: "About page", blurb: "Who we are and what we stand for." },
   { id: "pricing", label: "Pricing page", blurb: "The rate itself comes from site settings, not from this text." },
+  { id: "graphing", label: "Graphing Studio", blurb: "The Graphing Studio link and the wording on the home page feature and the Graphing Studio page. Pictures are set under Site images." },
   { id: "contact", label: "Contact page", blurb: "The Contact page wording. The email, phone and Mobile Money numbers it shows are set under Business details." },
   { id: "footer", label: "Footer", blurb: "The line shown at the bottom of every page." },
   { id: "policies", label: "Terms, privacy and refunds", blurb: "Legal text. Have it reviewed by a lawyer before relying on it." },
@@ -112,6 +113,8 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
   e("page.tutors.image", "images", "Tutors page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
   e("page.resources.image", "images", "Resources page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
   e("page.pricing.image", "images", "Pricing page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
+  e("page.graphing.image", "images", "Graphing Studio page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
+  e("home.graphing.image", "images", "Home page: Graphing Studio picture", "image", 200, "", { optional: true, help: "A screenshot of the Graphing Studio shown on the home page feature. Landscape, about 1200 × 800. Without one, a drawn graph is shown." }),
   e("page.about.image", "images", "About page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
   e("page.contact.image", "images", "Contact page: banner picture", "image", 200, "", { optional: true, help: "Fills the whole top banner behind a light blue layer. Wide landscape, about 1600 × 700." }),
   e("site.favicon", "images", "Browser tab icon", "image", 200, "", { optional: true, help: "The small icon in the browser tab. A square PNG, about 256 × 256, with a simple shape." }),
@@ -129,6 +132,7 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
   e("nav.resources", "navigation", "Menu: Resources", "line", 24, "Resources"),
   e("nav.pricing", "navigation", "Menu: Pricing", "line", 24, "Pricing"),
   e("nav.about", "navigation", "Menu: About", "line", 24, "About"),
+  e("nav.graphing", "navigation", "Menu: Graphing Studio", "line", 24, "Graphing Studio"),
   e("nav.contact", "navigation", "Menu: Contact", "line", 24, "Contact"),
   e("nav.account", "navigation", "Menu: My account (signed in)", "line", 24, "My account"),
   e("nav.signin", "navigation", "Menu: Sign in (signed out)", "line", 24, "Sign in"),
@@ -148,6 +152,8 @@ export const CONTENT_ENTRIES: readonly ContentEntry[] = [
   e("seo.resources.description", "seo", "Resources: description", "text", 170, "Books, courses, worksheets and past questions for Ghanaian learners. Free downloads and paid resources, each reviewed against a published quality standard."),
   e("seo.pricing.title", "seo", "Pricing: title", "line", 70, "Pricing"),
   e("seo.pricing.description", "seo", "Pricing: description", "text", 170, "Tutoring fees at The Modern Pedagogues depend on curriculum, mode, hours and location, and are agreed after your child's assessment. From {rate} per session."),
+  e("seo.graphing.title", "seo", "Graphing Studio: title", "line", 70, "Graphing Studio"),
+  e("seo.graphing.description", "seo", "Graphing Studio: description", "text", 170, "TMP Graphing Studio: an interactive maths tool for drawing, graph paper, equation plotting, statistical charts and geometric constructions."),
   e("seo.about.title", "seo", "About: title", "line", 70, "About"),
   e("seo.about.description", "seo", "About: description", "text", 170, "Who we are and what we stand for at The Modern Pedagogues."),
   e("seo.contact.title", "seo", "Contact: title", "line", 70, "Contact"),
@@ -455,6 +461,59 @@ We will update this page and its date if the terms change.`,
     300,
     "Message us to arrange your child's assessment. It takes a minute to start, and you will know the plan and the fee before the first lesson.",
   ),
+
+  // Graphing Studio
+  e(
+    "graphing.url",
+    "graphing",
+    "Graphing Studio address",
+    "line",
+    300,
+    "https://frontend-iota-lac-92.vercel.app/",
+    { help: "The web address visitors are sent to. It must start with https:// and opens in a new tab. Change it here if the studio moves.", validate: httpsUrl },
+  ),
+  e("graphing.home.kicker", "graphing", "Home page feature: small label", "line", 30, "Try it now"),
+  e("graphing.home.heading", "graphing", "Home page feature: heading", "line", 80, "TMP Graphing Studio"),
+  e(
+    "graphing.home.body",
+    "graphing",
+    "Home page feature: text",
+    "text",
+    300,
+    "Plot equations, draw geometry and build statistical charts right in your browser. A hands-on maths tool made by TMP for learners and teachers: practise, explore and watch the idea click.",
+  ),
+  e("graphing.button", "graphing", "Open button", "line", 40, "Open the Graphing Studio"),
+  e("graphing.home.more", "graphing", "Home page feature: link to the page", "line", 40, "See what's inside"),
+  e("graphing.hero.title", "graphing", "Page headline", "line", 100, "Maths you can see and explore"),
+  e(
+    "graphing.hero.intro",
+    "graphing",
+    "Page introduction",
+    "text",
+    300,
+    "TMP Graphing Studio is an interactive maths tool built by TMP for teachers and learners. Draw, plot and chart in your browser, then use it alongside your lessons.",
+  ),
+  e("graphing.features.heading", "graphing", "Features: heading", "line", 80, "What's inside"),
+  e(
+    "graphing.features.items",
+    "graphing",
+    "Features: items",
+    "lines",
+    900,
+    "Drawing instruments | Draw lines, circles and angles with on-screen instruments.\nGraph paper | Work on clean graph paper, just like in the exercise book.\nEquation plotting | Type an equation and watch its graph appear.\nStatistical charts | Turn data into charts that are easy to read and explain.\nGeometric constructions | Build and explore constructions step by step.",
+    { help: "One feature per line, written as: Title | Description. Only list what the studio really does." },
+  ),
+  e("graphing.audience.heading", "graphing", "Who it is for: heading", "line", 80, "Made for teachers and learners"),
+  e(
+    "graphing.audience.body",
+    "graphing",
+    "Who it is for: text",
+    "text",
+    500,
+    "Use it to see why an answer is right, explore how a graph changes, prepare class examples or practise before an exam. It sits alongside TMP lessons and opens from any browser.",
+  ),
+  e("graphing.cta.heading", "graphing", "Closing call to action: heading", "line", 90, "Ready to explore?"),
+  e("graphing.cta.body", "graphing", "Closing call to action: text", "text", 300, "The studio opens in a new tab. Come back to TMP any time to find a tutor or a resource."),
 
   // Contact
   e("contact.hero.title", "contact", "Page headline", "line", 100, "Let's make the next stage clearer"),

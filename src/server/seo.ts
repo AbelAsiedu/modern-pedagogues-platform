@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getSiteText } from "./context";
 
-export type SeoPage = "home" | "services" | "tutors" | "resources" | "pricing" | "about" | "contact";
+export type SeoPage = "home" | "services" | "tutors" | "resources" | "pricing" | "graphing" | "about" | "contact";
 
 /** Title and description for a main page, from the admin's "Page titles and search descriptions" text. */
 export async function seoMetadata(page: SeoPage): Promise<Metadata> {

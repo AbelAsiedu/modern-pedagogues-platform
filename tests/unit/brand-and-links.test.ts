@@ -33,3 +33,25 @@ describe("image slots in site text", () => {
     expect(set.imageAlt("home.about.image")).toBe("Tutors");
   });
 });
+
+describe("Graphing Studio feature", () => {
+  it("only accepts a secure (https) address, and ships with one", () => {
+    const entry = getEntry("graphing.url")!;
+    expect(entry.default).toMatch(/^https:\/\//);
+    expect(entry.validate!(entry.default)).toBeNull();
+    expect(entry.validate!("http://example.com")).not.toBeNull();
+    expect(entry.validate!("javascript:alert(1)")).not.toBeNull();
+    expect(entry.optional).toBeFalsy();
+  });
+  it("lists the five features as Title | Description lines", () => {
+    const lines = buildSiteText(new Map()).lines("graphing.features.items");
+    expect(lines.map((l) => l.split("|")[0]!.trim())).toEqual([
+      "Drawing instruments",
+      "Graph paper",
+      "Equation plotting",
+      "Statistical charts",
+      "Geometric constructions",
+    ]);
+    expect(lines.every((l) => l.includes("|"))).toBe(true);
+  });
+});

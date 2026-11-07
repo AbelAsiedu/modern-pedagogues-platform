@@ -10,6 +10,7 @@ const NAV = [
   { href: "/services", key: "nav.services" },
   { href: "/tutors", key: "nav.tutors" },
   { href: "/resources", key: "nav.resources" },
+  { href: "/graphing-studio", key: "nav.graphing" },
   ...(PRICING_PAGE_ENABLED ? ([{ href: "/pricing", key: "nav.pricing" }] as const) : []),
   { href: "/contact", key: "nav.contact" },
 ] as const;
@@ -36,13 +37,13 @@ export async function Header() {
         <Link href="/" aria-label={`${t.biz.name} home`} className="shrink-0">
           <Logo name={t.biz.name} imagePath={t.image("site.logo") || undefined} />
         </Link>
-        <nav aria-label="Main" className="hidden items-center gap-x-0.5 text-sm font-medium lg:flex">
+        <nav aria-label="Main" className="hidden items-center gap-x-0.5 text-sm font-medium xl:flex">
           {links.map((l) => (
-            <Link key={l.href + l.label} href={l.href} className="rounded-full px-3 py-2 text-cream/90 transition-colors hover:bg-cream/10 hover:text-gold">
+            <Link key={l.href + l.label} href={l.href} className="whitespace-nowrap rounded-full px-3 py-2 text-cream/90 transition-colors hover:bg-cream/10 hover:text-gold">
               {l.label}
             </Link>
           ))}
-          <a href={cta.href} className="ml-3 rounded-full bg-gold px-5 py-2.5 font-semibold text-navy shadow-lg shadow-black/20 transition-transform hover:scale-[1.04] hover:bg-[#ffd04a]">
+          <a href={cta.href} className="ml-3 whitespace-nowrap rounded-full bg-gold px-5 py-2.5 font-semibold text-navy shadow-lg shadow-black/20 transition-transform hover:scale-[1.04] hover:bg-[#ffd04a]">
             {cta.label}
           </a>
         </nav>

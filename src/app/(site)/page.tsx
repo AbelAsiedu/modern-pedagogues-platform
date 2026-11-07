@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SiteIcon, type SiteIconName } from "@/components/site/Brand";
 import { FeaturedResources } from "@/components/site/FeaturedResources";
+import { GraphingFeature } from "@/components/site/GraphingFeature";
 import { HeroSlideshow } from "@/components/site/HeroSlideshow";
 import { Marquee } from "@/components/site/Marquee";
 import { Reveal } from "@/components/site/Reveal";
@@ -79,6 +80,9 @@ export default async function Home() {
           ))}
         </div>
       </section>
+
+      {/* Graphing Studio */}
+      <GraphingFeature t={t} />
 
       {/* Building a brighter future */}
       <section className="bg-cream-deep">

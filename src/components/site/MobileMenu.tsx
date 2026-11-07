@@ -18,7 +18,7 @@ export function MobileMenu({ links, cta }: { links: { href: string; label: strin
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
   return (
-    <div className="lg:hidden">
+    <div className="xl:hidden">
       <button
         type="button"
         aria-expanded={open}
