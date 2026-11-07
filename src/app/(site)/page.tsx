@@ -195,7 +195,7 @@ export default async function Home() {
             <p className="mt-4 leading-7 text-navy/80">{t.text("home.fees.body")}</p>
             {PRICING_PAGE_ENABLED ? (
               <Link href="/pricing" className="mt-5 inline-block font-semibold text-royal underline decoration-gold decoration-2 underline-offset-4">
-                How pricing works
+                See how our fees work
               </Link>
             ) : null}
           </Reveal>

@@ -90,8 +90,8 @@ Read every page once. These need **your** confirmation because they are business
 - Refund and cancellation terms (24 hours' notice; refund of undelivered prepaid sessions). These are sensible defaults, not your agreed policy.
 - Terms and privacy text: plain-language drafts for this business, **not reviewed by a lawyer**. Also check whether your business must register with Ghana's Data Protection Commission.
 - No postal address is shown, by your decision. The business name on the site is "The Modern Pedagogues".
-- **The Pricing page is switched off for now.** `/pricing` returns "not found", and the menu, footer, sitemap, home page and Kaitlyn's links no longer mention it. Kaitlyn can still answer questions about fees from the same text. To bring the page back, change `PRICING_PAGE_ENABLED` to `true` in `src/lib/site.ts` and redeploy; the page text stays editable in Admin > Site text in the meantime.
-- The pricing page (when switched on) says Paystack payment "is being set up" and tells clients to pay the MoMo number after confirming details on WhatsApp. Update it once Paystack is live.
+- **The Pricing page is live.** It explains that fees depend on curriculum, in-person or online, number of hours and location, and that every learner is assessed before any fee is discussed or negotiated. All of its text is editable in Admin > Site text > Pricing page (the four fee factors and the promises are one item per line, as "Title | Description"). If the owner has already saved his own pricing text, his version is shown instead of the new default. To hide the page again, set `PRICING_PAGE_ENABLED` to `false` in `src/lib/site.ts` and redeploy. The page does not say the assessment is free or give its price; add that in the admin text once the owner decides.
+- The pricing page says Paystack payment "is being set up" and tells clients to pay the MoMo number after confirming details on WhatsApp. Update it once Paystack is live.
 
 ## Paystack requirements (their Ghana page, checked 4 Nov 2026)
 

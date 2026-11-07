@@ -21,10 +21,10 @@ export const whatsappLink = (message: string) =>
 
 /** Owner decision (2026-11-04): negotiable per learner, from GHS 100 per session. */
 /**
- * The Pricing page is switched off for now: the page returns "not found" and no menu, footer, sitemap, home-page or
- * chat link points to it. Set to true (and redeploy) to bring it back; nothing else needs to change.
+ * Whether the Pricing page is live. When false, the page returns "not found" and no menu, footer, sitemap,
+ * home-page or chat link points to it; set to false and redeploy to hide it again.
  */
-export const PRICING_PAGE_ENABLED = false;
+export const PRICING_PAGE_ENABLED = true;
 
 export const INDICATIVE_TUTORING_RATE: Money = money(10_000n, "GHS");
 

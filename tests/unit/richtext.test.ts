@@ -64,4 +64,13 @@ describe("site text registry", () => {
     expect(t.lines("pricing.how.steps")).toHaveLength(4);
     expect(() => t.text("no.such.key")).toThrow();
   });
+
+  it("pricing copy says fees depend on curriculum, mode, hours and location, and follow an assessment", () => {
+    const t = buildSiteText(new Map());
+    const factors = t.lines("pricing.factors.items").map((l) => l.split("|")[0]!.trim().toLowerCase());
+    expect(factors).toEqual(["curriculum", "in-person or online", "number of hours", "location"]);
+    expect(t.text("pricing.assessment.body")).toMatch(/before any fee is discussed or negotiated, every learner is assessed/i);
+    expect(t.lines("pricing.how.steps")[1]).toMatch(/assess/i);
+    expect(t.text("home.fees.body")).toMatch(/after your child's assessment/);
+  });
 });
