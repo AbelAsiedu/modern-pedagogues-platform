@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { logoutAction } from "@/app/(site)/auth-actions";
 import { AdminNav, type NavGroup } from "@/components/admin/AdminNav";
+import { AdminTour } from "@/components/admin/AdminTour";
+import { buildTourSteps } from "@/lib/admin-tour";
+import { createHash } from "node:crypto";
 import { requireSession } from "@/server/context";
 import { isMediaStaff } from "@/server/media/service";
 import { can } from "@/server/permissions/authorize";
@@ -56,6 +59,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .filter((g) => g.links.length > 0);
   // The Dashboard link is always present, so require at least one other area.
   if (groups.reduce((n, g) => n + g.links.length, 0) <= 1) notFound();
+  // The tour starts once per sign-in. Each sign-in is a new session, so a value derived from the session id
+  // (not the id itself, and not the cookie) tells the browser whether this sign-in has already had the tour.
+  const tourKey = createHash("sha256").update(`admin-tour:${s.sessionId}`).digest("hex").slice(0, 16);
+  const tourSteps = buildTourSteps(groups, s.user.fullName.trim().split(/\s+/)[0] ?? "");
   return (
     <div className="admin-shell min-h-screen bg-[#f1f4fb]">
       <AdminNav
@@ -66,6 +73,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </form>
         }
       />
+      <AdminTour steps={tourSteps} sessionKey={tourKey} />
       <main className="admin-main lg:pl-64">
         <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:py-10">{children}</div>
       </main>

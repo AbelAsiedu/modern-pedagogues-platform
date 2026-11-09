@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { TOUR_TARGET_ACCOUNT, TOUR_TARGET_NAV, tourGroupTarget } from "@/lib/admin-tour";
+import { TakeTourButton } from "./AdminTour";
 
 export type NavGroup = { title: string; links: { href: string; label: string; icon: IconName }[] };
 
@@ -71,9 +73,9 @@ export function AdminNav({ groups, signOut }: { groups: NavGroup[]; signOut: Rea
             </span>
           </Link>
         </div>
-        <nav aria-label="Admin" className="flex-1 overflow-y-auto px-3 py-4">
+        <nav aria-label="Admin" data-tour={TOUR_TARGET_NAV} className="flex-1 overflow-y-auto px-3 py-4">
           {groups.map((g) => (
-            <div key={g.title} className="mb-5">
+            <div key={g.title} data-tour={tourGroupTarget(g.title)} className="mb-5">
               <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-cream/45">{g.title}</p>
               <ul className="space-y-0.5">
                 {g.links.map((l) => {
@@ -96,11 +98,14 @@ export function AdminNav({ groups, signOut }: { groups: NavGroup[]; signOut: Rea
           ))}
         </nav>
         <div className="space-y-2 border-t border-cream/10 px-3 py-4">
-          <Link href="/" className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-cream/80 hover:bg-cream/8 hover:text-cream">
-            <Icon name="external" />
-            View website
-          </Link>
-          {signOut}
+          <TakeTourButton className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-cream/80 hover:bg-cream/8 hover:text-cream" />
+          <div data-tour={TOUR_TARGET_ACCOUNT} className="space-y-2">
+            <Link href="/" className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-cream/80 hover:bg-cream/8 hover:text-cream">
+              <Icon name="external" />
+              View website
+            </Link>
+            {signOut}
+          </div>
         </div>
       </aside>
     </>
