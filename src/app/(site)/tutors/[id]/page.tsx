@@ -28,7 +28,7 @@ export default async function TutorPage({ params }: Props) {
     <div className="mx-auto max-w-3xl px-6 py-14">
       <Link href="/tutors" className="text-sm font-semibold text-royal underline decoration-gold decoration-2 underline-offset-4">← All tutors</Link>
       <div className={`mt-6 flex items-center gap-5 rounded-3xl border border-navy/10 bg-white p-6 shadow-lg ${t.photoPath ? "flex-col items-start sm:flex-row sm:items-center" : ""}`}>
-        <Avatar name={t.displayName} photoPath={t.photoPath} size="h-20 w-20 text-2xl" />
+        <Avatar name={t.displayName} photoPath={t.photoPath} focusX={t.photoFocusX} focusY={t.photoFocusY} size="h-20 w-20 text-2xl" />
         <div>
           <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{t.displayName}</h1>
           <p className="mt-1 text-navy/70">{t.headline}</p>

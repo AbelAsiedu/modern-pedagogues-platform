@@ -149,6 +149,8 @@ export async function updateTutorAction(_: ActionState, form: FormData): Promise
         modes: form.getAll("modes").map(String),
         areas: str(form, "areas"),
         photoPath: str(form, "photoPath"),
+        photoFocusX: str(form, "photoFocusX") || "50",
+        photoFocusY: str(form, "photoFocusY") || "25",
         yearsExperience: str(form, "yearsExperience"),
         sortOrder: str(form, "sortOrder") || "0",
         adminNotes: str(form, "adminNotes"),

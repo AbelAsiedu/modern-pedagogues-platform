@@ -2,13 +2,13 @@ import Link from "next/link";
 import type { PublicTutor } from "@/server/tutors/service";
 
 /**
- * The tutor's whole photo, never cropped, when staff have added one (with the tutor's consent); otherwise their
- * initials in a circle. The picture keeps its own shape (portrait, landscape or square) up to a maximum size.
+ * The tutor's photo when staff have added one (with the tutor's consent): it fills its frame and is cropped
+ * around the face position staff chose, so the face stays in view. Otherwise the initials in a circle.
  */
-export function Avatar({ name, photoPath, size = "h-14 w-14 text-lg" }: { name: string; photoPath: string | null; size?: string }) {
+export function Avatar({ name, photoPath, focusX = 50, focusY = 25, size = "h-14 w-14 text-lg" }: { name: string; photoPath: string | null; focusX?: number; focusY?: number; size?: string }) {
   if (!photoPath) return <Initials name={name} size={size} />;
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={photoPath} alt="" className="h-auto max-h-72 w-auto max-w-[11rem] shrink-0 rounded-2xl object-contain sm:max-w-[14rem]" />;
+  return <img src={photoPath} alt="" style={{ objectPosition: `${focusX}% ${focusY}%` }} className="h-40 w-40 shrink-0 rounded-2xl object-cover sm:h-48 sm:w-48" />;
 }
 
 export function Initials({ name, size = "h-14 w-14 text-lg" }: { name: string; size?: string }) {
@@ -34,13 +34,8 @@ export function TutorCard({
     <article className="lift group flex h-full flex-col overflow-hidden rounded-3xl border border-navy/10 bg-white shadow-sm">
       <Link href={`/tutors/${tutor.id}`} aria-label={`View ${tutor.displayName}'s profile`} className="relative block aspect-[5/4] overflow-hidden bg-gradient-to-br from-royal to-navy">
         {tutor.photoPath ? (
-          <>
-            {/* A soft, blurred copy fills the empty space around a photo whose shape differs from the frame. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={tutor.photoPath} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-xl" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={tutor.photoPath} alt="" loading="lazy" className="relative h-full w-full object-contain" />
-          </>
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={tutor.photoPath} alt="" loading="lazy" style={{ objectPosition: `${tutor.photoFocusX}% ${tutor.photoFocusY}%` }} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
         ) : (
           <span aria-hidden="true" className="grid h-full w-full place-items-center text-6xl font-semibold text-gold/90">{initials || "T"}</span>
         )}

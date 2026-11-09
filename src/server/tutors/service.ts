@@ -93,6 +93,8 @@ const photoPathInput = z
 export const profileEditInput = z.object({
   ...publicProfileFields,
   photoPath: photoPathInput,
+  photoFocusX: z.coerce.number().int().min(0).max(100).default(50),
+  photoFocusY: z.coerce.number().int().min(0).max(100).default(25),
   sortOrder: z.coerce.number().int().min(0).max(1000).default(0),
   adminNotes: z.string().trim().max(4000).optional().transform((v) => v || null),
 });
@@ -179,6 +181,9 @@ export type PublicTutor = {
   areas: string | null;
   yearsExperience: number | null;
   photoPath: string | null;
+  /** Percent from the left and top where the face is; the photo is cropped around it. */
+  photoFocusX: number;
+  photoFocusY: number;
 };
 
 export type TutorFilter = { level?: string; curriculum?: string; subject?: string; mode?: string };
@@ -196,6 +201,8 @@ const publicColumns = {
   areas: tutorProfiles.areas,
   yearsExperience: tutorProfiles.yearsExperience,
   photoPath: tutorProfiles.photoPath,
+  photoFocusX: tutorProfiles.photoFocusX,
+  photoFocusY: tutorProfiles.photoFocusY,
 };
 
 const visible = and(eq(tutorProfiles.status, "APPROVED"), eq(tutorProfiles.isPublished, true));
@@ -208,7 +215,7 @@ async function nameMaps(db: DbOrTx) {
   return { level: new Map(lv.map((x) => [x.key, x.name])), curriculum: new Map(cu.map((x) => [x.key, x.name])) };
 }
 
-type PublicRow = { id: string; displayName: string | null; headline: string | null; bio: string | null; subjects: string[]; levelKeys: string[]; curriculumKeys: string[]; modes: string[]; areas: string | null; yearsExperience: number | null; photoPath: string | null };
+type PublicRow = { id: string; displayName: string | null; headline: string | null; bio: string | null; subjects: string[]; levelKeys: string[]; curriculumKeys: string[]; modes: string[]; areas: string | null; yearsExperience: number | null; photoPath: string | null; photoFocusX: number; photoFocusY: number };
 
 function toPublic(r: PublicRow, names: Awaited<ReturnType<typeof nameMaps>>): PublicTutor {
   return {
@@ -223,6 +230,8 @@ function toPublic(r: PublicRow, names: Awaited<ReturnType<typeof nameMaps>>): Pu
     areas: r.areas,
     yearsExperience: r.yearsExperience,
     photoPath: r.photoPath,
+    photoFocusX: r.photoFocusX,
+    photoFocusY: r.photoFocusY,
   };
 }
 

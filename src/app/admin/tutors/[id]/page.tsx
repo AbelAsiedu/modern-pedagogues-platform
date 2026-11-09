@@ -13,6 +13,9 @@ export const metadata = { title: "Tutor" };
 
 const STATUS: Record<string, string> = { PENDING: "Awaiting review", CHANGES_REQUESTED: "Changes requested", APPROVED: "Approved", REJECTED: "Rejected" };
 
+/** The list option closest to a stored percentage (a value set another way still selects something sensible). */
+const nearest = (v: number, options: number[]) => options.reduce((best, o) => (Math.abs(o - v) < Math.abs(best - v) ? o : best), options[0]!);
+
 export default async function AdminTutor({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const s = await requirePermission("tutors.review_applications", `/admin/tutors/${id}`);
@@ -28,6 +31,8 @@ export default async function AdminTutor({ params }: { params: Promise<{ id: str
   const fields: FieldSpec[] = [
     { name: "displayName", label: "Public name", required: true, defaultValue: tutor.displayName ?? "", hint: "First name and last initial, e.g. Ama M. No contact details." },
     { name: "photoPath", label: "Photo", type: "select", options: [{ value: "", label: "No photo (show initials)" }, ...pictures], defaultValue: tutor.photoPath ?? "", hint: "Upload pictures under Media. Only use a photo with the tutor's consent." },
+    { name: "photoFocusX", label: "Face position: across", type: "select", options: [{ value: "15", label: "Far left" }, { value: "33", label: "Left" }, { value: "50", label: "Centre" }, { value: "67", label: "Right" }, { value: "85", label: "Far right" }], defaultValue: String(nearest(tutor.photoFocusX, [15, 33, 50, 67, 85])), hint: "Where the face is, left to right. The photo fills its frame and is cropped around this point so the face stays in view." },
+    { name: "photoFocusY", label: "Face position: down", type: "select", options: [{ value: "5", label: "Very top" }, { value: "25", label: "Upper part (most photos)" }, { value: "50", label: "Middle" }, { value: "75", label: "Lower part" }], defaultValue: String(nearest(tutor.photoFocusY, [5, 25, 50, 75])), hint: "Where the face is, top to bottom." },
     { name: "headline", label: "Headline", required: true, defaultValue: tutor.headline ?? "", hint: "One line, e.g. Mathematics and Science specialist, SHS and BECE." },
     { name: "bio", label: "Biography", type: "textarea", required: true, rows: 6, defaultValue: tutor.bio ?? "" },
     { name: "subjects", label: "Subjects", required: true, defaultValue: tutor.subjects.join(", "), hint: "Separate with commas." },

@@ -43,6 +43,9 @@ export const tutorProfiles = pgTable(
     areas: text("areas"),
     /** A picture from the media library (/media/<id>.jpg). Set by staff only, with the tutor's consent. */
     photoPath: text("photo_path"),
+    /** Where the face is in the photo, as percentages from the left and top. The photo fills its frame, cropped around this point. */
+    photoFocusX: integer("photo_focus_x").notNull().default(50),
+    photoFocusY: integer("photo_focus_y").notNull().default(25),
     yearsExperience: integer("years_experience"),
     sortOrder: integer("sort_order").notNull().default(0),
 
@@ -58,6 +61,7 @@ export const tutorProfiles = pgTable(
     /** One live application per person; a rejected one does not block a later, better application. */
     uniqueIndex("tutor_profiles_email_live_uq").on(t.email).where(sql`status <> 'REJECTED'`),
     check("tutor_profiles_email_lower", sql`${t.email} = lower(${t.email})`),
+    check("tutor_profiles_photo_focus_range", sql`${t.photoFocusX} BETWEEN 0 AND 100 AND ${t.photoFocusY} BETWEEN 0 AND 100`),
     check("tutor_profiles_published_needs_approval", sql`NOT ${t.isPublished} OR ${t.status} = 'APPROVED'`),
   ],
 );

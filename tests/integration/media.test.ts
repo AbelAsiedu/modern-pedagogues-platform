@@ -139,6 +139,23 @@ describe("tutor photos", () => {
     expect(profileEditInput.safeParse({ ...profile, photoPath: "" }).success).toBe(true);
   });
 
+  it("keeps the face position, defaults it to the upper middle, and refuses values outside 0-100", async () => {
+    expect(profileEditInput.parse({ ...profile, photoPath: "" })).toMatchObject({ photoFocusX: 50, photoFocusY: 25 });
+    expect(profileEditInput.parse({ ...profile, photoPath: "", photoFocusX: "15", photoFocusY: "75" })).toMatchObject({ photoFocusX: 15, photoFocusY: 75 });
+    for (const bad of ["-1", "101", "50.5", "abc"]) {
+      expect(profileEditInput.safeParse({ ...profile, photoFocusX: bad }).success, bad).toBe(false);
+      expect(profileEditInput.safeParse({ ...profile, photoFocusY: bad }).success, bad).toBe(false);
+    }
+    const admin = await makeActor(db, "focus@example.com", ["super_admin"]);
+    const pic = await saveImage(db, admin, { filename: "f.png", bytes: await png() });
+    const t = await createTutorByAdmin(db, admin, { fullName: "Efua Mensah", email: "efua@example.com" });
+    await db.update(tutorProfiles).set({ status: "APPROVED", isPublished: true }).where(eq(tutorProfiles.id, t));
+    await updateTutorProfile(db, admin, t, { ...profile, photoPath: pic.path, photoFocusX: "85", photoFocusY: "5" });
+    expect(await getPublicTutor(db, t)).toMatchObject({ photoFocusX: 85, photoFocusY: 5 });
+    // The database itself refuses nonsense, not just the form.
+    await expect(db.update(tutorProfiles).set({ photoFocusX: 150 }).where(eq(tutorProfiles.id, t))).rejects.toThrow();
+  });
+
   it("shows the photo on the public profile once the tutor is approved and published", async () => {
     const admin = await makeActor(db, "a@example.com", ["super_admin"]);
     const pic = await saveImage(db, admin, { filename: "ama.png", bytes: await png() });

@@ -1,0 +1,3 @@
+ALTER TABLE "tutor_profiles" ADD COLUMN "photo_focus_x" integer DEFAULT 50 NOT NULL;--> statement-breakpoint
+ALTER TABLE "tutor_profiles" ADD COLUMN "photo_focus_y" integer DEFAULT 25 NOT NULL;--> statement-breakpoint
+ALTER TABLE "tutor_profiles" ADD CONSTRAINT "tutor_profiles_photo_focus_range" CHECK ("tutor_profiles"."photo_focus_x" BETWEEN 0 AND 100 AND "tutor_profiles"."photo_focus_y" BETWEEN 0 AND 100);
