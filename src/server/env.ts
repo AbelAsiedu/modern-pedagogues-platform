@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { parseEncryptionKey } from "./auth/secret-box";
 
 /**
  * Environment validation. Every variable the server reads is declared here, parsed once, and typed.
@@ -35,9 +36,29 @@ const schema = z
     MISTRAL_MODEL: z.string().min(1).default("mistral-small-latest"),
     /** Hard ceiling on Kaitlyn replies per day across all visitors (cost control). */
     ASSISTANT_DAILY_LIMIT: z.coerce.number().int().min(1).max(100_000).default(1000),
+    /**
+     * Two-step sign-in. MFA_ENCRYPTION_KEY is 32 random bytes as base64; it encrypts authenticator seeds in the database.
+     * Without it two-step sign-in cannot be set up and is not required of anyone. Generate one with:
+     *   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+     * Keep a copy somewhere safe: if it is lost, authenticator apps stop working (recovery codes still do) and everyone re-enrols.
+     */
+    MFA_ENCRYPTION_KEY: z.string().min(1).optional(),
+    /** When a key is set, staff roles are withheld from anyone who has not set up two-step sign-in. Set false only in an emergency. */
+    STAFF_MFA_REQUIRED: boolish.default(true),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   })
   .superRefine((v, ctx) => {
+    if (v.MFA_ENCRYPTION_KEY) {
+      try {
+        parseEncryptionKey(v.MFA_ENCRYPTION_KEY);
+      } catch {
+        ctx.addIssue({
+          code: "custom",
+          path: ["MFA_ENCRYPTION_KEY"],
+          message: "must be 32 random bytes encoded as base64 (see .env.example for the command that makes one)",
+        });
+      }
+    }
     if (v.EMAIL_PROVIDER === "smtp") {
       for (const key of ["SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"] as const) {
         if (!v[key]) ctx.addIssue({ code: "custom", path: [key], message: `${key} is required when EMAIL_PROVIDER=smtp` });

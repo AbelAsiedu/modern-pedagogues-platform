@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Icon, type IconName } from "@/components/admin/AdminNav";
 import { headers } from "next/headers";
 import { checkSiteAddress } from "@/lib/site-address";
+import { twoStepNotice } from "@/lib/two-step-check";
 import { env } from "@/server/env";
 import { adminOverview } from "@/server/admin/overview";
 import { getSession } from "@/server/context";
@@ -35,6 +36,8 @@ export default async function AdminHome() {
   // Only people who can run the site settings need to see this.
   const address = can(actor, "content.manage_site") ? checkSiteAddress(env().APP_URL, (await headers()).get("host")) : ({ ok: true } as const);
 
+  const twoStep = can(actor, "content.manage_site") ? twoStepNotice(Boolean(env().MFA_ENCRYPTION_KEY), env().STAFF_MFA_REQUIRED) : null;
+
   type Quick = { href: string; label: string; icon: IconName; show: boolean };
   const quick: Quick[] = ([
     { href: "/admin/banners", label: "Edit the home slideshow", icon: "slideshow", show: can(actor, "content.manage_site") },
@@ -64,6 +67,14 @@ export default async function AdminHome() {
           <p className="mt-2 text-xs">If you have a custom domain, use that address instead.</p>
         </section>
       )}
+
+      {twoStep ? (
+        <section role="alert" className="mt-6 rounded-2xl border border-amber-300 bg-amber-50 p-5 text-amber-950">
+          <h2 className="font-semibold">{twoStep.title}</h2>
+          <p className="mt-1 text-sm">{twoStep.body}</p>
+          {twoStep.command ? <p className="mt-2 overflow-x-auto whitespace-pre rounded-lg bg-white px-3 py-2 font-mono text-xs">{twoStep.command}</p> : null}
+        </section>
+      ) : null}
 
       {o.attention.length > 0 ? (
         <section aria-labelledby="attention" className="mt-8">

@@ -57,6 +57,10 @@
     "ASSISTANT_DAILY_LIMIT": {
       "value": "1000",
       "description": "Maximum Kaitlyn replies per day across all visitors"
+    },
+    "MFA_ENCRYPTION_KEY": {
+      "description": "Optional but recommended. 32 random bytes as base64; switches on two-step sign-in for staff. Make one with: node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\". Keep a copy somewhere safe.",
+      "required": false
     }
   }
 }

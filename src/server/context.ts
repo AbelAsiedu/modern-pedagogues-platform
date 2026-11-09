@@ -11,6 +11,8 @@ import {
   type SessionUser,
 } from "./auth/sessions";
 import { db } from "./db";
+import { MFA_CHALLENGE_TTL_SECONDS } from "./auth/mfa";
+import { parseEncryptionKey } from "./auth/secret-box";
 import { loadSiteText } from "./content/site-content";
 import { createMailer } from "./email/factory";
 import { createProviders, type LlmProvider } from "./assistant/providers";
@@ -44,10 +46,21 @@ export function assistantDeps(): AssistantDeps {
   return { db: db(), providers: assistantProviders(), log: logger, siteText: getSiteText, dailyLimit: env().ASSISTANT_DAILY_LIMIT };
 }
 
+/** The key that encrypts authenticator seeds, or null when the site has not been given one. */
+export function mfaKey(): Buffer | null {
+  const k = env().MFA_ENCRYPTION_KEY;
+  return k ? parseEncryptionKey(k) : null;
+}
+
+/** Staff must have two-step sign-in before their roles take effect. Needs a key, otherwise nobody could set it up. */
+export function staffTwoStepEnforced(): boolean {
+  return env().STAFF_MFA_REQUIRED && mfaKey() !== null;
+}
+
 let authSingleton: AuthService | undefined;
 export function authService(): AuthService {
   if (!authSingleton) {
-    authSingleton = createAuthService({ db: db(), mailer: mailer(), log: logger, appUrl: env().APP_URL });
+    authSingleton = createAuthService({ db: db(), mailer: mailer(), log: logger, appUrl: env().APP_URL, mfaKey: mfaKey() });
   }
   return authSingleton;
 }
@@ -77,8 +90,37 @@ export async function setSessionCookie(token: string): Promise<void> {
   });
 }
 
+/**
+ * Expire a cookie by setting it again with the same attributes it was created with. A plain delete() omits `Secure`,
+ * and browsers refuse to touch a `__Host-` cookie that way, so in production the cookie would stay behind after sign-out.
+ */
+async function expireCookie(name: string): Promise<void> {
+  (await cookies()).set(name, "", { httpOnly: true, secure: isProd(), sameSite: "lax", path: "/", maxAge: 0 });
+}
+
 export async function clearSessionCookie(): Promise<void> {
-  (await cookies()).delete(cookieName());
+  await expireCookie(cookieName());
+}
+
+/** Holds the single-use ticket between "password correct" and "code correct". Lives five minutes. */
+export const mfaCookieName = () => (isProd() ? "__Host-tmp_mfa" : "tmp_mfa");
+
+export async function setMfaChallengeCookie(token: string): Promise<void> {
+  (await cookies()).set(mfaCookieName(), token, {
+    httpOnly: true,
+    secure: isProd(),
+    sameSite: "lax",
+    path: "/",
+    maxAge: MFA_CHALLENGE_TTL_SECONDS,
+  });
+}
+
+export async function getMfaChallengeCookie(): Promise<string | undefined> {
+  return (await cookies()).get(mfaCookieName())?.value;
+}
+
+export async function clearMfaChallengeCookie(): Promise<void> {
+  await expireCookie(mfaCookieName());
 }
 
 /** Current signed-in user for this request (memoised), or null. */
@@ -87,7 +129,7 @@ export const getSiteText = cache(() => loadSiteText(() => db()));
 
 export const getSession = cache(async (): Promise<SessionUser | null> => {
   const token = (await cookies()).get(cookieName())?.value;
-  return validateSession(db(), token);
+  return validateSession(db(), token, new Date(), { requireStaffTwoStep: staffTwoStepEnforced() });
 });
 
 export async function getActor(): Promise<Actor | null> {

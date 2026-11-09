@@ -19,6 +19,7 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
     "admin:create": "tsx scripts/create-super-admin.ts",
+    "admin:reset-mfa": "tsx scripts/reset-mfa.ts",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build",
     "assistant:purge": "tsx scripts/purge-chat-logs.ts"
   },

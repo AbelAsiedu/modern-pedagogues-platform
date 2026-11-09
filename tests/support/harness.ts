@@ -27,19 +27,23 @@ export async function resetData(db: Db) {
   await db.transaction(async (tx) => {
     await tx.execute(sql`ALTER TABLE audit_logs DISABLE TRIGGER USER`);
     await tx.execute(sql`TRUNCATE users, roles, user_roles, sessions, email_verification_tokens, password_reset_tokens,
-      rate_limits, email_deliveries, site_settings, curricula, academic_levels, subjects, hero_banners, site_content, tutor_profiles, assistant_knowledge, assistant_chat_logs, media_files, orders, resource_reviews, creator_profiles, creator_payouts, products, product_files, audit_logs`);
+      rate_limits, email_deliveries, site_settings, curricula, academic_levels, subjects, hero_banners, site_content, tutor_profiles, assistant_knowledge, assistant_chat_logs, media_files, orders, resource_reviews, creator_profiles, creator_payouts, products, product_files, user_mfa, mfa_recovery_codes, mfa_challenges, audit_logs`);
     await tx.execute(sql`ALTER TABLE audit_logs ENABLE TRIGGER USER`);
   });
   await seedReferenceData(db);
 }
 
-export function makeAuth(db: Db, clock?: { now: Date }) {
+/** A fixed key for tests: 32 bytes. */
+export const TEST_MFA_KEY = Buffer.alloc(32, 7);
+
+export function makeAuth(db: Db, clock?: { now: Date }, opts: { mfaKey?: Buffer | null } = {}) {
   const mailer = new MemoryMailer();
   const auth = createAuthService({
     db,
     mailer,
     log: createLogger("silent"),
     appUrl: "http://localhost:3000",
+    mfaKey: opts.mfaKey === undefined ? TEST_MFA_KEY : opts.mfaKey,
     now: clock ? () => new Date(clock.now) : undefined,
   });
   const tokenFromLast = () => {

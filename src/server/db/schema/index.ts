@@ -6,3 +6,4 @@ export * from "./tutors";
 export * from "./assistant";
 export * from "./media";
 export * from "./shop";
+export * from "./mfa";

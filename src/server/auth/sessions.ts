@@ -1,7 +1,7 @@
-import { and, eq, gt, isNull, ne } from "drizzle-orm";
+import { and, eq, gt, isNotNull, isNull, ne } from "drizzle-orm";
 import type { DbOrTx } from "../db";
-import { roles, sessions, userRoles, users } from "../db/schema";
-import { isRoleKey, type RoleKey } from "../permissions/catalog";
+import { roles, sessions, userMfa, userRoles, users } from "../db/schema";
+import { isRoleKey, STAFF_ROLES, type RoleKey } from "../permissions/catalog";
 import type { Actor } from "../permissions/authorize";
 import { generateToken, hashToken } from "./tokens";
 
@@ -47,13 +47,35 @@ export type SessionUser = {
   sessionId: string;
   actor: Actor;
   user: { id: string; email: string; fullName: string };
+  /**
+   * True when this person holds a staff role but has not set up two-step sign-in, and the site requires it.
+   * Their staff roles are withheld from `actor` until they do, so every permission check refuses them, not just the admin pages.
+   */
+  mfaSetupRequired: boolean;
 };
+
+/** Has this user finished two-step set-up (proved their authenticator app works)? */
+export async function hasTwoStep(db: DbOrTx, userId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ u: userMfa.userId })
+    .from(userMfa)
+    .where(and(eq(userMfa.userId, userId), isNotNull(userMfa.confirmedAt)))
+    .limit(1);
+  return Boolean(row);
+}
+
+export type ValidateOptions = { requireStaffTwoStep?: boolean };
 
 /**
  * Resolve a raw cookie value to the current user, or null. Always re-reads the user's status
  * and roles from the database, so suspension and role changes take effect on the next request.
  */
-export async function validateSession(db: DbOrTx, rawToken: string | undefined, now = new Date()): Promise<SessionUser | null> {
+export async function validateSession(
+  db: DbOrTx,
+  rawToken: string | undefined,
+  now = new Date(),
+  options: ValidateOptions = {},
+): Promise<SessionUser | null> {
   if (!rawToken || rawToken.length > 200) return null;
   const rows = await db
     .select({
@@ -90,12 +112,19 @@ export async function validateSession(db: DbOrTx, rawToken: string | undefined, 
     .from(userRoles)
     .innerJoin(roles, eq(roles.id, userRoles.roleId))
     .where(eq(userRoles.userId, row.userId));
-  const roleKeys: RoleKey[] = roleRows.map((r) => r.key).filter(isRoleKey);
+  let roleKeys: RoleKey[] = roleRows.map((r) => r.key).filter(isRoleKey);
+
+  let mfaSetupRequired = false;
+  if (options.requireStaffTwoStep && roleKeys.some((r) => STAFF_ROLES.includes(r)) && !(await hasTwoStep(db, row.userId))) {
+    mfaSetupRequired = true;
+    roleKeys = roleKeys.filter((r) => !STAFF_ROLES.includes(r));
+  }
 
   return {
     sessionId: row.sessionId,
     actor: { id: row.userId, status: row.status, roles: roleKeys },
     user: { id: row.userId, email: row.email, fullName: row.fullName },
+    mfaSetupRequired,
   };
 }
 

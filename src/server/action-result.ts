@@ -6,6 +6,8 @@ export type ActionState = {
   message?: string;
   error?: string;
   fieldErrors?: Record<string, string[]>;
+  /** One-time secrets to show once (two-step recovery codes). Never logged or stored by the page. */
+  codes?: string[];
 };
 
 /** Run an action body, converting thrown app errors into form-friendly state. Unexpected errors are logged, not shown. */

@@ -60,3 +60,7 @@ Thumbs.db
 .vercel
 .fly
 *.local
+
+# Database backups downloaded by scripts/backup-download.sh (they hold personal data)
+backups/
+*.dump

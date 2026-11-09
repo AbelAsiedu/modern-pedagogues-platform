@@ -4,13 +4,15 @@ import { AdminNav, type NavGroup } from "@/components/admin/AdminNav";
 import { requireSession } from "@/server/context";
 import { isMediaStaff } from "@/server/media/service";
 import { can } from "@/server/permissions/authorize";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: { default: "Admin", template: "%s | TMP Admin" }, robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const s = await requireSession("/admin");
+  // Staff without two-step sign-in have no staff powers yet; send them to set it up rather than showing a 404.
+  if (s.mfaSetupRequired) redirect("/account/security?required=1");
   const a = s.actor;
   type Item = NavGroup["links"][number] & { show: boolean };
   const all: { title: string; links: Item[] }[] = [

@@ -1,4 +1,4 @@
-# Security: what is actually implemented (end of Phase 2)
+# Security: what is actually implemented
 
 This lists behaviour that exists in code and is covered by tests. Anything not listed is not done.
 
@@ -9,6 +9,8 @@ This lists behaviour that exists in code and is covered by tests. Anything not l
 - Account enumeration: sign-up, resend and reset return the same response for known and unknown emails; an existing owner is emailed instead (a fresh confirmation link if the account is still unconfirmed, otherwise a password-reset link). Signing up again on an unconfirmed address never changes its password, so nobody can pre-set the password on someone else's address; the password chosen first stays in force. Login returns one error for unknown user and wrong password. Unverified/suspended status is revealed only after the correct password.
 - Email verification and password reset tokens: single use (claimed by one conditional UPDATE, tested under concurrency), expire in 24 h / 1 h, stored hashed. Reset revokes all sessions.
 - Self-registration can only create `student` or `parent` accounts.
+- **Two-step sign-in (authenticator app, RFC 6238 TOTP).** Anyone can switch it on at Account > Two-step sign-in; staff roles are withheld until they do. With it on, a correct password never yields a session: `login()` throws `MfaRequiredError` carrying a single-use, 5-minute ticket (stored hashed, replaced by each new password step), and only `mfa.completeLogin` creates the session. Every try is counted before the code is checked and the fifth wrong one destroys the ticket; per-IP (40 per 10 min) and per-user (10 per 15 min) limits also apply. A code is accepted once: the last accepted 30-second step is stored and claimed by one conditional UPDATE, so replays and simultaneous attempts fail (tested). The authenticator seed is encrypted at rest with AES-256-GCM under `MFA_ENCRYPTION_KEY` (server environment only); 10 recovery codes are stored as SHA-256 hashes, each works once, and they still work if the key is lost. Switching it on signs out every other session of that person. Turning it off or making new recovery codes needs the password and a current code. A password reset does not switch it off. Someone who lost both phone and recovery codes is reset by the site owner on the server (`npm run admin:reset-mfa -- email`), which ends their sessions and is audited. Wrong codes and every set-up change are written to the audit log (never the codes).
+- **Staff must use it** when `MFA_ENCRYPTION_KEY` is set and `STAFF_MFA_REQUIRED` is not `false`: `validateSession` removes every staff role (`STAFF_ROLES`, super administrator included) from the session's actor until set-up is complete, so the refusal applies to every permission check, server action and API route, not just admin pages. Without a key the requirement cannot be met, so it is not applied and the admin dashboard says so.
 
 ## Authorization
 - Permission-based, defined in `src/server/permissions/catalog.ts`. Suspended or unverified accounts hold no permissions.
@@ -64,4 +66,4 @@ This lists behaviour that exists in code and is covered by tests. Anything not l
 - Creators are rate-limited (picture and PDF uploads, joining) and capped (30 listings, 100 MB of PDFs, 40 pictures). Staff can suspend a creator, which blocks new uploads and submissions.
 
 ## Not yet done (see KNOWN_ISSUES)
-Staff MFA, malware and plagiarism scanning of creator PDFs, security headers beyond the static set in `next.config.ts` (CSP still allows `'unsafe-inline'`), malware scanning, backups, and an external security review.
+Malware and plagiarism scanning of creator PDFs, security headers beyond the static set in `next.config.ts` (CSP still allows `'unsafe-inline'`), an automatic off-Heroku copy of the database (backups are scheduled on Heroku and copied by hand: see `BACKUPS.md`), an email to the owner when two-step sign-in is turned off or recovery codes are used, a screen for a super administrator to reset a colleague's two-step sign-in (today it is a command on the server), and an external security review.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useId, useState } from "react";
+import { useActionState, useEffect, useId, useState } from "react";
 import { useFormStatus } from "react-dom";
 import type { ActionState } from "@/server/action-result";
 
@@ -35,6 +35,31 @@ function Submit({ label, tone = "primary" }: { label: string; tone?: "primary" |
   );
 }
 
+/** Secrets shown a single time, with a copy button. The page that holds them is gone as soon as the person leaves it. */
+function ShownOnce({ codes }: { codes: string[] }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div role="region" aria-label="Recovery codes" className="rounded-2xl border-2 border-gold bg-gold/15 p-5">
+      <p className="font-semibold">Save these recovery codes now. They will not be shown again.</p>
+      <p className="mt-1 text-sm">Each one works once if you lose your phone. Keep them somewhere safe and away from your password, such as a printed page.</p>
+      <ul className="mt-4 grid grid-cols-2 gap-2 font-mono text-base tracking-wider">
+        {codes.map((c) => (
+          <li key={c} className="rounded-lg bg-white px-3 py-1.5 text-center">{c}</li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        onClick={() => {
+          void navigator.clipboard?.writeText(codes.join("\n")).then(() => setCopied(true)).catch(() => setCopied(false));
+        }}
+        className="mt-4 rounded-full border-2 border-royal px-4 py-1.5 text-sm font-semibold text-royal hover:bg-royal hover:text-cream"
+      >
+        {copied ? "Copied" : "Copy all codes"}
+      </button>
+    </div>
+  );
+}
+
 const inputCls = "mt-1 w-full rounded-xl border border-navy/25 bg-white px-3.5 py-2.5 text-base focus:border-royal focus:outline-none focus:ring-2 focus:ring-royal/30";
 
 /** Generic form bound to a server action. Shows field errors, a general error, and a success message. */
@@ -45,6 +70,7 @@ export function ActionForm({
   hidden,
   tone,
   className,
+  onCodesShown,
 }: {
   action: (state: ActionState, form: FormData) => Promise<ActionState>;
   fields: readonly FieldSpec[];
@@ -52,6 +78,8 @@ export function ActionForm({
   hidden?: Record<string, string>;
   tone?: "primary" | "danger" | "quiet";
   className?: string;
+  /** Called once when one-time codes have been shown, so the page around the form can tidy itself away. */
+  onCodesShown?: () => void;
 }) {
   // React clears uncontrolled inputs after every server action. Remember what was typed (never passwords)
   // so a failed attempt does not wipe the form, and clear it again after a success.
@@ -79,12 +107,17 @@ export function ActionForm({
     if (result.ok) setTyped({});
     return result;
   }, {} as ActionState);
+  // Once one-time codes have been shown, the form has done its job: leave only the message and the codes.
+  const finished = Boolean(state.ok && state.codes?.length);
+  useEffect(() => {
+    if (finished) onCodesShown?.();
+  }, [finished, onCodesShown]);
   return (
     <form action={formAction} className={className ?? "space-y-4"} noValidate={false}>
       {Object.entries(hidden ?? {}).map(([k, v]) => (
         <input key={k} type="hidden" name={k} value={v} />
       ))}
-      {fields.map((f) => {
+      {(finished ? [] : fields).map((f) => {
         const errs = state.fieldErrors?.[f.name];
         const id = `f${uid}-${f.name}`.replace(/:/g, "");
         return (
@@ -160,7 +193,7 @@ export function ActionForm({
         );
       })}
       <div className="flex flex-wrap items-center gap-3">
-        <Submit label={submitLabel} tone={tone} />
+        {finished ? null : <Submit label={submitLabel} tone={tone} />}
         {state.error ? (
           <p role="alert" className="text-sm text-red-700">{state.error}</p>
         ) : null}
@@ -168,6 +201,7 @@ export function ActionForm({
           <p role="status" className="text-sm text-green-800">{state.message}</p>
         ) : null}
       </div>
+      {state.ok && state.codes?.length ? <ShownOnce codes={state.codes} /> : null}
     </form>
   );
 }

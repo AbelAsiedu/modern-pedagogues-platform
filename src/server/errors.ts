@@ -15,6 +15,8 @@ export type ErrorCode =
   | "CONFLICT"
   | "RATE_LIMITED"
   | "INVALID_TOKEN"
+  | "MFA_REQUIRED"
+  | "INVALID_CODE"
   | "INTERNAL";
 
 export class AppError extends Error {
@@ -93,6 +95,25 @@ export class RateLimitError extends AppError {
 export class InvalidTokenError extends AppError {
   constructor() {
     super("INVALID_TOKEN", 400, "This link is invalid or has expired. Please request a new one.");
+  }
+}
+
+/**
+ * Thrown by login() when the password was right but the account has two-step sign-in switched on. It carries the
+ * single-use challenge the second step presents; the challenge is a property, never part of the public message.
+ * Because login() throws instead of returning a session, an account with two-step sign-in can never get a session
+ * from the password alone.
+ */
+export class MfaRequiredError extends AppError {
+  constructor(public readonly challenge: string) {
+    super("MFA_REQUIRED", 401, "Enter the code from your authenticator app to finish signing in.");
+  }
+}
+
+/** A wrong, reused or expired second-step code. One message for all of them. */
+export class InvalidCodeError extends AppError {
+  constructor(message = "That code did not work. Check the 6 digits in your app (they change every 30 seconds) or use a recovery code.") {
+    super("INVALID_CODE", 401, message);
   }
 }
 

@@ -27,6 +27,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       }
     >
       {sp.verified ? <Notice>Email confirmed. You can sign in now.</Notice> : null}
+      {sp.expired ? <Notice tone="warn">Your sign-in took too long or was interrupted. Please start again.</Notice> : null}
       {sp.reset ? <Notice>Password updated. Sign in with your new password.</Notice> : null}
       <ActionForm
         action={loginAction}

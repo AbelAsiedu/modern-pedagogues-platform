@@ -21,6 +21,11 @@ export default async function AccountPage() {
           <li key={r} className="rounded-full bg-cream-deep px-3 py-1 text-sm">{ROLE_LABELS[r].name}</li>
         ))}
       </ul>
+      {s.mfaSetupRequired ? (
+        <p role="alert" className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+          Your staff access is paused until you turn on two-step sign-in. <Link href="/account/security?required=1" className="font-semibold underline">Set it up now</Link>; it takes about two minutes.
+        </p>
+      ) : null}
       {isStaff ? (
         <p className="mt-6">
           <Link href="/admin" className="font-semibold underline decoration-gold underline-offset-4">Open the admin area</Link>
@@ -31,6 +36,9 @@ export default async function AccountPage() {
 
       <p className="mt-6">
         <Link href="/account/orders" className="font-semibold underline decoration-gold underline-offset-4">My orders and downloads</Link>
+      </p>
+      <p className="mt-3">
+        <Link href="/account/security" className="font-semibold underline decoration-gold underline-offset-4">Two-step sign-in (extra security)</Link>
       </p>
       <p className="mt-3">
         {can(s.actor, "portal.creator") ? (

@@ -14,6 +14,7 @@ import {
   EmailNotVerifiedError,
   InvalidCredentialsError,
   InvalidTokenError,
+  MfaRequiredError,
   RateLimitError,
 } from "../errors";
 import { deliverEmail } from "../email/deliver";
@@ -25,6 +26,7 @@ import {
   verifyEmailMessage,
 } from "../email/templates";
 import type { Logger } from "../logger";
+import { createMfaService } from "./mfa";
 import { hashPassword, passwordSchema, verifyAgainstDummy, verifyPassword } from "./password";
 import { enforceRateLimit } from "./rate-limit";
 import { createSession, revokeAllSessions, revokeSessionByToken } from "./sessions";
@@ -41,6 +43,8 @@ export type AuthDeps = {
   mailer: Mailer;
   log: Logger;
   appUrl: string;
+  /** Key that encrypts authenticator seeds; null/absent means two-step sign-in cannot be set up (existing sign-ins are unaffected). */
+  mfaKey?: Buffer | null;
   now?: () => Date;
 };
 
@@ -55,6 +59,8 @@ export function createAuthService(deps: AuthDeps) {
   const now = () => (deps.now ? deps.now() : new Date());
   const link = (path: string, token: string) => `${deps.appUrl.replace(/\/$/, "")}${path}?token=${encodeURIComponent(token)}`;
   const ipKey = (ctx: RequestContext) => ctx.ip ?? "unknown";
+
+  const mfa = createMfaService({ db, log, key: deps.mfaKey ?? null, now: deps.now });
 
   const deliver = (message: EmailMessage & { template: string }) => deliverEmail({ db, mailer, log, now }, message);
 
@@ -90,6 +96,9 @@ export function createAuthService(deps: AuthDeps) {
   }
 
   return {
+    /** Two-step sign-in: set-up, the second sign-in step, recovery codes. */
+    mfa,
+
     /**
      * Self-service sign-up. The response is identical whether or not the email already has an account;
      * an existing account owner is emailed instead, so the form cannot be used to discover who is registered.
@@ -241,6 +250,10 @@ export function createAuthService(deps: AuthDeps) {
       // Correct password from here on, so it is safe to say why a sign-in is refused.
       if (user.status === "SUSPENDED") throw new AccountSuspendedError();
       if (user.status === "PENDING_VERIFICATION" || !user.emailVerifiedAt) throw new EmailNotVerifiedError();
+
+      // Two-step sign-in: the password alone never yields a session. The caller gets a short-lived ticket for the
+      // second step, and the failed-attempt counters are left alone until that step succeeds.
+      if (await mfa.isEnabledFor(user.id)) throw new MfaRequiredError(await mfa.createChallenge(user.id));
 
       await db
         .update(users)

@@ -78,6 +78,13 @@
       "when": 1793977150234,
       "tag": "0010_marketplace",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794230933029,
+      "tag": "0011_two_step_login",
+      "breakpoints": true
     }
   ]
 }

@@ -67,6 +67,44 @@ heroku addons:create scheduler:standard -a YOUR-APP-NAME
 # in the Scheduler dashboard add a daily job:  npm run assistant:purge
 ```
 
+## Turn on two-step sign-in (before real money moves)
+
+Two-step sign-in asks for a 6-digit code from an app on the person's phone as well as the password. It is built in and free, but it stays off until the site has a key to protect the codes' secrets. **This release adds a database table (migration 0011), which the release command applies by itself.**
+
+1. Make a key (any computer with Node installed; this prints one line of random text):
+
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+   ```
+
+2. Store it on Heroku. On Windows use the dashboard (your app, Settings, Reveal Config Vars, add `MFA_ENCRYPTION_KEY`), or run `heroku config:set MFA_ENCRYPTION_KEY=PASTE_IT_HERE -a themodernpedagogues`. The app restarts by itself.
+3. **Keep a copy of that key in a password manager.** If it is lost, nobody's authenticator app works any more (recovery codes still do) and everyone has to set up again.
+4. Sign in as the super administrator. Because staff must use two-step sign-in, you are sent to **Account > Two-step sign-in**. Install an authenticator app on your phone (Google Authenticator, Microsoft Authenticator or Authy), press **Start setup**, scan the picture, type the 6-digit code, and **save the 10 recovery codes** somewhere safe (printed, or in a password manager). Your admin access switches on immediately.
+5. Every other staff member does the same the first time they sign in. Until then their staff access stays off.
+
+Good to know:
+
+- The admin dashboard shows a yellow notice with the exact commands while the key is missing.
+- A staff member who loses their phone signs in with a recovery code and sets up again. If they have lost the recovery codes too, reset them from the server: open a Heroku shell and run the reset (on Windows, run commands from a shell rather than passing arguments through `heroku run`):
+
+  ```bash
+  heroku run bash -a themodernpedagogues
+  npm run admin:reset-mfa -- person@example.com
+  ```
+
+  This switches off two-step sign-in for that person only, ends their sessions and is written to the audit log. They sign in with their password and set it up again.
+- **Emergency only**: if you are locked out and cannot reach the shell, set `STAFF_MFA_REQUIRED=false` to stop requiring it, sign in, and remove that setting (`heroku config:unset STAFF_MFA_REQUIRED`) once fixed. The dashboard warns while it is off.
+- Customers (parents and students) can switch it on too, from the same page. It is optional for them.
+
+## Backups
+
+Heroku does not take database backups until you ask it to, and on the Essential plan it keeps very few and tells you nothing when one fails. Switch on the daily schedule once and copy the database to your own computer every week. The full steps, the restore practice run and the limits are in [`BACKUPS.md`](BACKUPS.md); the two commands you need first are:
+
+```bash
+heroku pg:backups:schedule DATABASE_URL --at "02:00 Africa/Accra" -a themodernpedagogues
+bash scripts/backup-download.sh
+```
+
 ## If the release fails
 
 `heroku releases` shows `release command failed`; `heroku releases:output` (or `heroku releases:output v6`) prints why. The site stays on the previous version until a release succeeds. On Windows, run server commands from a Heroku shell (`heroku run bash`) rather than passing arguments through `heroku run`, and set values containing `<` or `>` (such as `EMAIL_FROM`) in the dashboard's Config Vars, because Windows treats those characters as redirection.
