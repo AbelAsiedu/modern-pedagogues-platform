@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActionForm } from "@/components/forms/ActionForm";
 import { ProductCover } from "@/components/site/ProductCard";
-import { getActor } from "@/server/context";
+import { getActor, paystackConfig } from "@/server/context";
 import { db } from "@/server/db";
 import { KIND_LABELS } from "@/server/resources/quality";
 import { getMyOrderForProduct, getPublicProduct, isFree, priceText } from "@/server/shop/service";
@@ -61,12 +61,12 @@ export default async function ResourcePage({ params }: Props) {
               </>
             ) : order?.status === "PENDING_PAYMENT" ? (
               <>
-                <p className="rounded-lg bg-amber-100 p-3 text-sm text-amber-900">Your order <strong>{order.reference}</strong> is waiting for payment. The PDF stays locked until our team confirms it.</p>
-                <Link href="/account/orders" className="mt-3 inline-block font-semibold underline decoration-gold underline-offset-4">See how to pay</Link>
+                <p className="rounded-lg bg-amber-100 p-3 text-sm text-amber-900">Your order <strong>{order.reference}</strong> is waiting for payment. The PDF stays locked until the payment is confirmed.</p>
+                <Link href="/account/orders" className="mt-3 inline-block font-semibold underline decoration-gold underline-offset-4">{paystackConfig() ? "Pay now" : "See how to pay"}</Link>
               </>
             ) : (
               <>
-                <p className="mb-3 text-sm text-navy/70">Locked until paid. Pay by Mobile Money; our team confirms it and your download unlocks.</p>
+                <p className="mb-3 text-sm text-navy/70">{paystackConfig() ? "Locked until paid. Pay online with Mobile Money or a card and your download unlocks straight away." : "Locked until paid. Pay by Mobile Money; our team confirms it and your download unlocks."}</p>
                 <ActionForm action={buyAction} hidden={{ slug: p.slug }} fields={[]} submitLabel="Order this resource" />
               </>
             )}

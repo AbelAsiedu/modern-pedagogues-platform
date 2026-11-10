@@ -20,6 +20,8 @@ import type { AssistantDeps } from "./assistant/service";
 import type { DeliverDeps } from "./email/deliver";
 import type { Mailer } from "./email/mailer";
 import { env } from "./env";
+import type { PaymentDeps } from "./payments/orders";
+import type { PaystackConfig } from "./payments/paystack";
 import { logger } from "./logger";
 import { can, type Actor } from "./permissions/authorize";
 import type { Permission } from "./permissions/catalog";
@@ -33,6 +35,16 @@ export function mailer(): Mailer {
 /** Everything a service needs to record and send an email. */
 export function emailDeps(): DeliverDeps & { appUrl: string } {
   return { db: db(), mailer: mailer(), log: logger, appUrl: env().APP_URL };
+}
+
+/** Paystack settings, or null when no secret key is set (then the shop uses manual Mobile Money confirmation). */
+export function paystackConfig(): PaystackConfig | null {
+  const e = env();
+  return e.PAYSTACK_SECRET_KEY ? { secretKey: e.PAYSTACK_SECRET_KEY, apiUrl: e.PAYSTACK_API_URL } : null;
+}
+
+export function paymentDeps(): PaymentDeps {
+  return { ...emailDeps(), paystack: paystackConfig() };
 }
 
 let providersSingleton: LlmProvider[] | undefined;

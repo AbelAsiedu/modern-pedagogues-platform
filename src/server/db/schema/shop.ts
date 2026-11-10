@@ -101,6 +101,8 @@ export const orders = pgTable(
     status: orderStatus("status").notNull().default("PENDING_PAYMENT"),
     /** MoMo transaction id or similar, recorded by staff when confirming payment. */
     paymentNote: text("payment_note"),
+    /** How it was paid: "paystack" (confirmed automatically) or "manual" (a staff member matched a MoMo payment). */
+    paymentMethod: text("payment_method"),
     paidAt: ts("paid_at"),
     paidById: uuid("paid_by_id").references(() => users.id, { onDelete: "set null" }),
     /** Set when payment is confirmed, for creator-owned products: the split is fixed at that moment. */
@@ -123,6 +125,27 @@ export const orders = pgTable(
     uniqueIndex("orders_one_live_per_product_uq").on(t.userId, t.productId).where(sql`status IN ('PENDING_PAYMENT','PAID')`),
     check("orders_amount_positive", sql`${t.amountMinor} > 0`),
   ],
+);
+
+/**
+ * One try at paying an order through Paystack. Paystack insists on a fresh reference for every transaction, so each
+ * click on "Pay" gets its own reference (the order's TMP- code plus a random tail). Whichever attempt is paid settles the order.
+ */
+export const paymentAttempts = pgTable(
+  "payment_attempts",
+  {
+    id: id(),
+    orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: "restrict" }),
+    provider: text("provider").notNull().default("paystack"),
+    reference: text("reference").notNull(),
+    /** STARTED, PAID, or MISMATCH (Paystack reported a payment whose amount or currency did not match the order). */
+    status: text("status").notNull().default("STARTED"),
+    /** Channel Paystack reported (mobile_money, card...), kept for reconciliation. */
+    channel: text("channel"),
+    completedAt: ts("completed_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("payment_attempts_reference_uq").on(t.reference), index("payment_attempts_order_idx").on(t.orderId, t.createdAt)],
 );
 
 /** Every review decision and takedown on a resource, with the rubric scores. Append-only by convention. */

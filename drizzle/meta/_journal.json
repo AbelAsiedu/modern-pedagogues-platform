@@ -92,6 +92,13 @@
       "when": 1794250268891,
       "tag": "0012_tutor_photo_focus",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794313358465,
+      "tag": "0013_paystack_payments",
+      "breakpoints": true
     }
   ]
 }

@@ -8,7 +8,7 @@ This is a new, independent codebase. The legacy site (`AbelAsiedu/home-tutoring-
 
 ## Status
 
-**Foundation, public site, sign-in, admin tools, editable site text, tutor profiles, the Kaitlyn assistant, image uploads and a digital-resources marketplace (TMP and other creators publish free and paid PDFs behind a quality review) are built. Learning portals, booking, courses and online (Paystack) payments are not built yet.**
+**Foundation, public site, sign-in, admin tools, editable site text, tutor profiles, the Kaitlyn assistant, image uploads and a digital-resources marketplace (TMP and other creators publish free and paid PDFs behind a quality review) are built. Online (Paystack) payment for shop orders is built but has only been tested against a stand-in, not the real Paystack. Learning portals, booking and courses are not built yet.**
 
 | Area | State |
 |---|---|
@@ -29,9 +29,9 @@ This is a new, independent codebase. The legacy site (`AbelAsiedu/home-tutoring-
 | Kaitlyn AI assistant: ported gateway (Gemini Interactions, then OpenRouter, then Mistral), admin-managed knowledge, chat widget, chat log and unanswered-question list, kill switch | Done and checked end to end **with a local stand-in for the AI provider**. **No real provider has been called**: it stays off until you set a key |
 | Redesign: blue, yellow and white look with serif headlines, navy header and footer, curved hero, service cards, tutor cards, impact figures, testimonials and closing banner; every picture is placed from Admin > Site images (built-in illustrations until then); optional social icons; also the favicon, share picture, Kaitlyn's picture, service-card pictures and the About story picture; Resources page filters by subject | Done, checked in a real browser on desktop and phone |
 | Media library: staff upload JPEG/PNG/WebP pictures (re-encoded, location data removed, stored in Postgres), used for home banners, tutor photos and shop covers | Done, checked in a real browser (tutor photos covered by integration tests only) |
-| Shop for digital resources: staff add products with a PDF and cover, visitors order after signing in, pay by MoMo, staff confirm payment with the MoMo transaction ID, buyer downloads from "My orders" | Done, checked in a real browser. **Payment is confirmed by hand**; no Paystack yet, and no real email has been sent |
+| Shop for digital resources: staff add products with a PDF and cover, visitors order after signing in, pay with Paystack (Mobile Money or card) or by MoMo by hand, buyer downloads from "My orders" | Done, checked in a real browser. Paystack confirms automatically once `PAYSTACK_SECRET_KEY` is set (tested against a stand-in only); otherwise staff confirm by hand with the MoMo transaction ID. No real email has been sent |
 | Resources marketplace (`/resources`): TMP and any signed-in visitor who becomes a creator can publish free or paid PDF books, courses, study guides, worksheets and past-question packs. Creators pass automatic requirements, then a reviewer scores a published rubric (3 gates + 5 criteria, value for price on paid items); only approved work is listed. Free: signed-in visitors download at once. Paid: locked until staff confirm the MoMo payment. Creators keep 70%, TMP 30% (fixed per sale); staff record manual MoMo payouts | Done, checked in a real browser (60 steps). **Payment is confirmed by hand and payouts are manual**; terms and payout minimum are drafts for the owner |
-| Learning portals, booking, courses, Paystack payments | **Not built yet** (next stages) |
+| Learning portals, booking, courses | **Not built yet** (next stages) |
 | Email | SMTP mailer built (Gmail App Password), unit-tested with a fake transport; **never sent a real email** |
 | Remote GitHub repository | Created: AbelAsiedu/modern-pedagogues-platform (**make it private**) |
 

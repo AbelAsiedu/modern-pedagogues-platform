@@ -45,6 +45,13 @@ const schema = z
     MFA_ENCRYPTION_KEY: z.string().min(1).optional(),
     /** When a key is set, staff roles are withheld from anyone who has not set up two-step sign-in. Set false only in an emergency. */
     STAFF_MFA_REQUIRED: boolish.default(true),
+    /**
+     * Paystack secret key (sk_test_... or sk_live_...). Optional: without it the shop falls back to manual Mobile Money
+     * confirmation. The same key verifies webhook signatures. Never put it in the repository; set it as a Heroku config var.
+     */
+    PAYSTACK_SECRET_KEY: z.string().regex(/^sk_(test|live)_[A-Za-z0-9]{8,}$/, "must look like sk_test_... or sk_live_... (the SECRET key, not the public pk_ key)").optional(),
+    /** Only for tests: a different Paystack address. Must be https in production. */
+    PAYSTACK_API_URL: z.url().default("https://api.paystack.co"),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   })
   .superRefine((v, ctx) => {
@@ -65,6 +72,9 @@ const schema = z
       }
     }
     if (v.NODE_ENV === "production") {
+      if (!v.PAYSTACK_API_URL.startsWith("https://")) {
+        ctx.addIssue({ code: "custom", path: ["PAYSTACK_API_URL"], message: "PAYSTACK_API_URL must use https in production" });
+      }
       if (!v.APP_URL.startsWith("https://")) {
         ctx.addIssue({ code: "custom", path: ["APP_URL"], message: "APP_URL must use https in production" });
       }

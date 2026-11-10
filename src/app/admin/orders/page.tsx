@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ActionForm } from "@/components/forms/ActionForm";
 import { format, money } from "@/lib/money";
-import { requirePermission } from "@/server/context";
+import { paystackConfig, requirePermission } from "@/server/context";
+import { env } from "@/server/env";
+import { paystackMode } from "@/server/payments/paystack";
 import { db } from "@/server/db";
 import { listOrders, orderCounts } from "@/server/shop/service";
 import { cancelOrderAction, markOrderPaidAction } from "../actions";
@@ -19,11 +21,25 @@ export default async function OrdersAdmin({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const status = FILTERS.find((f) => f.key === sp.status)?.key ?? "PENDING_PAYMENT";
   const [rows, counts] = await Promise.all([listOrders(db(), s.actor, status), orderCounts(db(), s.actor)]);
+  const mode = paystackMode(paystackConfig()?.secretKey);
+  const webhook = `${env().APP_URL.replace(/\/$/, "")}/api/paystack/webhook`;
   return (
     <>
       <h1 className="text-3xl font-semibold tracking-tight">Orders</h1>
-      <p className="mt-2 max-w-2xl text-sm text-navy/70">
-        When a MoMo payment arrives, match it by the reference (TMP-XXXXXX) and amount, then mark the order paid with the MoMo transaction ID. The buyer is emailed and the download unlocks.
+      <section className={`mt-4 max-w-2xl rounded-2xl border p-4 text-sm ${mode === "live" ? "border-green-700/30 bg-green-50" : mode === "test" ? "border-gold/60 bg-cream-deep" : "border-navy/15 bg-white/70"}`}>
+        {mode === "off" ? (
+          <p><strong>Paystack is off.</strong> Buyers pay by Mobile Money by hand and you confirm each payment below. To switch Paystack on, add the secret key as <code>PAYSTACK_SECRET_KEY</code> in the Heroku Config Vars.</p>
+        ) : (
+          <>
+            <p><strong>Paystack is on ({mode === "live" ? "live: real money" : "test mode: no real money moves"}).</strong> Buyers who pay online are confirmed automatically and their download unlocks at once; those orders show a Paystack reference below.</p>
+            <p className="mt-2">In the Paystack dashboard (Settings, API Keys &amp; Webhooks) set the <strong>Webhook URL</strong> to:</p>
+            <p className="mt-1 break-all rounded bg-white/80 px-2 py-1 font-mono text-xs">{webhook}</p>
+            {mode === "test" ? <p className="mt-2">Real payments only start once you switch to the live secret key (<code>sk_live_…</code>) after Paystack approves your business.</p> : null}
+          </>
+        )}
+      </section>
+      <p className="mt-4 max-w-2xl text-sm text-navy/70">
+        Orders paid by hand: when a MoMo payment arrives, match it by the reference (TMP-XXXXXX) and amount, then mark the order paid with the MoMo transaction ID. The buyer is emailed and the download unlocks.
       </p>
       <nav aria-label="Order status" className="mt-6 flex flex-wrap gap-2 text-sm">
         {FILTERS.map((f) => (
@@ -37,7 +53,7 @@ export default async function OrdersAdmin({ searchParams }: { searchParams: Prom
           <li key={o.id} className="rounded-2xl border border-navy/10 bg-white/70 p-5">
             <p className="font-semibold">{o.productTitle} <span className="font-normal text-navy/70">· {format(money(o.amountMinor, "GHS"))}</span></p>
             <p className="mt-1 text-sm">Reference <strong>{o.reference}</strong> · {o.buyerName} ({o.buyerEmail}) · {o.createdAt.toLocaleString("en-GB")}</p>
-            {o.status === "PAID" ? <p className="mt-1 text-sm text-green-800">Paid {o.paidAt?.toLocaleString("en-GB")} · transaction: {o.paymentNote}</p> : null}
+            {o.status === "PAID" ? <p className="mt-1 text-sm text-green-800">Paid {o.paidAt?.toLocaleString("en-GB")} · {o.paymentMethod === "paystack" ? "paid online" : "transaction"}: {o.paymentNote}</p> : null}
             {o.status === "PAID" && o.creatorShareMinor !== null && o.platformShareMinor !== null ? (
               <p className="mt-1 text-sm text-navy/80">Split: creator {format(money(o.creatorShareMinor, "GHS"))} · TMP {format(money(o.platformShareMinor, "GHS"))}</p>
             ) : null}

@@ -525,6 +525,7 @@ export async function listOrders(db: Db, actor: Actor | null, status?: "PENDING_
       amountMinor: orders.amountMinor,
       status: orders.status,
       paymentNote: orders.paymentNote,
+      paymentMethod: orders.paymentMethod,
       createdAt: orders.createdAt,
       paidAt: orders.paidAt,
       creatorShareMinor: orders.creatorShareMinor,
@@ -558,31 +559,57 @@ export async function getCommissionBps(db: DbOrTx): Promise<number> {
  * Confirm that the money arrived. Needs a transaction id as evidence; a second click or second admin changes nothing.
  * For a creator's resource the split between the creator and TMP is fixed here, in the same transaction.
  */
+type SettledOrder = { id: string; userId: string; productId: string; amountMinor: bigint; productTitle: string; reference: string };
+
+/**
+ * Turn a waiting order into a paid one, once. Shared by the manual (staff) and Paystack paths so both fix the creator
+ * split the same way. Returns null when the order was not in a state that can be paid (already paid: a repeat does nothing).
+ * `allowCancelled` lets a verified Paystack payment revive an order the buyer cancelled while the payment was in flight.
+ */
+export async function settleOrderPaid(
+  tx: DbOrTx,
+  orderId: string,
+  o: { paidById: string | null; note: string; method: "manual" | "paystack"; allowCancelled?: boolean },
+): Promise<SettledOrder | null> {
+  const [paid] = await tx
+    .update(orders)
+    .set({ status: "PAID", paidAt: new Date(), paidById: o.paidById, paymentNote: o.note, paymentMethod: o.method, cancelledAt: null })
+    .where(and(eq(orders.id, orderId), inArray(orders.status, o.allowCancelled ? ["PENDING_PAYMENT", "CANCELLED"] : ["PENDING_PAYMENT"])))
+    .returning({ id: orders.id, userId: orders.userId, productId: orders.productId, amountMinor: orders.amountMinor, productTitle: orders.productTitle, reference: orders.reference });
+  if (!paid) return null;
+  const [prod] = await tx.select({ ownerId: products.ownerId }).from(products).where(eq(products.id, paid.productId)).limit(1);
+  if (prod?.ownerId) {
+    const commissionBps = await getCommissionBps(tx);
+    const split = splitSale({ gross: money(paid.amountMinor, "GHS"), commissionBps, processingFeeBps: 0, feeBearer: "platform" });
+    await tx
+      .update(orders)
+      .set({ creatorId: prod.ownerId, commissionBps, creatorShareMinor: split.creatorShare.amount, platformShareMinor: split.platformNet.amount })
+      .where(eq(orders.id, paid.id));
+  }
+  return paid;
+}
+
+/** Tell the buyer their payment arrived and the download is open. */
+export async function sendOrderPaidEmail(deps: ShopDeps, order: SettledOrder) {
+  const [buyer] = await deps.db.select({ email: users.email, fullName: users.fullName }).from(users).where(eq(users.id, order.userId)).limit(1);
+  if (buyer) await deliverEmail(deps, orderPaidMessage(buyer.email, buyer.fullName, { productTitle: order.productTitle, reference: order.reference, ordersLink: `${deps.appUrl.replace(/\/$/, "")}/account/orders` }));
+}
+
+/**
+ * Confirm that the money arrived. Needs a transaction id as evidence; a second click or second admin changes nothing.
+ * For a creator's resource the split between the creator and TMP is fixed here, in the same transaction.
+ */
 export async function markOrderPaid(deps: ShopDeps, actor: Actor | null, orderId: string, note: unknown, ip?: string | null) {
   assertCan(actor, "commerce.manage_orders");
   const proof = parseOrThrow(z.object({ note: paymentNote }), { note }).note;
   const { db } = deps;
   const row = await db.transaction(async (tx) => {
-    const [paid] = await tx
-      .update(orders)
-      .set({ status: "PAID", paidAt: new Date(), paidById: actor.id, paymentNote: proof })
-      .where(and(eq(orders.id, orderId), eq(orders.status, "PENDING_PAYMENT")))
-      .returning({ id: orders.id, userId: orders.userId, productId: orders.productId, amountMinor: orders.amountMinor, productTitle: orders.productTitle, reference: orders.reference });
+    const paid = await settleOrderPaid(tx, orderId, { paidById: actor.id, note: proof, method: "manual" });
     if (!paid) throw new ConflictError("That order is no longer waiting for payment.");
-    const [prod] = await tx.select({ ownerId: products.ownerId }).from(products).where(eq(products.id, paid.productId)).limit(1);
-    if (prod?.ownerId) {
-      const commissionBps = await getCommissionBps(tx);
-      const split = splitSale({ gross: money(paid.amountMinor, "GHS"), commissionBps, processingFeeBps: 0, feeBearer: "platform" });
-      await tx
-        .update(orders)
-        .set({ creatorId: prod.ownerId, commissionBps, creatorShareMinor: split.creatorShare.amount, platformShareMinor: split.platformNet.amount })
-        .where(eq(orders.id, paid.id));
-    }
     await recordAudit(tx, { actorId: actor.id, action: "order.paid", entityType: "order", entityId: orderId, metadata: { reference: paid.reference }, ip });
     return paid;
   });
-  const [buyer] = await db.select({ email: users.email, fullName: users.fullName }).from(users).where(eq(users.id, row.userId)).limit(1);
-  if (buyer) await deliverEmail(deps, orderPaidMessage(buyer.email, buyer.fullName, { productTitle: row.productTitle, reference: row.reference, ordersLink: `${deps.appUrl.replace(/\/$/, "")}/account/orders` }));
+  await sendOrderPaidEmail(deps, row);
 }
 
 export async function cancelOrderByStaff(db: Db, actor: Actor | null, orderId: string, ip?: string | null) {

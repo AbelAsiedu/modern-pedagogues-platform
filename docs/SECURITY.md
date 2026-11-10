@@ -67,3 +67,11 @@ This lists behaviour that exists in code and is covered by tests. Anything not l
 
 ## Not yet done (see KNOWN_ISSUES)
 Malware and plagiarism scanning of creator PDFs, security headers beyond the static set in `next.config.ts` (CSP still allows `'unsafe-inline'`), an automatic off-Heroku copy of the database (backups are scheduled on Heroku and copied by hand: see `BACKUPS.md`), an email to the owner when two-step sign-in is turned off or recovery codes are used, a screen for a super administrator to reset a colleague's two-step sign-in (today it is a command on the server), and an external security review.
+
+## Paystack payments
+
+- The secret key lives only in the server environment (`PAYSTACK_SECRET_KEY`); it is never sent to the browser, logged, or stored in the database. The app refuses to start if the value is not shaped like a Paystack secret key (a public `pk_` key is rejected).
+- A buyer is never told to trust a redirect. The return address and the webhook both only name a reference; the server asks Paystack what happened and settles only on `success` with the order's exact amount in GHS. A wrong amount is refused and logged.
+- The webhook checks `x-paystack-signature` (HMAC-SHA512 of the raw body, constant-time comparison) before reading the body, rejects bodies over 100 kB, and is idempotent. Paystack's signature has no timestamp, so replays are harmless only because settling is repeat-safe and re-verified.
+- Payment pages are opened by a redirect to an `https://` address returned by Paystack; anything else is refused. Card details and Mobile Money PINs are entered on Paystack's pages and never reach TMP's server.
+- Reference codes are random per attempt, so one cannot be guessed to settle someone else's order, and a buyer can only start a payment for their own order.

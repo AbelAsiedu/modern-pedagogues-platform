@@ -67,6 +67,18 @@ heroku addons:create scheduler:standard -a YOUR-APP-NAME
 # in the Scheduler dashboard add a daily job:  npm run assistant:purge
 ```
 
+## Turn on Paystack payments (shop orders)
+
+Without a key the shop works by hand: the buyer pays the MoMo number and you mark the order paid. With a key, buyers get a **Pay now** button that opens Paystack (Mobile Money or card), and the order is confirmed by itself.
+
+1. In the Paystack dashboard, open **Settings > API Keys & Webhooks**. Use the **Test** keys first. Copy the **Secret key** (`sk_test_...`), not the public one.
+2. Set it on Heroku. On Windows use the dashboard (your app, Settings, Reveal Config Vars, add `PAYSTACK_SECRET_KEY`), or `heroku config:set -a themodernpedagogues PAYSTACK_SECRET_KEY=sk_test_...`. Never paste it into the repository or into a chat. The app restarts by itself and refuses to start if the value does not look like a secret key.
+3. In the same Paystack page set the **Webhook URL** to your site address plus `/api/paystack/webhook` (Admin > Orders shows the exact address once the key is set). Test and Live each have their own webhook field.
+4. Place a test order as a customer, press **Pay now** and use Paystack's test payment details. The order should become **Paid** and the download should unlock. Admin > Orders shows "paid online" with the Paystack reference.
+5. When Paystack has approved your business and given you live keys, replace the config var with the **live** secret key (`sk_live_...`) and set the webhook in the **Live** tab. Admin > Orders then says "Paystack is on (live: real money)".
+
+If a buyer says they paid but the order still waits: find the payment in the Paystack dashboard by the order's TMP- code. Ask the buyer to refresh My orders (the webhook may be late), or mark the order paid by hand with the Paystack reference. KNOWN_ISSUES 54 lists what is and is not built.
+
 ## Turn on two-step sign-in (before real money moves)
 
 Two-step sign-in asks for a 6-digit code from an app on the person's phone as well as the password. It is built in and free, but it stays off until the site has a key to protect the codes' secrets. **This release adds a database table (migration 0011), which the release command applies by itself.**
