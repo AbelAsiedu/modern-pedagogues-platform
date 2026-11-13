@@ -54,10 +54,10 @@ const schema = z
     PAYSTACK_API_URL: z.url().default("https://api.paystack.co"),
     /**
      * "Sign in with Google". Create an OAuth client (type: Web application) in Google Cloud Console, add
-     * <APP_URL>/api/auth/google/callback as an authorised redirect URI, and set both values. Set neither to leave it off.
+     * <APP_URL>/api/auth/google/callback as an authorised redirect URI, and set both values. Set neither to leave it off. A missing or malformed value never stops the site: Google sign-in just stays off (see googleConfig).
      */
-    GOOGLE_CLIENT_ID: z.string().regex(/^[A-Za-z0-9._-]{10,200}\.apps\.googleusercontent\.com$/, "must look like 1234-abc.apps.googleusercontent.com").optional(),
-    GOOGLE_CLIENT_SECRET: z.string().min(10).max(200).optional(),
+    GOOGLE_CLIENT_ID: z.string().trim().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().trim().optional(),
     /** Only for tests: other Google addresses. Must be https in production. */
     GOOGLE_AUTH_URL: z.url().default("https://accounts.google.com/o/oauth2/v2/auth"),
     GOOGLE_TOKEN_URL: z.url().default("https://oauth2.googleapis.com/token"),
@@ -79,9 +79,6 @@ const schema = z
       for (const key of ["SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"] as const) {
         if (!v[key]) ctx.addIssue({ code: "custom", path: [key], message: `${key} is required when EMAIL_PROVIDER=smtp` });
       }
-    }
-    if (Boolean(v.GOOGLE_CLIENT_ID) !== Boolean(v.GOOGLE_CLIENT_SECRET)) {
-      ctx.addIssue({ code: "custom", path: [v.GOOGLE_CLIENT_ID ? "GOOGLE_CLIENT_SECRET" : "GOOGLE_CLIENT_ID"], message: "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set together" });
     }
     if (v.NODE_ENV === "production") {
       for (const key of ["GOOGLE_AUTH_URL", "GOOGLE_TOKEN_URL"] as const) {

@@ -44,13 +44,33 @@ export function paystackConfig(): PaystackConfig | null {
   return e.PAYSTACK_SECRET_KEY ? { secretKey: e.PAYSTACK_SECRET_KEY, apiUrl: e.PAYSTACK_API_URL } : null;
 }
 
-/** "Sign in with Google" settings, or null when no client id/secret are set (then the buttons are hidden). */
+const GOOGLE_CLIENT_ID_SHAPE = /^[A-Za-z0-9._-]{10,200}\.apps\.googleusercontent\.com$/;
+let googleWarned = false;
+
+/**
+ * "Sign in with Google" settings, or null when it is not (fully) set up, in which case the buttons are hidden. A half-set
+ * or mistyped pair never stops the site from starting: it is reported once in the log and Google sign-in stays off.
+ */
 export function googleConfig(): GoogleConfig | null {
   const e = env();
-  if (!e.GOOGLE_CLIENT_ID || !e.GOOGLE_CLIENT_SECRET) return null;
+  if (!e.GOOGLE_CLIENT_ID && !e.GOOGLE_CLIENT_SECRET) return null;
+  const problem = !e.GOOGLE_CLIENT_ID
+    ? "GOOGLE_CLIENT_ID is missing"
+    : !e.GOOGLE_CLIENT_SECRET || e.GOOGLE_CLIENT_SECRET.length < 10
+      ? "GOOGLE_CLIENT_SECRET is missing or too short"
+      : !GOOGLE_CLIENT_ID_SHAPE.test(e.GOOGLE_CLIENT_ID)
+        ? "GOOGLE_CLIENT_ID does not look like 1234-abc.apps.googleusercontent.com"
+        : null;
+  if (problem) {
+    if (!googleWarned) {
+      googleWarned = true;
+      logger.warn({ problem }, "Sign in with Google is switched off: fix the Google settings (see docs/DEPLOYMENT.md)");
+    }
+    return null;
+  }
   return {
-    clientId: e.GOOGLE_CLIENT_ID,
-    clientSecret: e.GOOGLE_CLIENT_SECRET,
+    clientId: e.GOOGLE_CLIENT_ID!,
+    clientSecret: e.GOOGLE_CLIENT_SECRET!,
     authUrl: e.GOOGLE_AUTH_URL,
     tokenUrl: e.GOOGLE_TOKEN_URL,
     redirectUri: `${e.APP_URL.replace(/\/$/, "")}/api/auth/google/callback`,
