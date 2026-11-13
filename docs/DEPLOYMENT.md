@@ -130,7 +130,7 @@ bash scripts/backup-download.sh
 
 ## Custom domain (optional, later)
 
-The Web URL Heroku printed (for example `https://themodernpedagogues-70f4f230adc2.herokuapp.com`) is a real HTTPS site and can be used for Paystack registration. A custom domain looks more established: buy one, `heroku domains:add`, point DNS at the target Heroku gives you, then update `APP_URL` and redeploy.
+The Web URL Heroku printed (for example `https://themodernpedagogues-70f4f230adc2.herokuapp.com`) is a real HTTPS site and can be used for Paystack registration. A custom domain looks more established: buy one, `heroku domains:add`, point DNS at the target Heroku gives you, then update `APP_URL` and redeploy. Add both the bare domain and `www` with `heroku domains:add`; on Namecheap the bare domain is an ALIAS record and `www` a CNAME, each pointing at its own DNS target from `heroku domains`. If the certificate shows Failed because DNS was wrong at the time, run `heroku certs:auto:refresh` after fixing the records. Once HTTPS works, set `APP_URL` to the bare address, redeploy (the build reads `APP_URL`), and change the Paystack webhook. The app redirects `www.<your domain>` to the address in `APP_URL` (a permanent redirect decided when the site is built, so redeploy after changing `APP_URL`); the old `herokuapp.com` address keeps working and is not redirected.
 
 ## Before you give Paystack the URL
 

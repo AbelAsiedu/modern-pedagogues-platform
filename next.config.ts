@@ -33,10 +33,21 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@node-rs/argon2", "pg", "pino"],
   async redirects() {
     // The shop became the Resources marketplace; keep old links working.
-    return [
+    const rules = [
       { source: "/shop", destination: "/resources", permanent: true },
       { source: "/shop/:slug", destination: "/resources/:slug", permanent: true },
     ];
+    // One public address: send www.<domain> to the address in APP_URL (sign-in cookies belong to one host, and email
+    // and payment links are built from APP_URL). Skipped for localhost, an IP, or when APP_URL itself starts with www.
+    try {
+      const u = new URL(process.env.APP_URL ?? "");
+      if (u.protocol === "https:" && u.hostname.includes(".") && !/^\d+\.\d+\.\d+\.\d+$/.test(u.hostname) && !u.hostname.startsWith("www.")) {
+        rules.push({ source: "/:path*", has: [{ type: "host", value: `www.${u.hostname}` }], destination: `${u.origin}/:path*`, permanent: true } as (typeof rules)[number]);
+      }
+    } catch {
+      /* APP_URL missing or invalid: no host redirect */
+    }
+    return rules;
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
