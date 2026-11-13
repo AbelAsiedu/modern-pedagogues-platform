@@ -52,6 +52,15 @@ const schema = z
     PAYSTACK_SECRET_KEY: z.string().regex(/^sk_(test|live)_[A-Za-z0-9]{8,}$/, "must look like sk_test_... or sk_live_... (the SECRET key, not the public pk_ key)").optional(),
     /** Only for tests: a different Paystack address. Must be https in production. */
     PAYSTACK_API_URL: z.url().default("https://api.paystack.co"),
+    /**
+     * "Sign in with Google". Create an OAuth client (type: Web application) in Google Cloud Console, add
+     * <APP_URL>/api/auth/google/callback as an authorised redirect URI, and set both values. Set neither to leave it off.
+     */
+    GOOGLE_CLIENT_ID: z.string().regex(/^[A-Za-z0-9._-]{10,200}\.apps\.googleusercontent\.com$/, "must look like 1234-abc.apps.googleusercontent.com").optional(),
+    GOOGLE_CLIENT_SECRET: z.string().min(10).max(200).optional(),
+    /** Only for tests: other Google addresses. Must be https in production. */
+    GOOGLE_AUTH_URL: z.url().default("https://accounts.google.com/o/oauth2/v2/auth"),
+    GOOGLE_TOKEN_URL: z.url().default("https://oauth2.googleapis.com/token"),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   })
   .superRefine((v, ctx) => {
@@ -71,7 +80,13 @@ const schema = z
         if (!v[key]) ctx.addIssue({ code: "custom", path: [key], message: `${key} is required when EMAIL_PROVIDER=smtp` });
       }
     }
+    if (Boolean(v.GOOGLE_CLIENT_ID) !== Boolean(v.GOOGLE_CLIENT_SECRET)) {
+      ctx.addIssue({ code: "custom", path: [v.GOOGLE_CLIENT_ID ? "GOOGLE_CLIENT_SECRET" : "GOOGLE_CLIENT_ID"], message: "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set together" });
+    }
     if (v.NODE_ENV === "production") {
+      for (const key of ["GOOGLE_AUTH_URL", "GOOGLE_TOKEN_URL"] as const) {
+        if (!v[key].startsWith("https://")) ctx.addIssue({ code: "custom", path: [key], message: `${key} must use https in production` });
+      }
       if (!v.PAYSTACK_API_URL.startsWith("https://")) {
         ctx.addIssue({ code: "custom", path: ["PAYSTACK_API_URL"], message: "PAYSTACK_API_URL must use https in production" });
       }

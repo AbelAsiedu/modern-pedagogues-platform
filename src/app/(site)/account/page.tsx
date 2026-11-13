@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ActionForm } from "@/components/forms/ActionForm";
-import { requireSession } from "@/server/context";
+import { authService, requireSession } from "@/server/context";
 import { can } from "@/server/permissions/authorize";
 import { ROLE_LABELS } from "@/server/permissions/catalog";
 import { changePasswordAction, logoutAction } from "../auth-actions";
@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AccountPage() {
   const s = await requireSession("/account");
+  const hasPassword = await authService().mfa.hasPassword(s.user.id);
   const isStaff = can(s.actor, "users.view") || can(s.actor, "content.manage_site");
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
@@ -48,16 +49,22 @@ export default async function AccountPage() {
         )}
       </p>
 
-      <h2 className="mt-12 text-xl font-semibold">Change password</h2>
+      <h2 className="mt-12 text-xl font-semibold">{hasPassword ? "Change password" : "Password"}</h2>
       <div className="mt-4 rounded-2xl border border-navy/10 bg-white/70 p-6">
-        <ActionForm
-          action={changePasswordAction}
-          submitLabel="Change password"
-          fields={[
-            { name: "currentPassword", label: "Current password", type: "password", autoComplete: "current-password", required: true },
-            { name: "newPassword", label: "New password", type: "password", autoComplete: "new-password", required: true, hint: "At least 12 characters." },
-          ]}
-        />
+        {hasPassword ? (
+          <ActionForm
+            action={changePasswordAction}
+            submitLabel="Change password"
+            fields={[
+              { name: "currentPassword", label: "Current password", type: "password", autoComplete: "current-password", required: true },
+              { name: "newPassword", label: "New password", type: "password", autoComplete: "new-password", required: true, hint: "At least 12 characters." },
+            ]}
+          />
+        ) : (
+          <p className="text-sm text-navy/80">
+            You sign in with Google, so this account has no password. If you also want to sign in with an email and password, <Link href="/forgot-password" className="font-semibold underline">set one here</Link>; we email a link to {s.user.email}.
+          </p>
+        )}
       </div>
 
       <form action={logoutAction} className="mt-10">

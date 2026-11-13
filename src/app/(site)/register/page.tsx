@@ -2,17 +2,31 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthCard } from "@/components/site/AuthCard";
 import { ActionForm } from "@/components/forms/ActionForm";
+import { GoogleButton, OrDivider } from "@/components/site/GoogleButton";
+import { googleConfig } from "@/server/context";
 import { registerAction } from "../auth-actions";
 
 export const metadata: Metadata = { title: "Create an account", robots: { index: false } };
 
+export const dynamic = "force-dynamic";
+
 export default function RegisterPage() {
+  const google = googleConfig() !== null;
   return (
     <AuthCard
       title="Create an account"
       intro="For parents and students. Tutors and marketplace creators apply separately."
       footer={<p>Already registered? <Link href="/login" className="underline">Sign in</Link></p>}
     >
+      {google ? (
+        <>
+          <div className="space-y-3">
+            <GoogleButton label="Sign up with Google as a parent" role="parent" />
+            <GoogleButton label="Sign up with Google as a student" role="student" />
+          </div>
+          <OrDivider />
+        </>
+      ) : null}
       <ActionForm
         action={registerAction}
         submitLabel="Create account"

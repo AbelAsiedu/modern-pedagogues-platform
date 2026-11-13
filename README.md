@@ -8,7 +8,7 @@ This is a new, independent codebase. The legacy site (`AbelAsiedu/home-tutoring-
 
 ## Status
 
-**Foundation, public site, sign-in, admin tools, editable site text, tutor profiles, the Kaitlyn assistant, image uploads and a digital-resources marketplace (TMP and other creators publish free and paid PDFs behind a quality review) are built. Online (Paystack) payment for shop orders is built and a live Mobile Money payment has been reported to work; other cases were only tested against a stand-in. Learning portals, booking and courses are not built yet.**
+**Foundation, public site, sign-in, admin tools, editable site text, tutor profiles, the Kaitlyn assistant, image uploads and a digital-resources marketplace (TMP and other creators publish free and paid PDFs behind a quality review) are built. Online (Paystack) payment for shop orders is built and a live Mobile Money payment has been reported to work; other cases were only tested against a stand-in. Sign in with Google (with two-step sign-in still required where it is on) is built and tested against a stand-in Google; it switches on when the two Google settings are added. Learning portals, booking and courses are not built yet.**
 
 | Area | State |
 |---|---|

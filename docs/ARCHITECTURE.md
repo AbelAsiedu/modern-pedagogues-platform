@@ -120,3 +120,11 @@ Each phase ends with passing lint, type-check, tests and a build before its comm
 - `src/server/shop/service.ts`: `settleOrderPaid` is the single place an order becomes paid, for both the Paystack and the hand-confirmed route (fixes the creator split; records `payment_method` as `paystack` or `manual`).
 - Routes: `GET /api/paystack/callback` (buyer returns; redirects to My orders with a message) and `POST /api/paystack/webhook` (HMAC-SHA512 of the raw body keyed with the secret key, header `x-paystack-signature`; 401 if wrong, 200 once handled, 500 on a temporary failure so Paystack retries). Neither trusts what it is told: the payment is always re-verified with Paystack.
 - No key set: the Pay now buttons are hidden, the webhook answers 404, and the shop works exactly as before.
+
+## Sign in with Google, as built
+
+- `src/server/auth/google.ts`: builds the Google address (state, nonce, PKCE S256), trades the code for an ID token, and checks the token's claims. Pure functions plus one `fetch`; unit tested without a network.
+- `src/server/db/schema/oauth.ts` / migration `0014_google_sign_in.sql`: `oauth_identities` (user, provider, Google subject, last email; unique on provider+subject and on user+provider).
+- `authService.signInWithGoogle(profile, role, ctx)`: linked identity, else same-email account (linked), else a new confirmed account without password. Throws `MfaRequiredError` for accounts with two-step, `AccountSuspendedError`, `ConflictError` (different Google account already linked).
+- Routes: `GET /api/auth/google/start` and `GET /api/auth/google/callback`. Buttons: `src/components/site/GoogleButton.tsx` on Sign in and Create account, shown only when `googleConfig()` is not null. `postSignInPath` in `context.ts` is shared with the password sign-in so both land people in the same place.
+- Environment: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (both or neither); `GOOGLE_AUTH_URL` / `GOOGLE_TOKEN_URL` default to Google's and exist so tests can use a stand-in (https required in production).

@@ -7,3 +7,4 @@ export * from "./assistant";
 export * from "./media";
 export * from "./shop";
 export * from "./mfa";
+export * from "./oauth";

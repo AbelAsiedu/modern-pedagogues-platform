@@ -99,6 +99,13 @@
       "when": 1794313358465,
       "tag": "0013_paystack_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794592506929,
+      "tag": "0014_google_sign_in",
+      "breakpoints": true
     }
   ]
 }

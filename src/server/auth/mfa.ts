@@ -102,11 +102,15 @@ export function createMfaService(deps: MfaDeps) {
     return codes;
   }
 
-  /** Password plus a current code: the proof asked for before anything that weakens or replaces two-step sign-in. */
-  async function proveIdentity(userId: string, input: { password: string; code: string }, at: Date, ctx: MfaContext) {
+  /**
+   * Password plus a current code: the proof asked for before anything that weakens or replaces two-step sign-in.
+   * An account that signs in with Google and never set a password has none to give, so for it the code alone is the proof.
+   */
+  async function proveIdentity(userId: string, input: { password?: string; code: string }, at: Date, ctx: MfaContext) {
     await enforceRateLimit(db, { key: `mfa-manage:user:${userId}`, limit: 10, windowSeconds: 900 });
     const [user] = await db.select({ hash: users.passwordHash }).from(users).where(eq(users.id, userId)).limit(1);
-    if (!user?.hash || !(await verifyPassword(user.hash, input.password))) throw new InvalidCredentialsError();
+    if (!user) throw new InvalidCredentialsError();
+    if (user.hash && !(await verifyPassword(user.hash, input.password ?? ""))) throw new InvalidCredentialsError();
     const used = await consumeFactor(userId, parseSecondFactor(input.code), at, { allowRecovery: true, requireConfirmed: true });
     if (!used) {
       await recordAudit(db, { actorId: userId, action: "user.mfa_code_refused", entityType: "user", entityId: userId, ip: ctx.ip });
@@ -129,6 +133,12 @@ export function createMfaService(deps: MfaDeps) {
   return {
     /** True when this site has been given an encryption key, so two-step sign-in can be offered. */
     available: (): boolean => key !== null,
+
+    /** False for an account that only ever signed in with Google (nothing to type besides the code when managing two-step). */
+    async hasPassword(userId: string): Promise<boolean> {
+      const [u] = await db.select({ hash: users.passwordHash }).from(users).where(eq(users.id, userId)).limit(1);
+      return Boolean(u?.hash);
+    },
 
     async isEnabledFor(userId: string): Promise<boolean> {
       return Boolean(await confirmedRow(db, userId));
@@ -182,7 +192,7 @@ export function createMfaService(deps: MfaDeps) {
       });
     },
 
-    async disable(userId: string, currentSessionId: string, input: { password: string; code: string }, ctx: MfaContext = {}): Promise<void> {
+    async disable(userId: string, currentSessionId: string, input: { password?: string; code: string }, ctx: MfaContext = {}): Promise<void> {
       const at = now();
       await proveIdentity(userId, input, at, ctx);
       await db.transaction(async (tx) => {
@@ -194,7 +204,7 @@ export function createMfaService(deps: MfaDeps) {
       });
     },
 
-    async regenerateRecoveryCodes(userId: string, input: { password: string; code: string }, ctx: MfaContext = {}): Promise<{ recoveryCodes: string[] }> {
+    async regenerateRecoveryCodes(userId: string, input: { password?: string; code: string }, ctx: MfaContext = {}): Promise<{ recoveryCodes: string[] }> {
       const at = now();
       await proveIdentity(userId, input, at, ctx);
       return db.transaction(async (tx) => {

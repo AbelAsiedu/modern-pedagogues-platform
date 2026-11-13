@@ -108,6 +108,24 @@ Good to know:
 - **Emergency only**: if you are locked out and cannot reach the shell, set `STAFF_MFA_REQUIRED=false` to stop requiring it, sign in, and remove that setting (`heroku config:unset STAFF_MFA_REQUIRED`) once fixed. The dashboard warns while it is off.
 - Customers (parents and students) can switch it on too, from the same page. It is optional for them.
 
+## Turn on Sign in with Google (optional)
+
+With this on, the Sign in and Create account pages get a **Continue with Google** button. It only decides *who the person is*; anyone with two-step sign-in switched on (all staff, once set up) is still asked for their authenticator code afterwards. **This release adds a database table (migration 0014), which the release command applies by itself.** Two-step sign-in itself needs nothing new: Google Authenticator already works with it (Account > Two-step sign-in).
+
+1. Open [Google Cloud Console](https://console.cloud.google.com), create a project (for example "The Modern Pedagogues") and go to **APIs & Services > OAuth consent screen**. Choose **External**, give the app name, a support email and your developer email, and add `themodernpedagogues.com` as an authorised domain. The only permissions used are the basic ones (`openid`, `email`, `profile`), which need no Google review. Press **Publish app** so that anyone, not just test users, can sign in.
+2. Go to **APIs & Services > Credentials > Create credentials > OAuth client ID**. Type: **Web application**. Under **Authorised redirect URIs** add exactly `https://themodernpedagogues.com/api/auth/google/callback` (your `APP_URL` plus `/api/auth/google/callback`; the address must match exactly, including `https` and no trailing slash). Leave "Authorised JavaScript origins" empty.
+3. Google shows a **Client ID** (ends in `.apps.googleusercontent.com`) and a **Client secret**. Put both on Heroku as config vars (dashboard: your app, Settings, Reveal Config Vars), or `heroku config:set GOOGLE_CLIENT_ID=... GOOGLE_CLIENT_SECRET=... -a themodernpedagogues`. Do not paste the secret into chat, email or the repository. The app restarts by itself.
+4. Open the Sign in page: the button should be there. Try it with a Google account that is not yours first if you can. Setting only one of the two values stops the site from starting, with a message naming the missing one.
+
+How it behaves:
+
+- A first-time Google sign-in makes a new account (already confirmed, no password). On **Create account** the person chooses parent or student; on **Sign in** new people become parents. Nobody can become staff this way.
+- If an account with that email already exists, the Google account is linked to it and the person lands in the same account with the same roles. If that account was never confirmed, it is confirmed and any password typed at sign-up is thrown away (Google has just proven who owns the address).
+- A person with Google only has no password. To also sign in with a password, they use **Forgot your password?** on the Sign in page. Two-step settings (recovery codes, turning it off) ask for an authenticator code only.
+- Suspended accounts cannot sign in this way either.
+- If Google cannot be reached, or the button is clicked after the ticket expired (10 minutes), the person is sent back to Sign in with a short message.
+- To switch it off again, remove both config vars; the buttons disappear and everyone keeps their other ways in. Linked Google accounts stay recorded in the `oauth_identities` table.
+
 ## Backups
 
 Heroku does not take database backups until you ask it to, and on the Essential plan it keeps very few and tells you nothing when one fails. Switch on the daily schedule once and copy the database to your own computer every week. The full steps, the restore practice run and the limits are in [`BACKUPS.md`](BACKUPS.md); the two commands you need first are:

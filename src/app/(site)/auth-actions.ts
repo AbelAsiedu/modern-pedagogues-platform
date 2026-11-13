@@ -2,7 +2,6 @@
 
 import { redirect } from "next/navigation";
 import { runAction, type ActionState } from "@/server/action-result";
-import { can } from "@/server/permissions/authorize";
 import { InvalidTokenError, MfaRequiredError } from "@/server/errors";
 import {
   authService,
@@ -10,9 +9,9 @@ import {
   clearSessionCookie,
   getMfaChallengeCookie,
   getSession,
+  postSignInPath,
   requestContext,
   requireSession,
-  safeNext,
   setMfaChallengeCookie,
   setSessionCookie,
 } from "@/server/context";
@@ -41,13 +40,8 @@ export async function loginAction(_: ActionState, form: FormData): Promise<Actio
   });
 }
 
-/** Where a freshly signed-in person goes: staff to the admin area, everyone else to their account. */
 async function afterSignIn(next: string): Promise<string> {
-  const session = await getSession();
-  const staff = session ? can(session.actor, "users.view") || can(session.actor, "content.manage_site") : false;
-  // Staff who still have to set up two-step sign-in have no staff powers yet, so send them to do that.
-  if (session?.mfaSetupRequired) return "/account/security?required=1";
-  return safeNext(next, staff ? "/admin" : "/account");
+  return postSignInPath(await getSession(), next);
 }
 
 /** Second sign-in step: the 6-digit code (or a recovery code) turns the ticket from the password step into a session. */

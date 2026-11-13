@@ -20,6 +20,7 @@ import type { AssistantDeps } from "./assistant/service";
 import type { DeliverDeps } from "./email/deliver";
 import type { Mailer } from "./email/mailer";
 import { env } from "./env";
+import type { GoogleConfig } from "./auth/google";
 import type { PaymentDeps } from "./payments/orders";
 import type { PaystackConfig } from "./payments/paystack";
 import { logger } from "./logger";
@@ -41,6 +42,19 @@ export function emailDeps(): DeliverDeps & { appUrl: string } {
 export function paystackConfig(): PaystackConfig | null {
   const e = env();
   return e.PAYSTACK_SECRET_KEY ? { secretKey: e.PAYSTACK_SECRET_KEY, apiUrl: e.PAYSTACK_API_URL } : null;
+}
+
+/** "Sign in with Google" settings, or null when no client id/secret are set (then the buttons are hidden). */
+export function googleConfig(): GoogleConfig | null {
+  const e = env();
+  if (!e.GOOGLE_CLIENT_ID || !e.GOOGLE_CLIENT_SECRET) return null;
+  return {
+    clientId: e.GOOGLE_CLIENT_ID,
+    clientSecret: e.GOOGLE_CLIENT_SECRET,
+    authUrl: e.GOOGLE_AUTH_URL,
+    tokenUrl: e.GOOGLE_TOKEN_URL,
+    redirectUri: `${e.APP_URL.replace(/\/$/, "")}/api/auth/google/callback`,
+  };
 }
 
 export function paymentDeps(): PaymentDeps {
@@ -143,6 +157,17 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
   const token = (await cookies()).get(cookieName())?.value;
   return validateSession(db(), token, new Date(), { requireStaffTwoStep: staffTwoStepEnforced() });
 });
+
+/** Where a person goes right after signing in: staff to the admin area, everyone else to their account. */
+export function postSignInPath(session: SessionUser | null, next: string): string {
+  const staff = session ? can(session.actor, "users.view") || can(session.actor, "content.manage_site") : false;
+  // Staff who still have to set up two-step sign-in have no staff powers yet, so send them to do that.
+  if (session?.mfaSetupRequired) return "/account/security?required=1";
+  return safeNext(next, staff ? "/admin" : "/account");
+}
+
+/** Holds the one-time values that tie a Google sign-in's return trip to the browser that started it. Lives ten minutes. */
+export const googleCookieName = () => (isProd() ? "__Host-tmp_google" : "tmp_google");
 
 export async function getActor(): Promise<Actor | null> {
   return (await getSession())?.actor ?? null;

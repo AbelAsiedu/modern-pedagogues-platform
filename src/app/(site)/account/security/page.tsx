@@ -31,6 +31,10 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
   const mfa = authService().mfa;
   const available = mfa.available();
   const { state, recoveryRemaining } = await mfa.status(s.user.id);
+  const hasPassword = await mfa.hasPassword(s.user.id);
+  const manageFields = hasPassword
+    ? ([{ name: "password", label: "Password", type: "password", autoComplete: "current-password", required: true }, codeField] as const)
+    : ([codeField] as const);
   const pending = state === "pending" ? await mfa.pendingSetup(s.user.id, s.user.email) : null;
   const qr = pending ? qrSvg(pending.uri) : null;
   // Staff roles are withheld from an unprotected staff account, so ask the session, not the roles on the actor.
@@ -92,13 +96,13 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
 
           <section className="mt-8 rounded-2xl border border-navy/10 bg-white p-6">
             <h2 className="text-xl font-semibold">Make new recovery codes</h2>
-            <p className="mt-1 text-sm text-navy/80">The old codes stop working. You will be asked for your password and a code.</p>
+            <p className="mt-1 text-sm text-navy/80">The old codes stop working. {hasPassword ? "You will be asked for your password and a code." : "You will be asked for a code."}</p>
             <div className="mt-4">
               <ActionForm
                 action={regenerateRecoveryCodesAction}
                 submitLabel="Make new codes"
                 tone="quiet"
-                fields={[{ name: "password", label: "Password", type: "password", autoComplete: "current-password", required: true }, codeField]}
+                fields={[...manageFields]}
               />
             </div>
           </section>
@@ -115,7 +119,7 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
                 action={disableTwoStepAction}
                 submitLabel="Turn off"
                 tone="danger"
-                fields={[{ name: "password", label: "Password", type: "password", autoComplete: "current-password", required: true }, codeField]}
+                fields={[...manageFields]}
               />
             </div>
           </section>

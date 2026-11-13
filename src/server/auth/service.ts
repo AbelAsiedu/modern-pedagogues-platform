@@ -2,6 +2,7 @@ import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import type { Db, DbOrTx } from "../db";
 import {
   emailVerificationTokens,
+  oauthIdentities,
   passwordResetTokens,
   roles,
   userRoles,
@@ -11,6 +12,7 @@ import { recordAudit } from "../audit";
 import {
   AccountLockedError,
   AccountSuspendedError,
+  ConflictError,
   EmailNotVerifiedError,
   InvalidCredentialsError,
   InvalidTokenError,
@@ -31,7 +33,8 @@ import { hashPassword, passwordSchema, verifyAgainstDummy, verifyPassword } from
 import { enforceRateLimit } from "./rate-limit";
 import { createSession, revokeAllSessions, revokeSessionByToken } from "./sessions";
 import { generateToken, hashToken } from "./tokens";
-import { emailSchema, loginSchema, parseOrThrow, registerSchema, tokenSchema, type RegisterInput } from "./validation";
+import type { GoogleProfile } from "./google";
+import { emailSchema, loginSchema, parseOrThrow, REGISTRATION_ROLES, registerSchema, tokenSchema, type RegisterInput } from "./validation";
 
 export const VERIFY_TTL_SECONDS = 24 * 60 * 60;
 export const RESET_TTL_SECONDS = 60 * 60;
@@ -51,8 +54,12 @@ export type AuthDeps = {
 export type RequestContext = { ip?: string | null; userAgent?: string | null };
 
 const PG_UNIQUE_VIOLATION = "23505";
+/** Drizzle wraps the driver's error, so the Postgres code can sit on `cause` instead of the error itself. */
 const isUniqueViolation = (e: unknown): boolean =>
-  typeof e === "object" && e !== null && "code" in e && (e as { code?: string }).code === PG_UNIQUE_VIOLATION;
+  typeof e === "object" &&
+  e !== null &&
+  (("code" in e && (e as { code?: string }).code === PG_UNIQUE_VIOLATION) ||
+    ("cause" in e && isUniqueViolation((e as { cause?: unknown }).cause)));
 
 export function createAuthService(deps: AuthDeps) {
   const { db, mailer, log } = deps;
@@ -261,6 +268,113 @@ export function createAuthService(deps: AuthDeps) {
         .where(eq(users.id, user.id));
       const session = await createSession(db, user.id, { ...ctx, now: at });
       await recordAudit(db, { actorId: user.id, action: "user.login", entityType: "user", entityId: user.id, ip: ctx.ip });
+      return { token: session.token, expiresAt: session.expiresAt, userId: user.id };
+    },
+
+    /**
+     * "Sign in with Google". `profile` comes from a checked Google ID token, so Google has vouched that the person controls
+     * that (verified) email. Order of attempts: an already-linked Google account; else an existing account with the same
+     * email, which gets linked; else a new account. Two-step sign-in still applies to anyone who has it on.
+     */
+    async signInWithGoogle(profile: GoogleProfile, role: string, ctx: RequestContext = {}) {
+      try {
+        await enforceRateLimit(db, { key: `google:ip:${ipKey(ctx)}`, limit: 40, windowSeconds: 600 });
+      } catch (err) {
+        if (err instanceof RateLimitError) throw new AccountLockedError(err.retryAfterSeconds);
+        throw err;
+      }
+      const wantedRole = REGISTRATION_ROLES.find((r) => r === role) ?? "parent";
+      const at = now();
+
+      const resolve = async (): Promise<{ id: string; status: string }> => {
+        const [linked] = await db
+          .select({ id: users.id, status: users.status })
+          .from(oauthIdentities)
+          .innerJoin(users, eq(users.id, oauthIdentities.userId))
+          .where(and(eq(oauthIdentities.provider, "google"), eq(oauthIdentities.subject, profile.subject)))
+          .limit(1);
+        if (linked) {
+          if (linked.status !== "SUSPENDED") {
+            await db
+              .update(oauthIdentities)
+              .set({ email: profile.email, lastLoginAt: at })
+              .where(and(eq(oauthIdentities.provider, "google"), eq(oauthIdentities.subject, profile.subject)));
+          }
+          return linked;
+        }
+
+        const existing = await findUserByEmail(profile.email);
+        if (existing) {
+          if (existing.status === "SUSPENDED") return { id: existing.id, status: existing.status };
+          // A different Google account is already linked to this person: do not silently add a second one.
+          const [other] = await db
+            .select({ subject: oauthIdentities.subject })
+            .from(oauthIdentities)
+            .where(and(eq(oauthIdentities.userId, existing.id), eq(oauthIdentities.provider, "google")))
+            .limit(1);
+          if (other?.subject === profile.subject) return { id: existing.id, status: existing.status }; // created a moment ago by a parallel request
+          if (other) throw new ConflictError("This account is already linked to a different Google account.");
+          const wasUnconfirmed = existing.status === "PENDING_VERIFICATION" || !existing.emailVerifiedAt;
+          await db.transaction(async (tx) => {
+            await tx.insert(oauthIdentities).values({ userId: existing.id, provider: "google", subject: profile.subject, email: profile.email, lastLoginAt: at });
+            if (wasUnconfirmed) {
+              // Someone may have registered this address without owning it and chosen a password; Google has now proven who
+              // owns it, so that password is discarded and any session made with it is ended.
+              await tx
+                .update(users)
+                .set({ passwordHash: null, emailVerifiedAt: at, status: "ACTIVE", failedLoginCount: 0, lockedUntil: null })
+                .where(eq(users.id, existing.id));
+              await revokeAllSessions(tx, existing.id, undefined, at);
+            }
+            await recordAudit(tx, {
+              actorId: existing.id,
+              action: "user.google_linked",
+              entityType: "user",
+              entityId: existing.id,
+              metadata: { newlyVerified: wasUnconfirmed },
+              ip: ctx.ip,
+            });
+          });
+          return { id: existing.id, status: wasUnconfirmed ? "ACTIVE" : existing.status };
+        }
+
+        const fullName = profile.name.length >= 2 ? profile.name : profile.email.split("@")[0]!.padEnd(2, "_").slice(0, 120);
+        return db.transaction(async (tx) => {
+          const [role] = await tx.select({ id: roles.id }).from(roles).where(eq(roles.key, wantedRole)).limit(1);
+          if (!role) throw new Error(`role "${wantedRole}" is not seeded; run npm run db:seed`);
+          const [user] = await tx
+            .insert(users)
+            .values({ email: profile.email, fullName, passwordHash: null, emailVerifiedAt: at, status: "ACTIVE" })
+            .returning({ id: users.id });
+          if (!user) throw new Error("user insert returned no row");
+          await tx.insert(userRoles).values({ userId: user.id, roleId: role.id });
+          await tx.insert(oauthIdentities).values({ userId: user.id, provider: "google", subject: profile.subject, email: profile.email, lastLoginAt: at });
+          await recordAudit(tx, {
+            actorId: user.id,
+            action: "user.registered",
+            entityType: "user",
+            entityId: user.id,
+            metadata: { role: wantedRole, via: "google" },
+            ip: ctx.ip,
+          });
+          return { id: user.id, status: "ACTIVE" };
+        });
+      };
+
+      let user: { id: string; status: string };
+      try {
+        user = await resolve();
+      } catch (err) {
+        if (!isUniqueViolation(err)) throw err;
+        user = await resolve(); // lost a race with a parallel first sign-in; the account exists now
+      }
+      if (user.status === "SUSPENDED") throw new AccountSuspendedError();
+
+      if (await mfa.isEnabledFor(user.id)) throw new MfaRequiredError(await mfa.createChallenge(user.id));
+
+      await db.update(users).set({ lastLoginAt: at }).where(eq(users.id, user.id));
+      const session = await createSession(db, user.id, { ...ctx, now: at });
+      await recordAudit(db, { actorId: user.id, action: "user.login", entityType: "user", entityId: user.id, metadata: { via: "google" }, ip: ctx.ip });
       return { token: session.token, expiresAt: session.expiresAt, userId: user.id };
     },
 
